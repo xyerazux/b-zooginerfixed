@@ -2766,30 +2766,138 @@
   <div id="account-modal"
     class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div id="account-modal-box"
-      class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
+      class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
       <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
         <div>
-          <span class="text-[11px] uppercase tracking-wider font-bold text-amber-300">Panel Keamanan Superadmin</span>
-          <h4 class="font-display text-lg font-bold">Kelola Username &amp; Kata Sandi Semua Akun</h4>
+          <span class="text-[11px] uppercase tracking-wider font-bold text-amber-300">Safari Security Hub · Superadmin</span>
+          <h4 class="font-display text-lg font-bold">Kelola Seluruh Akun &amp; Hak Akses Pengguna</h4>
         </div>
         <button type="button" onclick="closeModal('account-modal')"
           class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm cursor-pointer">&times;</button>
       </div>
-      <div class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-        <p class="text-xs text-slate-500">
-          Superadmin dapat mengubah username dan kata sandi untuk akun Superadmin maupun 5 Admin Kelompok secara
-          langsung. Perubahan tersimpan dan langsung tersinkronisasi.
-        </p>
-        <div id="accounts-editor-list" class="space-y-3"></div>
-        <div class="flex items-center justify-between pt-3 border-t border-slate-100">
-          <button type="button" onclick="resetAccountsToDefault()"
-            class="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold cursor-pointer">
-            Reset Akun ke Default
+      <div class="p-6 space-y-4 max-h-[82vh] overflow-y-auto">
+        <!-- Action & Filter Bar -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div class="flex flex-wrap items-center gap-2 flex-1">
+            <div class="relative flex-1 min-w-[180px]">
+              <input id="account-filter-search" type="text" placeholder="Cari username..."
+                oninput="debouncedAccountsRender()"
+                class="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold focus:outline-none focus:border-brand-500" />
+              <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+            <select id="account-filter-role" onchange="renderAccountsEditor()"
+              class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:border-brand-500">
+              <option value="all">Semua Role</option>
+              <option value="superadmin">Superadmin</option>
+              <option value="group_admin">Admin Kelompok</option>
+            </select>
+            <select id="account-filter-status" onchange="renderAccountsEditor()"
+              class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:border-brand-500">
+              <option value="all">Semua Status</option>
+              <option value="active">Aktif</option>
+              <option value="inactive">Nonaktif</option>
+            </select>
+          </div>
+          <button type="button" onclick="openAddAccountModal()"
+            class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md cursor-pointer flex items-center justify-center gap-1.5 shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span>Tambah Akun Baru</span>
           </button>
+        </div>
+
+        <!-- Accounts List -->
+        <div id="accounts-editor-list" class="space-y-3"></div>
+
+        <div class="flex items-center justify-end pt-3 border-t border-slate-100">
           <button type="button" onclick="closeModal('account-modal')"
             class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold cursor-pointer">
             Selesai
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TAMBAH AKUN BARU (SUPERADMIN ONLY) -->
+  <div id="add-account-modal"
+    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div id="add-account-modal-box"
+      class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div>
+          <span class="text-[11px] uppercase tracking-wider font-bold text-emerald-400">Pendaftaran Pengguna</span>
+          <h4 class="font-display text-base font-bold">Tambah Akun Baru</h4>
+        </div>
+        <button type="button" onclick="closeModal('add-account-modal')"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm cursor-pointer">&times;</button>
+      </div>
+      <form id="add-account-form" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Username *</label>
+          <div class="relative">
+            <span class="absolute left-3 top-2.5 text-slate-400 font-bold text-xs">@</span>
+            <input id="add-acc-username" type="text" required placeholder="misal: admin_kel6"
+              class="w-full pl-8 pr-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:border-brand-500" />
+          </div>
+          <p class="text-[11px] text-slate-400 mt-1">3–24 karakter (huruf kecil a-z, angka 0-9, garis bawah _).</p>
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Kata Sandi Baru *</label>
+          <input id="add-acc-password" type="text" required placeholder="Minimal 6 karakter"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-semibold text-slate-800 focus:outline-none focus:border-brand-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Peran Akun (Role) *</label>
+          <select id="add-acc-role" onchange="toggleAddAccountRoleFields()"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-500">
+            <option value="group_admin">Admin Kelompok (group_admin)</option>
+            <option value="superadmin">Superadmin (superadmin)</option>
+          </select>
+        </div>
+        <div id="add-acc-group-wrap">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Tugaskan ke Kelompok (Opsional)</label>
+          <select id="add-acc-group"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-500">
+            <option value="">(Belum Ditugaskan / Hubungkan Nanti)</option>
+          </select>
+        </div>
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button type="button" onclick="closeModal('add-account-modal')"
+            class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">Batal</button>
+          <button type="submit" id="add-acc-submit-btn"
+            class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-lg shadow-emerald-600/20 cursor-pointer">Buat Akun</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: KONFIRMASI TINDAKAN AKUN (NONAKTIFKAN / AKTIFKAN / HAPUS) -->
+  <div id="confirm-account-action-modal"
+    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div id="confirm-account-action-modal-box"
+      class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <h4 id="confirm-acc-title" class="font-display text-base font-bold">Konfirmasi Tindakan Akun</h4>
+        <button type="button" onclick="closeModal('confirm-account-action-modal')"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm cursor-pointer">&times;</button>
+      </div>
+      <div class="p-6 space-y-4">
+        <input type="hidden" id="confirm-acc-id" />
+        <input type="hidden" id="confirm-acc-action" />
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700">
+          <span class="text-slate-500 block mb-0.5 font-medium">Target Pengguna:</span>
+          <strong id="confirm-acc-target-user" class="text-sm font-bold text-slate-900">@username</strong>
+        </div>
+        <p id="confirm-acc-desc" class="text-xs text-slate-600 leading-relaxed"></p>
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button type="button" onclick="closeModal('confirm-account-action-modal')"
+            class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">Batal</button>
+          <button type="button" id="confirm-acc-proceed-btn" onclick="executeAccountAction()"
+            class="px-5 py-2.5 rounded-xl text-white text-xs font-bold shadow-md cursor-pointer">Konfirmasi</button>
         </div>
       </div>
     </div>
@@ -3090,6 +3198,7 @@
         username: p.username,
         role: p.role,
         groupId: p.group_id,
+        is_active: p.is_active !== false,
         label: p.role === 'superadmin' ? 'Superadmin (Master Promotor)' : (p.group_id ? `Admin Kelompok ${p.group_id}` : 'Admin Kelompok')
       };
     }
@@ -3114,6 +3223,7 @@
         username: p.username,
         role: p.role,
         groupId: p.group_id,
+        is_active: p.is_active !== false,
         label: p.role === 'superadmin' ? 'Superadmin (Master Promotor)' : (p.group_id ? `Admin Kelompok ${p.group_id}` : 'Admin Kelompok (Belum Ditugaskan)')
       }));
     }
@@ -3335,6 +3445,13 @@
           return;
         }
 
+        if (profile.is_active === false) {
+          await sb.auth.signOut();
+          errBox.textContent = 'Akun Anda telah dinonaktifkan oleh administrator. Silakan hubungi Superadmin.';
+          errBox.classList.remove('hidden');
+          return;
+        }
+
         currentUser = profile;
         originUser = null;
         sessionStorage.removeItem(STORAGE_KEYS.ORIGIN);
@@ -3388,52 +3505,127 @@
       openModal('account-modal');
     }
 
+    let _accDebounceTimer = null;
+    function debouncedAccountsRender() {
+      clearTimeout(_accDebounceTimer);
+      _accDebounceTimer = setTimeout(renderAccountsEditor, 120);
+    }
+
     function renderAccountsEditor() {
       const container = document.getElementById('accounts-editor-list');
-      const list = allProfiles.length > 0 ? allProfiles : [
-        { id: 'superadmin', role: 'superadmin', groupId: null, label: 'Superadmin (Master Promotor)', username: 'superadmin' },
-        ...groups.map(g => ({ id: `kel_${g.id}`, role: 'group_admin', groupId: g.id, label: `Admin Kelompok ${g.id}`, username: `admin_kel${g.id}` }))
-      ];
+      if (!container) return;
+
+      const search = (document.getElementById('account-filter-search')?.value || '').trim().toLowerCase();
+      const roleFilter = document.getElementById('account-filter-role')?.value || 'all';
+      const statusFilter = document.getElementById('account-filter-status')?.value || 'all';
+
+      let list = allProfiles.slice();
+
+      // Search filter
+      if (search) {
+        list = list.filter(acc =>
+          (acc.username || '').toLowerCase().includes(search) ||
+          (acc.label || '').toLowerCase().includes(search)
+        );
+      }
+
+      // Role filter
+      if (roleFilter !== 'all') {
+        list = list.filter(acc => acc.role === roleFilter);
+      }
+
+      // Status filter
+      if (statusFilter === 'active') {
+        list = list.filter(acc => acc.is_active !== false);
+      } else if (statusFilter === 'inactive') {
+        list = list.filter(acc => acc.is_active === false);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-500">
+            Tidak ada akun yang sesuai dengan filter atau kata kunci pencarian.
+          </div>
+        `;
+        return;
+      }
 
       container.innerHTML = list.map(acc => {
         const isSuper = acc.role === 'superadmin';
-        const groupOptions = groups.map(g =>
-          `<option value="${g.id}" ${acc.groupId === g.id ? 'selected' : ''}>Kelompok ${g.id} - ${esc(g.name)}${g.is_active === false ? ' (Arsip)' : ''}</option>`
-        ).join('');
+        const isMaster = isSuper && acc.username === 'superadmin';
+        const isCurrent = currentUser && currentUser.id === acc.id;
+        const isActive = acc.is_active !== false;
+
+        const roleBadge = isSuper
+          ? `<span class="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200">Superadmin</span>`
+          : `<span class="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-brand-100 text-brand-700 border border-brand-200">${acc.groupId ? 'Kelompok ' + acc.groupId : 'Admin Kelompok (Belum Ditugaskan)'}</span>`;
+
+        const statusBadge = isActive
+          ? `<span class="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">Aktif</span>`
+          : `<span class="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-200">Nonaktif</span>`;
 
         return `
-        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div class="min-w-[170px]">
-            <span class="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${isSuper ? 'bg-amber-100 text-amber-800' : 'bg-brand-100 text-brand-700'}">
-              ${isSuper ? 'Master' : 'Kelompok ' + (acc.groupId || '-')}
-            </span>
-            <p class="font-bold text-sm text-slate-900 mt-1">${esc(acc.label)}</p>
+        <div class="p-4 rounded-2xl ${isActive ? 'bg-slate-50 border-slate-200' : 'bg-rose-50/40 border-rose-200'} border flex flex-col md:flex-row md:items-center justify-between gap-3 transition">
+          <div class="min-w-[190px]">
+            <div class="flex items-center gap-1.5 mb-1">
+              ${roleBadge}
+              ${statusBadge}
+            </div>
+            <p class="font-bold text-sm text-slate-900 flex items-center gap-1">
+              <span>@${esc(acc.username)}</span>
+              ${isCurrent ? '<span class="text-[10px] text-brand-600 font-semibold">(Anda)</span>' : ''}
+              ${isMaster ? '<span class="text-[10px] text-amber-600 font-semibold">(Master)</span>' : ''}
+            </p>
+            <p class="text-[11px] text-slate-400 mt-0.5">${esc(acc.label)}</p>
           </div>
-          <div class="grid grid-cols-1 ${isSuper ? 'sm:grid-cols-3' : 'sm:grid-cols-4'} gap-2 flex-1">
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-1 max-w-md">
             <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Username</label>
-              <input id="edit-usn-${acc.id}" type="text" value="${esc(acc.username)}" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800" />
+              <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Ubah Username</label>
+              <input id="edit-usn-${acc.id}" type="text" value="${esc(acc.username)}"
+                ${isMaster ? 'disabled title="Username akun master Superadmin tidak dapat diubah"' : ''}
+                class="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-500 ${isMaster ? 'bg-slate-100 cursor-not-allowed text-slate-400' : ''}" />
             </div>
-            ${!isSuper ? `
             <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Kelompok Dikelola</label>
-              <select id="edit-gid-${acc.id}" class="w-full px-2.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800">
-                ${groupOptions}
-              </select>
+              <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Reset Sandi</label>
+              <input id="edit-pw-${acc.id}" type="text" placeholder="Ketik kata sandi baru..."
+                class="w-full px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-brand-500" />
             </div>
-            ` : ''}
-            <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Kata Sandi Baru</label>
-              <input id="edit-pw-${acc.id}" type="text" placeholder="Kosongkan jika tidak ganti" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs text-slate-800" />
-            </div>
-            <div class="flex items-end">
-              <button type="button" onclick="saveAccountCredential('${acc.id}')" class="w-full py-2 px-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition cursor-pointer">
-                Simpan Akun
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-200">
+            <button type="button" onclick="saveAccountCredential('${acc.id}')"
+              class="py-1.5 px-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition cursor-pointer shadow-xs">
+              Simpan
+            </button>
+
+            ${(isCurrent || isMaster) ? `
+              <button disabled title="${isCurrent ? 'Tidak dapat menonaktifkan akun sendiri' : 'Akun Master Superadmin dilindungi'}"
+                class="py-1.5 px-2.5 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold cursor-not-allowed">
+                Kunci
               </button>
-            </div>
+            ` : (isActive ? `
+              <button type="button" onclick="openConfirmAccountModal('${acc.id}', 'deactivate')"
+                class="py-1.5 px-2.5 rounded-xl border border-amber-300 text-amber-700 hover:bg-amber-100/60 text-xs font-bold transition cursor-pointer">
+                Nonaktifkan
+              </button>
+            ` : `
+              <button type="button" onclick="openConfirmAccountModal('${acc.id}', 'activate')"
+                class="py-1.5 px-2.5 rounded-xl border border-emerald-400 text-emerald-700 hover:bg-emerald-100/60 text-xs font-bold transition cursor-pointer">
+                Aktifkan
+              </button>
+            `)}
+
+            ${(!isCurrent && !isMaster) ? `
+              <button type="button" onclick="openConfirmAccountModal('${acc.id}', 'delete')"
+                class="py-1.5 px-2.5 rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-bold transition cursor-pointer"
+                title="Hapus akun permanen">
+                Hapus
+              </button>
+            ` : ''}
           </div>
         </div>
-      `;
+        `;
       }).join('');
     }
 
@@ -3462,23 +3654,11 @@
         return;
       }
 
-      showToast(`Menyimpan perubahan untuk ${target.label}...`);
+      showToast(`Menyimpan perubahan untuk @${target.username}...`);
 
       try {
         const cfg = getSupabaseConfig();
         const fnUrl = `${cfg.url}/functions/v1/manage-bzooginer-account`;
-
-        // 0. Update Group Assignment jika akun admin kelompok dan groupId berubah
-        const gidEl = document.getElementById(`edit-gid-${accId}`);
-        if (gidEl && target.role === 'group_admin') {
-          const newGid = Number(gidEl.value);
-          if (newGid && newGid !== target.groupId) {
-            await sbRequest('bzooginer_profiles', 'PATCH', { group_id: newGid }, `?id=eq.${accId}`);
-            target.groupId = newGid;
-            target.label = `Admin Kelompok ${newGid}`;
-            showToast(`Akun @${target.username} berhasil dihubungkan ke Kelompok ${newGid}!`);
-          }
-        }
 
         // 1. Pembaruan Username jika berubah
         if (newUsn !== target.username.toLowerCase()) {
@@ -3519,7 +3699,7 @@
           if (!res.ok) {
             throw new Error(resData.error || 'Gagal mengubah kata sandi melalui Edge Function.');
           }
-          showToast(`Kata sandi akun ${target.username} berhasil diubah!`);
+          showToast(`Kata sandi akun @${target.username} berhasil diubah!`);
           document.getElementById(`edit-pw-${accId}`).value = '';
         }
 
@@ -3527,16 +3707,187 @@
         renderAccountsEditor();
         renderSwitcher();
         refreshAllSections();
-        showToast(`Akun ${target.label} berhasil diperbarui!`);
+        showToast(`Akun @${target.username} berhasil diperbarui!`);
       } catch (err) {
-        console.warn('Account update notice:', err.message);
-        alert(`Perhatian Operasi Admin:\n${err.message}\n\nPastikan Supabase Edge Function 'manage-bzooginer-account' sudah dideploy. Lihat panduan di: supabase/functions/manage-bzooginer-account/README.md`);
+        console.warn('Account update error:', err.message);
+        showToast(err.message, 'error');
       }
     }
 
-    async function resetAccountsToDefault() {
-      alert('Reset kata sandi massal berbasis plaintext telah dinonaktifkan demi standar keamanan Supabase Auth. Untuk mereset kata sandi akun, gunakan kolom "Kata Sandi Baru" lalu klik "Simpan Akun" pada akun yang dituju.');
+    function openConfirmAccountModal(accId, action) {
+      const acc = allProfiles.find(p => p.id === accId);
+      if (!acc) return;
+
+      document.getElementById('confirm-acc-id').value = accId;
+      document.getElementById('confirm-acc-action').value = action;
+      document.getElementById('confirm-acc-target-user').textContent = `@${acc.username} (${acc.label || acc.role})`;
+
+      const titleEl = document.getElementById('confirm-acc-title');
+      const descEl = document.getElementById('confirm-acc-desc');
+      const btn = document.getElementById('confirm-acc-proceed-btn');
+
+      if (action === 'deactivate') {
+        titleEl.textContent = 'Nonaktifkan Akun Pengguna';
+        descEl.textContent = `Apakah Anda yakin ingin menonaktifkan akun @${acc.username}? Pengguna tidak akan dapat masuk ke sistem. Seluruh data transaksi historis dan kelompok tetap aman, dan akun dapat diaktifkan kembali kapan saja.`;
+        btn.className = 'px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-md cursor-pointer';
+        btn.textContent = 'Ya, Nonaktifkan Akun';
+      } else if (action === 'activate') {
+        titleEl.textContent = 'Aktifkan Kembali Akun Pengguna';
+        descEl.textContent = `Akses login untuk akun @${acc.username} akan dipulihkan sehingga pengguna dapat kembali masuk dan menggunakan sistem B-Zooginer.`;
+        btn.className = 'px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md cursor-pointer';
+        btn.textContent = 'Ya, Aktifkan Kembali';
+      } else if (action === 'delete') {
+        titleEl.textContent = 'Hapus Akun Pengguna Permanen';
+        descEl.textContent = `PERINGATAN: Akun @${acc.username} akan dihapus secara permanen dari Supabase Auth dan basis data profil. Seluruh data pesanan PO dan kelompok dagangan TIDAK AKAN terhapus. Tindakan ini tidak dapat dibatalkan!`;
+        btn.className = 'px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md cursor-pointer';
+        btn.textContent = 'Ya, Hapus Akun Permanen';
+      }
+
+      openModal('confirm-account-action-modal');
     }
+
+    async function executeAccountAction() {
+      const accId = document.getElementById('confirm-acc-id').value;
+      const action = document.getElementById('confirm-acc-action').value;
+      const btn = document.getElementById('confirm-acc-proceed-btn');
+
+      const acc = allProfiles.find(p => p.id === accId);
+      if (!acc) return;
+
+      const sb = getSupabase();
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        showToast('Sesi tidak aktif.', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Memproses…';
+
+      try {
+        const cfg = getSupabaseConfig();
+        const fnUrl = `${cfg.url}/functions/v1/manage-bzooginer-account`;
+
+        let payload = {};
+        if (action === 'deactivate') {
+          payload = { action: 'toggle-active', targetUserId: accId, isActive: false };
+        } else if (action === 'activate') {
+          payload = { action: 'toggle-active', targetUserId: accId, isActive: true };
+        } else if (action === 'delete') {
+          payload = { action: 'delete-account', targetUserId: accId };
+        }
+
+        const res = await fetch(fnUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const resData = await res.json();
+        if (!res.ok) {
+          throw new Error(resData.error || 'Operasi gagal diproses server.');
+        }
+
+        // Refresh allProfiles from DB
+        allProfiles = await loadAllProfiles(session.access_token);
+        renderAccountsEditor();
+        renderSwitcher();
+        refreshAllSections();
+        closeModal('confirm-account-action-modal');
+        showToast(resData.message || 'Operasi akun berhasil diselesaikan!');
+      } catch (err) {
+        console.error('Account action error:', err);
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Konfirmasi';
+      }
+    }
+
+    function openAddAccountModal() {
+      document.getElementById('add-account-form').reset();
+      const groupSelect = document.getElementById('add-acc-group');
+      if (groupSelect) {
+        groupSelect.innerHTML = `<option value="">(Belum Ditugaskan / Hubungkan Nanti)</option>` +
+          groups.map(g => `<option value="${g.id}">Kelompok ${g.id} (${esc(g.name)})${g.is_active === false ? ' [Arsip]' : ''}</option>`).join('');
+      }
+      toggleAddAccountRoleFields();
+      openModal('add-account-modal');
+    }
+
+    function toggleAddAccountRoleFields() {
+      const role = document.getElementById('add-acc-role').value;
+      const groupWrap = document.getElementById('add-acc-group-wrap');
+      if (groupWrap) {
+        groupWrap.classList.toggle('hidden', role === 'superadmin');
+      }
+    }
+
+    document.getElementById('add-account-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('add-acc-username').value.trim().toLowerCase();
+      const password = document.getElementById('add-acc-password').value.trim();
+      const role = document.getElementById('add-acc-role').value;
+      const groupIdVal = document.getElementById('add-acc-group').value;
+      const groupId = (role === 'group_admin' && groupIdVal) ? Number(groupIdVal) : null;
+      const submitBtn = document.getElementById('add-acc-submit-btn');
+
+      if (!username || !password) {
+        showToast('Username dan kata sandi wajib diisi!', 'error');
+        return;
+      }
+
+      const sb = getSupabase();
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        showToast('Sesi tidak aktif.', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Membuat Akun…';
+
+      try {
+        const cfg = getSupabaseConfig();
+        const fnUrl = `${cfg.url}/functions/v1/manage-bzooginer-account`;
+
+        const res = await fetch(fnUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            action: 'create-account',
+            username,
+            password,
+            role,
+            groupId
+          })
+        });
+
+        const resData = await res.json();
+        if (!res.ok) {
+          throw new Error(resData.error || 'Gagal membuat akun.');
+        }
+
+        allProfiles = await loadAllProfiles(session.access_token);
+        renderAccountsEditor();
+        renderSwitcher();
+        refreshAllSections();
+        closeModal('add-account-modal');
+        showToast(resData.message || `Akun @${username} berhasil dibuat!`);
+      } catch (err) {
+        console.error('Create account error:', err);
+        showToast(err.message, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Buat Akun';
+      }
+    });
 
     // ==========================================
     // 6. MODAL & LIGHTBOX HELPERS
@@ -3698,7 +4049,7 @@
         };
       }
 
-      ['po-modal', 'poster-modal', 'product-modal', 'account-modal', 'summary-modal'].forEach(id => {
+      ['po-modal', 'poster-modal', 'product-modal', 'account-modal', 'summary-modal', 'group-modal', 'archive-modal', 'add-account-modal', 'confirm-account-action-modal'].forEach(id => {
         const m = document.getElementById(id); if (m && !m.classList.contains('hidden')) closeModal(id);
       });
       initAppView();
@@ -4915,8 +5266,8 @@
 
         // 2. Ambil profil pengguna terverifikasi dari bzooginer_profiles
         const profile = await loadUserProfile(session.user.id, session.access_token);
-        if (!profile) {
-          console.warn('Sesi aktif tetapi profil tidak ditemukan. Mengakhiri sesi.');
+        if (!profile || profile.is_active === false) {
+          console.warn('Sesi aktif tetapi profil tidak ditemukan atau telah dinonaktifkan. Mengakhiri sesi.');
           await sb.auth.signOut();
           handleSignedOutUI();
           return;
@@ -4956,6 +5307,11 @@
               setTimeout(async () => {
                 const refreshed = await loadUserProfile(newSession.user.id, newSession.access_token);
                 if (refreshed) {
+                  if (refreshed.is_active === false) {
+                    await sb.auth.signOut();
+                    handleSignedOutUI();
+                    return;
+                  }
                   currentUser = refreshed;
                   if (refreshed.role === 'superadmin') {
                     allProfiles = await loadAllProfiles(newSession.access_token);

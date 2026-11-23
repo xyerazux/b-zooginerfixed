@@ -1,5 +1,5 @@
 // Supabase Edge Function: manage-bzooginer-account
-// Securely manage user credentials (username, email, password) by verified Superadmin only
+// Securely manage user accounts (create, update username, reset password, toggle active, delete) by verified Superadmin only
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.8";
@@ -88,17 +88,17 @@ serve(async (req: Request) => {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
-    // 6. Verify Caller Authorization in bzooginer_profiles
+    // 6. Verify Caller Authorization in bzooginer_profiles (must be active Superadmin)
     const { data: callerProfile, error: profileErr } = await adminClient
       .from("bzooginer_profiles")
-      .select("role, username")
+      .select("id, role, username, is_active")
       .eq("id", callerUser.id)
       .single();
 
-    if (profileErr || !callerProfile || callerProfile.role !== "superadmin") {
+    if (profileErr || !callerProfile || callerProfile.role !== "superadmin" || (callerProfile as any).is_active === false) {
       console.warn(`Unauthorized access attempt by user ${callerUser.id} (${callerProfile?.role || 'no profile'})`);
       return new Response(
-        JSON.stringify({ error: "Akses ditolak: Operasi administratif ini hanya diizinkan untuk Superadmin." }),
+        JSON.stringify({ error: "Akses ditolak: Operasi administratif ini hanya diizinkan untuk Superadmin aktif." }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -114,8 +114,115 @@ serve(async (req: Request) => {
       );
     }
 
-    const { action, targetUserId } = body;
+    const { action } = body;
 
+    // ==========================================
+    // ACTION: CREATE ACCOUNT
+    // ==========================================
+    if (action === "create-account") {
+      const rawUsername = body.username;
+      const rawPassword = body.password;
+      const role = body.role === "superadmin" ? "superadmin" : "group_admin";
+      const groupId = (role === "group_admin" && body.groupId) ? Number(body.groupId) : null;
+
+      if (!rawUsername || typeof rawUsername !== "string") {
+        return new Response(
+          JSON.stringify({ error: "Username wajib diisi." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const newUsername = rawUsername.trim().toLowerCase();
+      if (!USERNAME_REGEX.test(newUsername)) {
+        return new Response(
+          JSON.stringify({ error: "Username harus 3-24 karakter (huruf kecil a-z, angka 0-9, atau garis bawah _)." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (!rawPassword || typeof rawPassword !== "string") {
+        return new Response(
+          JSON.stringify({ error: "Kata sandi wajib diisi." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const trimmedPassword = rawPassword.trim();
+      const minLength = role === "superadmin" ? 8 : 6;
+      if (trimmedPassword.length < minLength) {
+        return new Response(
+          JSON.stringify({ error: `Kata sandi untuk ${role === 'superadmin' ? 'Superadmin minimal 8' : 'Admin Kelompok minimal 6'} karakter.` }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Check username collision in bzooginer_profiles
+      const { data: existingProfile } = await adminClient
+        .from("bzooginer_profiles")
+        .select("id")
+        .eq("username", newUsername)
+        .maybeSingle();
+
+      if (existingProfile) {
+        return new Response(
+          JSON.stringify({ error: `Username '${newUsername}' sudah digunakan oleh akun lain.` }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const newEmail = `${newUsername}@example.com`;
+
+      // Create user in Supabase Auth via Admin API
+      const { data: authCreated, error: authCreateErr } = await adminClient.auth.admin.createUser({
+        email: newEmail,
+        password: trimmedPassword,
+        email_confirm: true,
+        user_metadata: { username: newUsername }
+      });
+
+      if (authCreateErr || !authCreated?.user) {
+        console.error("Auth createUser error:", authCreateErr?.message);
+        return new Response(
+          JSON.stringify({ error: `Gagal membuat akun pada sistem Auth: ${authCreateErr?.message || 'Error tidak diketahui'}` }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Insert profile into bzooginer_profiles
+      const profileRecord = {
+        id: authCreated.user.id,
+        username: newUsername,
+        role: role,
+        group_id: groupId,
+        is_active: true
+      };
+
+      const { error: profileInsertErr } = await adminClient
+        .from("bzooginer_profiles")
+        .insert(profileRecord);
+
+      if (profileInsertErr) {
+        // Rollback created Auth user to prevent orphan
+        await adminClient.auth.admin.deleteUser(authCreated.user.id);
+        console.error("Profile insert error:", profileInsertErr.message);
+        return new Response(
+          JSON.stringify({ error: `Gagal menyimpan profil pengguna: ${profileInsertErr.message}` }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: `Akun @${newUsername} berhasil dibuat sebagai ${role === 'superadmin' ? 'Superadmin' : (groupId ? 'Admin Kelompok ' + groupId : 'Admin Kelompok')}!`,
+          user: profileRecord
+        }),
+        { status: 201, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // All subsequent actions require targetUserId
+    const { targetUserId } = body;
     if (!targetUserId || !UUID_REGEX.test(targetUserId)) {
       return new Response(
         JSON.stringify({ error: "Format ID target akun tidak valid (harus UUID)." }),
@@ -123,10 +230,10 @@ serve(async (req: Request) => {
       );
     }
 
-    // 8. Verify Target User Exists
+    // Verify Target User Exists in profiles
     const { data: targetProfile, error: targetProfileErr } = await adminClient
       .from("bzooginer_profiles")
-      .select("id, username, role, group_id")
+      .select("id, username, role, group_id, is_active")
       .eq("id", targetUserId)
       .single();
 
@@ -137,7 +244,9 @@ serve(async (req: Request) => {
       );
     }
 
-    // 9. Execute Actions with Safety Guardrails
+    // ==========================================
+    // ACTION: UPDATE USERNAME
+    // ==========================================
     if (action === "update-username") {
       const rawUsername = body.newUsername;
       if (!rawUsername || typeof rawUsername !== "string") {
@@ -155,7 +264,7 @@ serve(async (req: Request) => {
         );
       }
 
-      // Safeguard: Do not rename superadmin master account
+      // Safeguard: Do not rename master superadmin
       if (targetProfile.role === "superadmin" && targetProfile.username === "superadmin" && newUsername !== "superadmin") {
         return new Response(
           JSON.stringify({ error: "Username akun master Superadmin tidak dapat diubah demi stabilitas sistem." }),
@@ -219,11 +328,14 @@ serve(async (req: Request) => {
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
 
+    // ==========================================
+    // ACTION: RESET PASSWORD
+    // ==========================================
     } else if (action === "reset-password") {
       let tempPassword = body.newPassword;
       let isGenerated = false;
 
-      // Safeguard: If target is Superadmin, require explicit password to prevent accidental lockout
+      // Safeguard: If target is Superadmin, require explicit password min 8 chars
       if (targetProfile.role === "superadmin") {
         if (!tempPassword || typeof tempPassword !== "string" || tempPassword.trim().length < 8) {
           return new Response(
@@ -264,7 +376,7 @@ serve(async (req: Request) => {
       return new Response(
         JSON.stringify({
           success: true,
-          message: `Kata sandi akun ${targetProfile.username} berhasil diperbarui.`,
+          message: `Kata sandi akun @${targetProfile.username} berhasil diperbarui.`,
           targetUserId,
           username: targetProfile.username,
           temporaryPassword: tempPassword,
@@ -273,9 +385,153 @@ serve(async (req: Request) => {
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
 
+    // ==========================================
+    // ACTION: TOGGLE ACTIVE STATUS (DEACTIVATE / ACTIVATE)
+    // ==========================================
+    } else if (action === "toggle-active") {
+      const nextActive = body.isActive === true;
+
+      // Safeguard 1: Superadmin cannot deactivate own account
+      if (targetUserId === callerUser.id) {
+        return new Response(
+          JSON.stringify({ error: "Superadmin tidak dapat menonaktifkan akunnya sendiri demi mencegah penguncian sistem." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Safeguard 2: Master superadmin account cannot be deactivated
+      if (targetProfile.role === "superadmin" && targetProfile.username === "superadmin") {
+        return new Response(
+          JSON.stringify({ error: "Akun master Superadmin tidak dapat dinonaktifkan demi stabilitas sistem." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Safeguard 3: Prevent deactivating the last active superadmin
+      if (targetProfile.role === "superadmin" && !nextActive) {
+        const { count, error: countErr } = await adminClient
+          .from("bzooginer_profiles")
+          .select("id", { count: "exact", head: true })
+          .eq("role", "superadmin")
+          .eq("is_active", true)
+          .neq("id", targetUserId);
+
+        if (countErr || count === null || count <= 0) {
+          return new Response(
+            JSON.stringify({ error: "Tindakan ditolak: Tidak dapat menonaktifkan Superadmin aktif terakhir di sistem." }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+
+      // Update bzooginer_profiles is_active
+      const { error: profileUpdateErr } = await adminClient
+        .from("bzooginer_profiles")
+        .update({ is_active: nextActive })
+        .eq("id", targetUserId);
+
+      if (profileUpdateErr) {
+        console.error("Toggle active profile error:", profileUpdateErr.message);
+        return new Response(
+          JSON.stringify({ error: "Gagal memperbarui status aktif profil di database." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Ban/Unban user in Supabase Auth (banned users cannot sign in or refresh tokens)
+      const banDuration = nextActive ? "none" : "876000h";
+      const { error: authBanErr } = await adminClient.auth.admin.updateUserById(targetUserId, {
+        ban_duration: banDuration,
+      });
+
+      if (authBanErr) {
+        console.warn("Auth ban_duration update notice:", authBanErr.message);
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: `Akun @${targetProfile.username} berhasil ${nextActive ? 'diaktifkan kembali' : 'dinonaktifkan'}.`,
+          targetUserId,
+          username: targetProfile.username,
+          isActive: nextActive,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+
+    // ==========================================
+    // ACTION: DELETE ACCOUNT PERMANENTLY
+    // ==========================================
+    } else if (action === "delete-account") {
+      // Safeguard 1: Superadmin cannot delete own account
+      if (targetUserId === callerUser.id) {
+        return new Response(
+          JSON.stringify({ error: "Superadmin tidak dapat menghapus akunnya sendiri." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Safeguard 2: Master superadmin account cannot be deleted
+      if (targetProfile.role === "superadmin" && targetProfile.username === "superadmin") {
+        return new Response(
+          JSON.stringify({ error: "Akun master Superadmin tidak dapat dihapus demi integritas sistem." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Safeguard 3: Prevent deleting the last superadmin
+      if (targetProfile.role === "superadmin") {
+        const { count, error: countErr } = await adminClient
+          .from("bzooginer_profiles")
+          .select("id", { count: "exact", head: true })
+          .eq("role", "superadmin")
+          .neq("id", targetUserId);
+
+        if (countErr || count === null || count <= 0) {
+          return new Response(
+            JSON.stringify({ error: "Tindakan ditolak: Tidak dapat menghapus Superadmin terakhir di sistem." }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+
+      // 1. Delete profile from bzooginer_profiles
+      const { error: profileDelErr } = await adminClient
+        .from("bzooginer_profiles")
+        .delete()
+        .eq("id", targetUserId);
+
+      if (profileDelErr) {
+        console.error("Profile deletion error:", profileDelErr.message);
+        return new Response(
+          JSON.stringify({ error: "Gagal menghapus profil akun dari database." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // 2. Delete user from Supabase Auth
+      const { error: authDelErr } = await adminClient.auth.admin.deleteUser(targetUserId);
+      if (authDelErr) {
+        console.error("Auth user deletion error:", authDelErr.message);
+        return new Response(
+          JSON.stringify({ error: "Profil database terhapus, namun gagal menghapus user dari Supabase Auth." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: `Akun @${targetProfile.username} berhasil dihapus permanen dari sistem.`,
+          targetUserId,
+          username: targetProfile.username,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+
     } else {
       return new Response(
-        JSON.stringify({ error: `Aksi '${action}' tidak valid. Pilihan: 'update-username', 'reset-password'.` }),
+        JSON.stringify({ error: `Aksi '${action}' tidak valid. Pilihan: 'create-account', 'update-username', 'reset-password', 'toggle-active', 'delete-account'.` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
