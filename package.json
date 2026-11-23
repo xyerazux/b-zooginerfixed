@@ -1,0 +1,13 @@
+{
+  "name": "b-zooginer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Build tooling untuk stylesheet B-Zooginer",
+  "scripts": {
+    "build:css": "npx @tailwindcss/cli -i ./tailwind.input.css -o ./styles.css --minify"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.10",
+    "tailwindcss": "^4.1.10"
+  }
+}
