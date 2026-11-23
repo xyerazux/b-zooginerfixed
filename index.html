@@ -1980,6 +1980,81 @@
         font-size: 38px
       }
 
+      /* Tata Letak 2 Kolom di HP untuk Cards dan Catalog */
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+      }
+
+      .card {
+        border-radius: 18px !important;
+      }
+
+      .card-body {
+        padding: 12px !important;
+      }
+
+      .card-body .disp {
+        font-size: 15px !important;
+        line-height: 1.2 !important;
+      }
+
+      .card .pframe {
+        margin-top: 8px !important;
+        border-radius: 12px !important;
+      }
+
+      .card .pframe img {
+        height: 120px !important;
+        object-fit: cover !important;
+      }
+
+      .card .tags {
+        gap: 4px !important;
+      }
+
+      .card .tags .pill {
+        font-size: 10px !important;
+        padding: 2px 6px !important;
+      }
+
+      .card .cfoot {
+        margin-top: 8px !important;
+        padding-top: 8px !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 6px !important;
+      }
+
+      .card .cfoot .btn {
+        width: 100% !important;
+        justify-content: center !important;
+      }
+
+      /* Tata Letak 2 Kolom di HP untuk Statistik Ringkasan (KPIs) */
+      .kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+      }
+
+      .kpi {
+        padding: 14px !important;
+        border-radius: 18px !important;
+      }
+
+      .kpi:last-child {
+        grid-column: span 2 !important;
+      }
+
+      .kpi small {
+        font-size: 11px !important;
+      }
+
+      .kpi strong {
+        font-size: 20px !important;
+        margin-top: 4px !important;
+      }
+
       .kpi::after {
         width: 34px;
         height: 34px
@@ -1993,12 +2068,31 @@
         top: 12px
       }
 
-      .card .pframe {
-        margin-top: 12px
+      /* Navigasi Header HP vs Desktop */
+      .desktop-nav-items {
+        display: none !important;
+      }
+
+      .mobile-nav-toggle-btn {
+        display: inline-flex !important;
+      }
+
+      .subbar {
+        display: none !important;
       }
 
       .foot {
         margin-top: 40px
+      }
+    }
+
+    @media(min-width:641px) {
+      .mobile-nav-toggle-btn {
+        display: none !important;
+      }
+
+      .desktop-nav-items {
+        display: flex !important;
       }
     }
 
@@ -2291,17 +2385,26 @@
         <a href="#top" class="brand"><span class="brand-mark"><img class="zi" src="assets/icons/lion.svg" alt=""
               width="64" height="64" decoding="async" draggable="false"></span><span><b
               class="disp">B-zooginer</b><small class="hide-sm">PO Sekolah · Cash Only</small></span></a>
-        <div id="account-switcher" class="switcher hidden">
-          <button type="button" id="switcher-btn" class="btn btn-sm btn-ink" aria-haspopup="menu" aria-expanded="false"
-            onclick="toggleSwitcher()">
-            <span class="dot" id="switcher-dot"></span><span id="switcher-label">Ganti akun</span><span
-              aria-hidden="true">▾</span>
-          </button>
-          <div id="switcher-pop" class="pop hidden" role="menu"></div>
+        <div class="desktop-nav-items items-center gap-2">
+          <div id="account-switcher" class="switcher hidden">
+            <button type="button" id="switcher-btn" class="btn btn-sm btn-ink" aria-haspopup="menu" aria-expanded="false"
+              onclick="toggleSwitcher()">
+              <span class="dot" id="switcher-dot"></span><span id="switcher-label">Ganti akun</span><span
+                aria-hidden="true">▾</span>
+            </button>
+            <div id="switcher-pop" class="pop hidden" role="menu"></div>
+          </div>
+          <button id="btn-export-excel" type="button" class="btn btn-sm btn-ok" onclick="exportExcelReport()"
+            onpointerenter="loadExcelJS()" onfocus="loadExcelJS()"><span class="hide-sm">Export&nbsp;</span>Excel</button>
+          <button type="button" class="btn btn-sm" onclick="logout()">Keluar</button>
         </div>
-        <button id="btn-export-excel" type="button" class="btn btn-sm btn-ok" onclick="exportExcelReport()"
-          onpointerenter="loadExcelJS()" onfocus="loadExcelJS()"><span class="hide-sm">Export&nbsp;</span>Excel</button>
-        <button type="button" class="btn btn-sm" onclick="logout()">Keluar</button>
+        <button id="btn-mobile-nav-toggle" type="button"
+          class="mobile-nav-toggle-btn p-2 rounded-xl bg-amber-100/90 border border-amber-300 text-slate-800 hover:bg-amber-200 transition-colors cursor-pointer items-center justify-center"
+          onclick="openMobileNav()" aria-label="Buka menu navigasi" title="Menu Navigasi">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
       </div>
       <div class="subbar">
         <div class="wrap navrow">
@@ -2471,10 +2574,10 @@
               <div class="filters">
                 <input id="filter-search" class="inp" type="search" placeholder="Cari nama / kelas…"
                   oninput="debouncedOrders()" />
-                <select id="filter-group" class="inp" onchange="renderOrdersTable()">
+                <select id="filter-group" class="inp" onchange="currentOrdersPage=1;renderOrdersTable()">
                   <option value="all">Semua Kelompok</option>
                 </select>
-                <select id="filter-status" class="inp" onchange="renderOrdersTable()">
+                <select id="filter-status" class="inp" onchange="currentOrdersPage=1;renderOrdersTable()">
                   <option value="all">Semua status</option>
                   <option value="Lunas">Lunas</option>
                   <option value="Belum Lunas">Belum Lunas</option>
@@ -2495,6 +2598,9 @@
               </thead>
               <tbody id="orders-tbody"></tbody>
             </table>
+            <div id="orders-pagination"
+              class="no-print flex flex-wrap items-center justify-between gap-3 p-4 border-t border-slate-200 bg-slate-50/60 text-xs">
+            </div>
           </section>
 
           <section id="section-catalog" class="panel no-print">
@@ -2581,6 +2687,211 @@
             Ya, Konfirmasi Perubahan
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KONFIRMASI HAPUS PESANAN -->
+  <div id="delete-order-modal"
+    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div id="delete-order-modal-box"
+      class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wider text-rose-400">Konfirmasi Hapus Pesanan</span>
+        <button type="button" onclick="closeModal('delete-order-modal')"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm cursor-pointer">&times;</button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 space-y-1.5">
+          <p class="text-[11px] text-rose-600 font-bold uppercase tracking-wider">Pesanan yang akan dihapus:</p>
+          <p id="delete-order-buyer-info" class="font-bold text-base text-slate-900"></p>
+          <p id="delete-order-amount-info" class="font-display font-bold text-sm text-rose-700"></p>
+        </div>
+
+        <p class="text-sm text-slate-700 leading-relaxed">
+          Apakah Anda yakin ingin menghapus pesanan PO ini secara permanen? Data yang sudah dihapus tidak dapat dipulihkan kembali.
+        </p>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button type="button" onclick="closeModal('delete-order-modal')"
+            class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">
+            Batal
+          </button>
+          <button type="button" id="delete-order-proceed-btn"
+            class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md cursor-pointer">
+            Hapus Pesanan
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DETAIL PESANAN PEMBELI -->
+  <div id="order-detail-modal"
+    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeModal('order-detail-modal')">
+    <div id="order-detail-modal-box"
+      class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-full bg-amber-400/20 text-amber-300 flex items-center justify-center text-sm font-bold">📄</span>
+          <div>
+            <h4 class="font-display text-base font-bold">Rincian Lengkap Pesanan</h4>
+            <span id="detail-order-id-badge" class="text-[11px] text-slate-400 font-mono">PO-ID</span>
+          </div>
+        </div>
+        <button type="button" onclick="closeModal('order-detail-modal')"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm cursor-pointer">&times;</button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <!-- Status & Waktu Row -->
+        <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Waktu Pemesanan</span>
+            <span id="detail-order-time" class="text-xs font-semibold text-slate-800">-</span>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Status Pembayaran</span>
+            <span id="detail-order-status-badge" class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold">-</span>
+          </div>
+        </div>
+
+        <!-- Info Pembeli Card -->
+        <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/80 space-y-2">
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Nama Pembeli</span>
+              <strong id="detail-buyer-name" class="text-sm font-bold text-slate-900 block">-</strong>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Kelas</span>
+              <strong id="detail-buyer-class" class="text-sm font-bold text-chili-d block">-</strong>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Kelompok / Brand</span>
+              <span id="detail-order-group" class="font-semibold text-slate-800 block">-</span>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Dicatat Oleh</span>
+              <span id="detail-order-recorder" class="font-mono text-slate-600 block">-</span>
+            </div>
+          </div>
+          <div class="pt-2 border-t border-amber-200/60 text-xs">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Catatan Pesanan</span>
+            <p id="detail-order-note" class="italic text-slate-700 mt-0.5">Tidak ada catatan.</p>
+          </div>
+        </div>
+
+        <!-- Rincian Item Table -->
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-2">Item Yang Dipesan:</span>
+          <div class="rounded-2xl border border-slate-200 overflow-hidden bg-white">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 text-slate-600 font-bold">
+                <tr>
+                  <th class="p-2.5">Menu</th>
+                  <th class="p-2.5 text-center">Qty</th>
+                  <th class="p-2.5 text-right">Harga</th>
+                  <th class="p-2.5 text-right">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody id="detail-order-items-tbody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Total Tagihan -->
+        <div class="p-4 rounded-2xl bg-brand-50 border border-brand-200 flex items-center justify-between">
+          <div>
+            <span class="text-xs font-bold text-brand-800 block">Total Tagihan Tunai (Cash Only)</span>
+            <span class="text-[11px] text-slate-500">Nominal pas saat pembayaran PO</span>
+          </div>
+          <strong id="detail-order-total-price" class="font-display text-xl font-bold text-brand-700">Rp 0</strong>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('order-detail-modal')"
+            class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRAWER: MOBILE NAVIGATION MENU -->
+  <div id="mobile-nav-drawer" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm" onclick="if(event.target===this) closeMobileNav()">
+    <div id="mobile-nav-panel" class="absolute top-0 right-0 h-full w-4/5 max-w-sm bg-white shadow-2xl flex flex-col p-5 border-l border-amber-200 overflow-y-auto">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-8 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold text-sm">🦁</span>
+          <b class="disp text-brand-900 text-base">B-Zooginer</b>
+        </div>
+        <button type="button" onclick="closeMobileNav()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base cursor-pointer flex items-center justify-center">&times;</button>
+      </div>
+
+      <!-- User Info Badge -->
+      <div class="mt-4 p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-amber-200/80 text-amber-900 flex items-center justify-center font-bold text-sm">👤</div>
+          <div>
+            <div id="mobile-nav-user-name" class="font-bold text-sm text-slate-900">-</div>
+            <div id="mobile-nav-user-role" class="text-xs font-semibold text-amber-800">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <div class="mt-5 flex-1 space-y-2">
+        <div id="mobile-nav-superadmin-links" class="space-y-1.5 hidden">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2">Halaman Utama</div>
+          <button type="button" id="mobile-nav-tab-etalase" class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 bg-brand-50 text-brand-800 cursor-pointer" onclick="switchSuperadminPage('etalase'); closeMobileNav();">
+            <span>🎪</span> Etalase Promosi
+          </button>
+          <button type="button" id="mobile-nav-tab-dashboard" class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="switchSuperadminPage('dashboard'); closeMobileNav();">
+            <span>📊</span> Dashboard Master
+          </button>
+          <button type="button" class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="openAccountModal(); closeMobileNav();">
+            <span>👥</span> Kelola Akun &amp; Hak Akses
+          </button>
+        </div>
+
+        <div id="mobile-nav-groupadmin-links" class="space-y-1.5 hidden">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2">Navigasi Kelompok</div>
+          <a href="#section-admin-groups" class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="closeMobileNav()">
+            <span>🏷️</span> Kelompok Saya
+          </a>
+          <a href="#section-orders" class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="closeMobileNav()">
+            <span>📋</span> Daftar Pesanan
+          </a>
+          <a href="#section-catalog" class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="closeMobileNav()">
+            <span>🍔</span> Menu &amp; Paket Bundling
+          </a>
+        </div>
+
+        <!-- Impersonate Back button on Mobile -->
+        <div id="mobile-impersonate-box" class="pt-2 hidden">
+          <button type="button" class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 bg-rose-50 text-rose-800 border border-rose-200 cursor-pointer" onclick="returnToOrigin(); closeMobileNav();">
+            <span>↩️</span> Kembali ke Superadmin
+          </button>
+        </div>
+
+        <div class="pt-4 border-t border-slate-100 space-y-1.5">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2">Aksi Cepat</div>
+          <button type="button" class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="exportExcelReport(); closeMobileNav();">
+            <span>📑</span> Export Laporan Excel
+          </button>
+          <button type="button" class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer" onclick="enterFullscreen(); closeMobileNav();">
+            <span>⛶</span> Tampilan Layar Penuh
+          </button>
+        </div>
+      </div>
+
+      <!-- Logout Button -->
+      <div class="pt-4 border-t border-slate-100">
+        <button type="button" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md" onclick="logout(); closeMobileNav();">
+          <span>🚪</span> Keluar Sistem
+        </button>
       </div>
     </div>
   </div>
@@ -2677,7 +2988,7 @@
     <div id="poster-modal-box"
       class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
       <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
-        <h4 id="poster-modal-title" class="font-display text-base font-bold">Ubah Poster &amp; Info Kelompok</h4>
+        <h4 id="poster-modal-title" class="font-display text-base font-bold">Edit Info &amp; Poster Kelompok</h4>
         <button type="button" onclick="closeModal('poster-modal')"
           class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm cursor-pointer">&times;</button>
       </div>
@@ -2710,7 +3021,7 @@
           <button type="button" onclick="closeModal('poster-modal')"
             class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer">Batal</button>
           <button type="submit"
-            class="px-4 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold cursor-pointer">Simpan Poster</button>
+            class="px-4 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold cursor-pointer">Simpan Perubahan</button>
         </div>
       </form>
     </div>
@@ -3961,7 +4272,35 @@
       document.getElementById('page-dashboard').classList.toggle('hidden', isEtalase);
       document.getElementById('tab-btn-etalase').classList.toggle('on', isEtalase);
       document.getElementById('tab-btn-dashboard').classList.toggle('on', !isEtalase);
+
+      const mEtalase = document.getElementById('mobile-nav-tab-etalase');
+      const mDash = document.getElementById('mobile-nav-tab-dashboard');
+      if (mEtalase) {
+        mEtalase.className = isEtalase
+          ? 'w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 bg-brand-50 text-brand-800 cursor-pointer'
+          : 'w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer';
+      }
+      if (mDash) {
+        mDash.className = !isEtalase
+          ? 'w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 bg-brand-50 text-brand-800 cursor-pointer'
+          : 'w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer';
+      }
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openMobileNav() {
+      const drawer = document.getElementById('mobile-nav-drawer');
+      if (!drawer) return;
+      drawer.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+    }
+
+    function closeMobileNav() {
+      const drawer = document.getElementById('mobile-nav-drawer');
+      if (!drawer) return;
+      drawer.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
     }
 
     function getAccessibleGroups() {
@@ -4049,7 +4388,7 @@
         };
       }
 
-      ['po-modal', 'poster-modal', 'product-modal', 'account-modal', 'summary-modal', 'group-modal', 'archive-modal', 'add-account-modal', 'confirm-account-action-modal'].forEach(id => {
+      ['po-modal', 'poster-modal', 'product-modal', 'account-modal', 'summary-modal', 'group-modal', 'archive-modal', 'add-account-modal', 'confirm-account-action-modal', 'delete-order-modal', 'order-detail-modal'].forEach(id => {
         const m = document.getElementById(id); if (m && !m.classList.contains('hidden')) closeModal(id);
       });
       initAppView();
@@ -4068,7 +4407,12 @@
     }
 
     document.addEventListener('click', e => { if (!e.target.closest('#account-switcher')) closeSwitcher(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSwitcher(); });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        closeSwitcher();
+        closeMobileNav();
+      }
+    });
 
     function initAppView() {
       document.getElementById('login-view').classList.add('hidden');
@@ -4080,6 +4424,18 @@
       document.getElementById('superadmin-page-switcher').classList.toggle('hidden', !isSuper);
       document.getElementById('group-admin-nav').classList.toggle('hidden', isSuper);
       document.getElementById('btn-manage-accounts').classList.toggle('hidden', !isSuper);
+
+      // Mobile Nav Drawer User Sync
+      const mName = document.getElementById('mobile-nav-user-name');
+      const mRole = document.getElementById('mobile-nav-user-role');
+      const mSuper = document.getElementById('mobile-nav-superadmin-links');
+      const mGroup = document.getElementById('mobile-nav-groupadmin-links');
+      const mImp = document.getElementById('mobile-impersonate-box');
+      if (mName) mName.textContent = currentUser.username;
+      if (mRole) mRole.textContent = isSuper ? 'Superadmin' : `Admin Kelompok ${currentUser.groupId}`;
+      if (mSuper) mSuper.classList.toggle('hidden', !isSuper);
+      if (mGroup) mGroup.classList.toggle('hidden', isSuper);
+      if (mImp) mImp.classList.toggle('hidden', !originUser || currentUser.role === 'superadmin');
 
       const addGroupBtn = document.getElementById('btn-add-group');
       const tabsWrap = document.getElementById('superadmin-group-tabs-wrap');
@@ -4232,7 +4588,7 @@
         <article class="card ${isArchived ? 'opacity-90 border-amber-300/80 bg-amber-50/20' : ''}" style="--ac:${accent(g.id)};animation-delay:${i * 50}ms">
           ${posterBtn(g, `
             <div class="flex gap-1 poster-act">
-              <button type="button" class="btn btn-sm" onclick="openPosterModal(${g.id})">Poster</button>
+              <button type="button" class="btn btn-sm" onclick="openPosterModal(${g.id})">${isSuper ? 'Poster' : 'Edit'}</button>
               ${isSuper ? `<button type="button" class="btn btn-sm" onclick="openEditGroupModal(${g.id})">Edit</button>` : ''}
             </div>
           `)}
@@ -4721,10 +5077,25 @@
     // 9. ORDERS TABLE & PAYMENT VALIDATION MODAL
     // ==========================================
     let _ordTimer;
-    function debouncedOrders() { clearTimeout(_ordTimer); _ordTimer = setTimeout(renderOrdersTable, 120); }
+    let currentOrdersPage = 1;
+    const ORDERS_PER_PAGE = 10;
+
+    function debouncedOrders() {
+      clearTimeout(_ordTimer);
+      _ordTimer = setTimeout(() => {
+        currentOrdersPage = 1;
+        renderOrdersTable();
+      }, 120);
+    }
+
+    function changeOrdersPage(page) {
+      currentOrdersPage = page;
+      renderOrdersTable();
+    }
 
     function renderOrdersTable() {
       const tbody = document.getElementById('orders-tbody');
+      const pagEl = document.getElementById('orders-pagination');
       if (!tbody) return;
       const search = document.getElementById('filter-search').value.toLowerCase().trim();
       const groupFilter = document.getElementById('filter-group').value;
@@ -4735,27 +5106,113 @@
         (groupFilter === 'all' || String(o.groupId) === groupFilter) &&
         (statusFilter === 'all' || o.status === statusFilter));
 
-      if (filtered.length === 0) {
+      const totalOrders = filtered.length;
+      const totalPages = Math.ceil(totalOrders / ORDERS_PER_PAGE) || 1;
+      if (currentOrdersPage > totalPages) currentOrdersPage = totalPages;
+      if (currentOrdersPage < 1) currentOrdersPage = 1;
+
+      if (totalOrders === 0) {
         tbody.innerHTML = `<tr><td colspan="7" class="empty full mute" style="padding:40px 16px;text-align:center">Belum ada data pesanan yang sesuai filter.</td></tr>`;
+        if (pagEl) pagEl.innerHTML = '';
         return;
       }
 
-      tbody.innerHTML = filtered.map(o => {
+      const startIndex = (currentOrdersPage - 1) * ORDERS_PER_PAGE;
+      const endIndex = Math.min(startIndex + ORDERS_PER_PAGE, totalOrders);
+      const pageOrders = filtered.slice(startIndex, endIndex);
+
+      tbody.innerHTML = pageOrders.map(o => {
         const paid = o.status === 'Lunas';
         const items = o.items.map(it => `<div class="it"><b>${it.qty}×</b> ${esc(it.name)}${it.type === 'bundling' ? ' <span class="bd2">paket</span>' : ''}</div>`).join('');
         return `
           <tr>
             <td data-label="Waktu" class="mute num" style="white-space:nowrap">${esc(o.createdAt)}</td>
-            <td data-label="Pembeli" class="full first"><b style="font-size:14px">${esc(o.buyerName)}</b>
-              <div style="color:var(--chili-d);font-weight:700;font-size:12px">${esc(o.buyerClass)}</div>
-              ${o.note ? `<div class="mute" style="font-size:11px;font-style:italic;margin-top:2px">Catatan: ${esc(o.note)}</div>` : ''}</td>
+            <td data-label="Pembeli" class="full first">
+              <div class="flex items-center gap-2 flex-wrap">
+                <div>
+                  <b style="font-size:14px;color:var(--ink)">${esc(o.buyerName)}</b>
+                  <span style="color:var(--chili-d);font-weight:700;font-size:12px;margin-left:4px">(${esc(o.buyerClass)})</span>
+                </div>
+                <button type="button" class="btn btn-xs" style="padding:2px 8px;font-size:11px;font-weight:700;border-radius:8px" onclick="openOrderDetailModal('${o.id}')" title="Lihat detail lengkap pesanan">Detail</button>
+              </div>
+            </td>
             <td data-label="Kelompok" style="white-space:nowrap;font-weight:700"><span class="gdot" style="background:${accent(o.groupId)}"></span>Kelompok ${o.groupId}</td>
             <td data-label="Rincian item" class="full">${items}</td>
             <td data-label="Total cash" class="num" style="font-weight:800;white-space:nowrap">${formatRupiah(o.total)}</td>
             <td data-label="Status"><button type="button" class="pill ${paid ? 'ok' : 'warn'}" title="Ketuk untuk memvalidasi perubahan status" onclick="requestTogglePaymentStatus('${o.id}')">${paid ? 'Lunas (Cash)' : 'Belum Lunas'}</button></td>
-            <td class="no-print full" style="text-align:right"><button type="button" class="btn btn-sm" style="color:var(--chili-d)" onclick="deleteOrder('${o.id}')">Hapus</button></td>
+            <td class="no-print full" style="text-align:right"><button type="button" class="btn btn-sm" style="color:var(--chili-d)" onclick="openDeleteOrderModal('${o.id}')">Hapus</button></td>
           </tr>`;
       }).join('');
+
+      if (pagEl) {
+        if (totalOrders <= ORDERS_PER_PAGE) {
+          pagEl.innerHTML = `
+            <div class="text-slate-600 font-medium">
+              Menampilkan seluruh <b>${totalOrders}</b> pesanan
+            </div>
+          `;
+        } else {
+          let pagesHtml = '';
+          for (let p = 1; p <= totalPages; p++) {
+            if (p === 1 || p === totalPages || (p >= currentOrdersPage - 1 && p <= currentOrdersPage + 1)) {
+              const isActive = p === currentOrdersPage;
+              pagesHtml += `<button type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold ${isActive ? 'bg-brand-600 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'} cursor-pointer" onclick="changeOrdersPage(${p})">${p}</button>`;
+            } else if (p === currentOrdersPage - 2 || p === currentOrdersPage + 2) {
+              pagesHtml += `<span class="px-1 text-slate-400">…</span>`;
+            }
+          }
+
+          pagEl.innerHTML = `
+            <div class="text-slate-600 font-medium text-xs">
+              Menampilkan <b>${startIndex + 1}</b>–<b>${endIndex}</b> dari <b>${totalOrders}</b> pesanan
+            </div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button type="button" class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-xs font-bold text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer" onclick="changeOrdersPage(${currentOrdersPage - 1})" ${currentOrdersPage <= 1 ? 'disabled' : ''}>&larr; Seb</button>
+              ${pagesHtml}
+              <button type="button" class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-xs font-bold text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer" onclick="changeOrdersPage(${currentOrdersPage + 1})" ${currentOrdersPage >= totalPages ? 'disabled' : ''}>Sel &rarr;</button>
+            </div>
+          `;
+        }
+      }
+    }
+
+    function openOrderDetailModal(orderId) {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+
+      document.getElementById('detail-order-id-badge').textContent = `#${order.id}`;
+      document.getElementById('detail-order-time').textContent = order.createdAt;
+      const isPaid = order.status === 'Lunas';
+      const badge = document.getElementById('detail-order-status-badge');
+      badge.textContent = isPaid ? 'Lunas (Cash)' : 'Belum Lunas';
+      badge.className = isPaid
+        ? 'inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200'
+        : 'inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200';
+
+      document.getElementById('detail-buyer-name').textContent = order.buyerName;
+      document.getElementById('detail-buyer-class').textContent = order.buyerClass;
+      document.getElementById('detail-order-group').textContent = `Kelompok ${order.groupId} (${order.groupName || ''})`;
+      document.getElementById('detail-order-recorder').textContent = `@${order.recordedBy || '-'}`;
+      document.getElementById('detail-order-note').textContent = order.note ? order.note : 'Tidak ada catatan khusus.';
+
+      const tbody = document.getElementById('detail-order-items-tbody');
+      tbody.innerHTML = (order.items || []).map(it => {
+        const subtotal = it.subtotal != null ? it.subtotal : (it.price * it.qty);
+        return `
+          <tr>
+            <td class="p-2.5">
+              <span class="font-bold text-slate-900">${esc(it.name)}</span>
+              ${it.type === 'bundling' ? '<span class="ml-1 text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 font-bold">paket</span>' : ''}
+            </td>
+            <td class="p-2.5 text-center font-bold text-slate-700">${it.qty}</td>
+            <td class="p-2.5 text-right text-slate-600">${formatRupiah(it.price)}</td>
+            <td class="p-2.5 text-right font-bold text-slate-900">${formatRupiah(subtotal)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('detail-order-total-price').textContent = formatRupiah(order.total);
+      openModal('order-detail-modal');
     }
 
     function requestTogglePaymentStatus(orderId) {
@@ -4800,8 +5257,22 @@
       closeModal('confirm-status-modal');
     });
 
-    async function deleteOrder(orderId) {
-      if (!confirm('Hapus pesanan PO ini secara permanen?')) return;
+    let pendingDeleteOrderId = null;
+
+    function openDeleteOrderModal(orderId) {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+      pendingDeleteOrderId = orderId;
+      document.getElementById('delete-order-buyer-info').textContent = `${order.buyerName} (${order.buyerClass}) — Kelompok ${order.groupId}`;
+      document.getElementById('delete-order-amount-info').textContent = `Total: ${formatRupiah(order.total)} (${order.status})`;
+      openModal('delete-order-modal');
+    }
+
+    document.getElementById('delete-order-proceed-btn').addEventListener('click', async () => {
+      if (!pendingDeleteOrderId) return;
+      const orderId = pendingDeleteOrderId;
+      pendingDeleteOrderId = null;
+      closeModal('delete-order-modal');
       try {
         await deleteOrderFromSupabase(orderId);
         orders = orders.filter(o => o.id !== orderId);
@@ -4811,6 +5282,10 @@
       } catch (err) {
         showToast(`Gagal menghapus pesanan dari database: ${err.message}`, 'error');
       }
+    });
+
+    async function deleteOrder(orderId) {
+      openDeleteOrderModal(orderId);
     }
 
     // ==========================================
@@ -4820,7 +5295,7 @@
       const group = groups.find(g => g.id === groupId);
       if (!group) return;
       document.getElementById('poster-group-id').value = group.id;
-      document.getElementById('poster-modal-title').textContent = `Edit Poster - Kelompok ${group.id}`;
+      document.getElementById('poster-modal-title').textContent = `Edit Info & Poster - Kelompok ${group.id}`;
       document.getElementById('poster-group-name').value = group.name;
       document.getElementById('poster-group-tagline').value = group.tagline;
       document.getElementById('poster-file-input').value = '';
@@ -5059,163 +5534,222 @@
     }
 
     async function buildExcelWorkbook() {
-      const INK = 'FF1D1A16', MUTE = 'FF6D655A', LINE = 'FFDED5C3', ZEBRA = 'FFFBF6EA', HEADBG = 'FFF1E9D9', WHITE = 'FFFFFFFF';
-      const ACC = ['FFD9432A', 'FF1F6F8B', 'FFC98A0B', 'FF3B7D4E', 'FFA43A6F'];
+      // Minimalist & Professional Executive Theme
+      const SLATE_DARK = 'FF1E293B';   // Slate-800 for headers
+      const SLATE_LIGHT = 'FFF8FAFC';  // Slate-50 for clean subtle zebra
+      const SLATE_BORDER = 'FFE2E8F0'; // Slate-200 for subtle border
+      const SLATE_MUTED = 'FF64748B';  // Slate-500 for secondary text
+      const TEXT_MAIN = 'FF0F172A';    // Slate-900
+      const WHITE = 'FFFFFFFF';
       const RP = '"Rp" #,##0';
+
       const solid = argb => ({ type: 'pattern', pattern: 'solid', fgColor: { argb } });
-      const thin = { style: 'thin', color: { argb: LINE } };
-      const box = { top: thin, left: thin, bottom: thin, right: thin };
+      const borderThin = { style: 'thin', color: { argb: SLATE_BORDER } };
+      const cellBox = { top: borderThin, left: borderThin, bottom: borderThin, right: borderThin };
+
       const stamp = new Date().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' });
       const groupsX = getAccessibleGroups();
       const ordersX = getAccessibleOrders();
 
       const wb = new ExcelJS.Workbook();
-      wb.creator = 'B-zooginer';
+      wb.creator = 'B-Zooginer';
       wb.created = new Date();
 
-      const title = (ws, cols, text, sub, color) => {
+      const renderTitle = (ws, cols, text, sub) => {
         ws.mergeCells(1, 1, 1, cols);
         const t = ws.getCell(1, 1);
-        t.value = text; t.font = { bold: true, size: 16, color: { argb: WHITE } }; t.fill = solid(color);
-        t.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
-        ws.getRow(1).height = 36;
+        t.value = text;
+        t.font = { name: 'Segoe UI', bold: true, size: 14, color: { argb: TEXT_MAIN } };
+        t.alignment = { vertical: 'middle', horizontal: 'left' };
+        ws.getRow(1).height = 30;
+
         ws.mergeCells(2, 1, 2, cols);
         const s2 = ws.getCell(2, 1);
-        s2.value = sub; s2.font = { italic: true, size: 10, color: { argb: MUTE } };
-        s2.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
-        ws.getRow(2).height = 22;
+        s2.value = sub;
+        s2.font = { name: 'Segoe UI', size: 9, color: { argb: SLATE_MUTED } };
+        s2.alignment = { vertical: 'middle', horizontal: 'left' };
+        ws.getRow(2).height = 20;
+
         ws.getRow(3).height = 8;
       };
-      const header = (ws, row, labels, color = INK) => {
+
+      const renderHeader = (ws, row, labels) => {
         const r = ws.getRow(row);
-        r.values = labels; r.height = 28;
+        r.values = labels;
+        r.height = 26;
         r.eachCell(c => {
-          c.font = { bold: true, size: 11, color: { argb: WHITE } }; c.fill = solid(color); c.border = box;
+          c.font = { name: 'Segoe UI', bold: true, size: 10, color: { argb: WHITE } };
+          c.fill = solid(SLATE_DARK);
+          c.border = cellBox;
           c.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
         });
       };
-      const body = (ws, rowNo, i, cols) => {
+
+      const renderBodyRow = (ws, rowNo, i, cols) => {
         const r = ws.getRow(rowNo);
+        r.height = 22;
         for (let c = 1; c <= cols; c++) {
           const cell = r.getCell(c);
-          cell.border = box;
-          if (i % 2 === 1) cell.fill = solid(ZEBRA);
+          cell.font = { name: 'Segoe UI', size: 10, color: { argb: TEXT_MAIN } };
+          cell.border = cellBox;
+          if (i % 2 === 1) cell.fill = solid(SLATE_LIGHT);
           cell.alignment = Object.assign({ vertical: 'middle', wrapText: true }, cell.alignment || {});
         }
         return r;
       };
-      const totalRow = (ws, rowNo, cols) => {
-        const r = ws.getRow(rowNo); r.height = 26;
+
+      const renderTotalRow = (ws, rowNo, cols) => {
+        const r = ws.getRow(rowNo);
+        r.height = 25;
         for (let c = 1; c <= cols; c++) {
           const cell = r.getCell(c);
-          cell.font = { bold: true, size: 11 }; cell.fill = solid(HEADBG);
-          cell.border = { top: { style: 'medium', color: { argb: INK } }, bottom: thin, left: thin, right: thin };
+          cell.font = { name: 'Segoe UI', bold: true, size: 10, color: { argb: TEXT_MAIN } };
+          cell.fill = solid('FFF1F5F9'); // Slate-100
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FF94A3B8' } },
+            bottom: { style: 'double', color: { argb: SLATE_DARK } },
+            left: borderThin,
+            right: borderThin
+          };
           cell.alignment = Object.assign({ vertical: 'middle' }, cell.alignment || {});
         }
       };
-      const setup = (ws, titleRow) => {
-        ws.pageSetup = { orientation: 'landscape', paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0, printTitlesRow: `${titleRow}:${titleRow}`, margins: { left: .4, right: .4, top: .5, bottom: .5, header: .3, footer: .3 } };
+
+      const setupSheet = (ws, titleRow) => {
+        ws.pageSetup = {
+          orientation: 'landscape',
+          paperSize: 9,
+          fitToPage: true,
+          fitToWidth: 1,
+          fitToHeight: 0,
+          printTitlesRow: `${titleRow}:${titleRow}`,
+          margins: { left: .4, right: .4, top: .5, bottom: .5, header: .3, footer: .3 }
+        };
       };
 
       // ---------- Sheet 1: Ringkasan ----------
-      const ws1 = wb.addWorksheet('Ringkasan', { properties: { tabColor: { argb: INK } }, views: [{ state: 'frozen', ySplit: 4, showGridLines: false }] });
-      title(ws1, 6, 'LAPORAN PRE-ORDER · B-ZOOGINER', `Diekspor oleh ${currentUser.username} · ${stamp} · Pembayaran Cash Only`, INK);
-      header(ws1, 4, ['Kelompok', 'Nama Brand', 'Jumlah Transaksi', 'Cash Lunas', 'Belum Lunas', 'Total Omzet']);
+      const ws1 = wb.addWorksheet('Ringkasan', {
+        properties: { tabColor: { argb: SLATE_DARK } },
+        views: [{ state: 'frozen', ySplit: 4, showGridLines: true }]
+      });
+      renderTitle(ws1, 6, 'LAPORAN PRE-ORDER · B-ZOOGINER', `Diekspor oleh ${currentUser.username} · ${stamp} · Metode Pembayaran: Cash Only`);
+      renderHeader(ws1, 4, ['Kelompok', 'Nama Brand', 'Jumlah Transaksi', 'Cash Lunas', 'Belum Lunas', 'Total Omzet']);
+
       let r1 = 5;
       groupsX.forEach((g, i) => {
         const list = ordersX.filter(o => o.groupId === g.id);
         const paid = list.filter(o => o.status === 'Lunas').reduce((s, o) => s + o.total, 0);
         const unpaid = list.filter(o => o.status !== 'Lunas').reduce((s, o) => s + o.total, 0);
-        const row = body(ws1, r1, i, 6);
+        const row = renderBodyRow(ws1, r1, i, 6);
         row.values = [`Kelompok ${g.id}`, g.name, list.length, paid, unpaid, { formula: `D${r1}+E${r1}`, result: paid + unpaid }];
-        row.height = 24;
-        row.getCell(1).font = { bold: true, color: { argb: ACC[(g.id - 1) % 5] } };
+        row.getCell(1).font = { name: 'Segoe UI', bold: true, color: { argb: TEXT_MAIN } };
         row.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
-        [4, 5, 6].forEach(c => { row.getCell(c).numFmt = RP; });
+        [4, 5, 6].forEach(c => { row.getCell(c).numFmt = RP; row.getCell(c).alignment = { horizontal: 'right', vertical: 'middle' }; });
         r1++;
       });
+
       const f1 = 5, l1 = r1 - 1, t1 = r1;
       const totals = ordersX.reduce((a, o) => { a.n++; (o.status === 'Lunas' ? (a.paid += o.total) : (a.unpaid += o.total)); return a; }, { n: 0, paid: 0, unpaid: 0 });
       const sum = (col, res) => groupsX.length ? { formula: `SUM(${col}${f1}:${col}${l1})`, result: res } : res;
       ws1.getRow(t1).values = ['TOTAL KESELURUHAN', '', sum('C', totals.n), sum('D', totals.paid), sum('E', totals.unpaid), sum('F', totals.paid + totals.unpaid)];
-      totalRow(ws1, t1, 6);
+      renderTotalRow(ws1, t1, 6);
       ws1.getCell(t1, 3).alignment = { horizontal: 'center', vertical: 'middle' };
-      [4, 5, 6].forEach(c => { ws1.getCell(t1, c).numFmt = RP; });
+      [4, 5, 6].forEach(c => { ws1.getCell(t1, c).numFmt = RP; ws1.getCell(t1, c).alignment = { horizontal: 'right', vertical: 'middle' }; });
+
       const grand = totals.paid + totals.unpaid;
       ws1.getRow(t1 + 1).values = ['Persentase terbayar', '', '', { formula: `IF(F${t1}=0,0,D${t1}/F${t1})`, result: grand ? totals.paid / grand : 0 }];
-      ws1.getCell(t1 + 1, 1).font = { italic: true, color: { argb: MUTE } };
-      ws1.getCell(t1 + 1, 4).numFmt = '0%'; ws1.getCell(t1 + 1, 4).font = { bold: true };
-      [1, 2, 3, 4, 5, 6].forEach((w, i) => { ws1.getColumn(i + 1).width = [20, 36, 18, 22, 22, 22][i]; });
-      setup(ws1, 4);
+      ws1.getCell(t1 + 1, 1).font = { name: 'Segoe UI', italic: true, size: 9, color: { argb: SLATE_MUTED } };
+      ws1.getCell(t1 + 1, 4).numFmt = '0.0%';
+      ws1.getCell(t1 + 1, 4).font = { name: 'Segoe UI', bold: true, size: 10 };
+      [20, 36, 18, 22, 22, 22].forEach((w, i) => { ws1.getColumn(i + 1).width = w; });
+      setupSheet(ws1, 4);
 
       // ---------- Sheet 2: Rekap Produksi ----------
-      const ws2 = wb.addWorksheet('Rekap Produksi', { properties: { tabColor: { argb: 'FFC98A0B' } }, views: [{ state: 'frozen', ySplit: 4, showGridLines: false }] });
-      title(ws2, 5, 'REKAP PRODUKSI ITEM', `Jumlah item yang harus disiapkan per kelompok · ${stamp}`, 'FFC98A0B');
-      header(ws2, 4, ['Kelompok', 'Nama Item', 'Jenis', 'Jumlah (pcs / paket)', 'Subtotal']);
+      const ws2 = wb.addWorksheet('Rekap Produksi', {
+        properties: { tabColor: { argb: 'FF475569' } },
+        views: [{ state: 'frozen', ySplit: 4, showGridLines: true }]
+      });
+      renderTitle(ws2, 5, 'REKAP PRODUKSI ITEM', `Jumlah item yang harus disiapkan per kelompok · ${stamp}`);
+      renderHeader(ws2, 4, ['Kelompok', 'Nama Item', 'Jenis', 'Jumlah (pcs / paket)', 'Subtotal']);
+
       const tally = {};
       ordersX.forEach(o => o.items.forEach(it => {
         const k = `${o.groupId}|${it.name}|${it.type}`;
         (tally[k] = tally[k] || { gid: o.groupId, name: it.name, type: it.type, qty: 0, sub: 0 });
-        tally[k].qty += it.qty; tally[k].sub += (it.subtotal != null ? it.subtotal : it.price * it.qty);
+        tally[k].qty += it.qty;
+        tally[k].sub += (it.subtotal != null ? it.subtotal : it.price * it.qty);
       }));
       const prod = Object.values(tally).sort((a, b) => a.gid - b.gid || b.qty - a.qty);
+
       prod.forEach((p, i) => {
-        const row = body(ws2, 5 + i, i, 5);
+        const row = renderBodyRow(ws2, 5 + i, i, 5);
         row.values = [`Kelompok ${p.gid}`, p.name, p.type === 'bundling' ? 'Paket' : 'Satuan', p.qty, p.sub];
-        row.getCell(1).font = { bold: true, color: { argb: ACC[(p.gid - 1) % 5] } };
+        row.getCell(1).font = { name: 'Segoe UI', bold: true, color: { argb: TEXT_MAIN } };
         row.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
         row.getCell(4).alignment = { horizontal: 'center', vertical: 'middle' };
         row.getCell(5).numFmt = RP;
+        row.getCell(5).alignment = { horizontal: 'right', vertical: 'middle' };
       });
+
       if (prod.length) {
         const l2 = 4 + prod.length, t2 = l2 + 1;
         ws2.getRow(t2).values = ['TOTAL', '', '', { formula: `SUM(D5:D${l2})`, result: prod.reduce((s, p) => s + p.qty, 0) }, { formula: `SUM(E5:E${l2})`, result: prod.reduce((s, p) => s + p.sub, 0) }];
-        totalRow(ws2, t2, 5);
+        renderTotalRow(ws2, t2, 5);
         ws2.getCell(t2, 4).alignment = { horizontal: 'center', vertical: 'middle' };
         ws2.getCell(t2, 5).numFmt = RP;
+        ws2.getCell(t2, 5).alignment = { horizontal: 'right', vertical: 'middle' };
         ws2.autoFilter = { from: { row: 4, column: 1 }, to: { row: l2, column: 5 } };
       } else {
         ws2.mergeCells(5, 1, 5, 5);
         ws2.getCell(5, 1).value = 'Belum ada pesanan masuk.';
-        ws2.getCell(5, 1).font = { italic: true, color: { argb: MUTE } };
+        ws2.getCell(5, 1).font = { name: 'Segoe UI', italic: true, color: { argb: SLATE_MUTED } };
         ws2.getCell(5, 1).alignment = { horizontal: 'center' };
       }
-      [16, 42, 12, 20, 22].forEach((w, i) => { ws2.getColumn(i + 1).width = w; });
-      setup(ws2, 4);
+      [18, 42, 14, 22, 22].forEach((w, i) => { ws2.getColumn(i + 1).width = w; });
+      setupSheet(ws2, 4);
 
       // ---------- Sheet per kelompok ----------
       groupsX.forEach(g => {
-        const color = ACC[(g.id - 1) % 5];
         const list = ordersX.filter(o => o.groupId === g.id);
         const n = list.length;
-        const ws = wb.addWorksheet(`Kelompok ${g.id}`, { properties: { tabColor: { argb: color } }, views: [{ state: 'frozen', ySplit: 4, showGridLines: false }] });
-        title(ws, 10, `${g.name.toUpperCase()} · DAFTAR PESANAN`, `Cash Only · ${g.tagline} · Diekspor ${stamp}`, color);
-        header(ws, 4, ['No', 'Waktu Input', 'Nama Pembeli', 'Kelas', 'Rincian Pesanan', 'Jml Item', 'Total Tagihan', 'Status', 'Catatan', 'Diinput Oleh'], color);
+        const ws = wb.addWorksheet(`Kelompok ${g.id}`, {
+          properties: { tabColor: { argb: 'FF64748B' } },
+          views: [{ state: 'frozen', ySplit: 4, showGridLines: true }]
+        });
+        renderTitle(ws, 10, `${g.name.toUpperCase()} · DAFTAR PESANAN`, `Kelompok ${g.id} · ${g.tagline} · Diekspor ${stamp}`);
+        renderHeader(ws, 4, ['No', 'Waktu Input', 'Nama Pembeli', 'Kelas', 'Rincian Pesanan', 'Jml Item', 'Total Tagihan', 'Status', 'Catatan', 'Diinput Oleh']);
+
         list.forEach((o, i) => {
           const lines = o.items.map(it => `${it.qty}× ${it.name}${it.type === 'bundling' ? ' (paket)' : ''}`);
-          const row = body(ws, 5 + i, i, 10);
+          const row = renderBodyRow(ws, 5 + i, i, 10);
           row.values = [i + 1, o.createdAt, o.buyerName, o.buyerClass, lines.join('\n'), o.items.reduce((s, it) => s + it.qty, 0), o.total, o.status, o.note || '–', o.recordedBy];
-          row.height = Math.max(24, lines.length * 16 + 10);
+          row.height = Math.max(22, lines.length * 15 + 8);
           [1, 6, 8].forEach(c => { row.getCell(c).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }; });
           row.getCell(7).numFmt = RP;
+          row.getCell(7).alignment = { horizontal: 'right', vertical: 'middle' };
+
+          // Status badge - subtle & professional
           const paid = o.status === 'Lunas';
-          row.getCell(8).fill = solid(paid ? 'FFDCEFE3' : 'FFFBEBC8');
-          row.getCell(8).font = { bold: true, color: { argb: paid ? 'FF1F5C38' : 'FF7A4A05' } };
-          row.getCell(3).font = { bold: true };
+          row.getCell(8).fill = solid(paid ? 'FFDCFCE7' : 'FFFEF3C7');
+          row.getCell(8).font = { name: 'Segoe UI', bold: true, size: 9, color: { argb: paid ? 'FF166534' : 'FF92400E' } };
+          row.getCell(3).font = { name: 'Segoe UI', bold: true, size: 10, color: { argb: TEXT_MAIN } };
         });
+
         const last = 4 + n, t = last + 2;
         if (n === 0) {
           ws.mergeCells(5, 1, 5, 10);
           ws.getCell(5, 1).value = 'Belum ada pesanan untuk kelompok ini.';
-          ws.getCell(5, 1).font = { italic: true, color: { argb: MUTE } };
+          ws.getCell(5, 1).font = { name: 'Segoe UI', italic: true, color: { argb: SLATE_MUTED } };
           ws.getCell(5, 1).alignment = { horizontal: 'center', vertical: 'middle' };
-          ws.getRow(5).height = 28;
+          ws.getRow(5).height = 26;
         } else {
           ws.autoFilter = { from: { row: 4, column: 1 }, to: { row: last, column: 10 } };
         }
+
         const paidSum = list.filter(o => o.status === 'Lunas').reduce((s, o) => s + o.total, 0);
         const allSum = list.reduce((s, o) => s + o.total, 0);
         const fx = (formula, result) => (n ? { formula, result } : result);
+
         [['Total Cash Lunas', fx(`SUMIF(H5:H${last},"Lunas",G5:G${last})`, paidSum)],
         ['Total Belum Lunas', fx(`SUMIF(H5:H${last},"Belum Lunas",G5:G${last})`, allSum - paidSum)],
         ['TOTAL OMZET', fx(`SUM(G5:G${last})`, allSum)]].forEach(([label, val], k) => {
@@ -5223,14 +5757,19 @@
           ws.getRow(rowNo).getCell(5).value = label;
           ws.getRow(rowNo).getCell(7).value = val;
           ws.getRow(rowNo).getCell(6).value = '';
-          totalRow(ws, rowNo, 7);
+          renderTotalRow(ws, rowNo, 7);
           for (let c = 1; c <= 4; c++) { ws.getCell(rowNo, c).fill = { type: 'pattern', pattern: 'none' }; ws.getCell(rowNo, c).border = {}; }
           ws.getCell(rowNo, 5).alignment = { horizontal: 'right', vertical: 'middle' };
           ws.getCell(rowNo, 7).numFmt = RP;
-          if (k === 2) { ws.getCell(rowNo, 5).font = { bold: true, size: 12 }; ws.getCell(rowNo, 7).font = { bold: true, size: 12 }; }
+          ws.getCell(rowNo, 7).alignment = { horizontal: 'right', vertical: 'middle' };
+          if (k === 2) {
+            ws.getCell(rowNo, 5).font = { name: 'Segoe UI', bold: true, size: 11, color: { argb: TEXT_MAIN } };
+            ws.getCell(rowNo, 7).font = { name: 'Segoe UI', bold: true, size: 11, color: { argb: TEXT_MAIN } };
+          }
         });
-        [6, 19, 24, 14, 44, 10, 20, 16, 26, 16].forEach((w, i) => { ws.getColumn(i + 1).width = w; });
-        setup(ws, 4);
+
+        [8, 18, 22, 14, 42, 12, 20, 16, 24, 16].forEach((w, i) => { ws.getColumn(i + 1).width = w; });
+        setupSheet(ws, 4);
       });
 
       return wb.xlsx.writeBuffer();
