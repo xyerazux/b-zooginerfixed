@@ -12,6 +12,7 @@
   <meta name="theme-color" content="#1f7a3d" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>/* anti-kedip intro; dilepas oleh motion-layer atau otomatis setelah 3,5 dtk bila CDN gagal */(function(){var r=document.documentElement;if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;r.classList.add("mo-pre");setTimeout(function(){r.classList.remove("mo-pre")},3500)})();</script>
   <style>
     :root{--paper:#fff;--soft:#f1f7ef;--card:#fff;--ink:#14201a;--mute:#5b6b60;--line:#e1ebe2;--pri:#1f7a3d;--pri-d:#14532d;--chili:#f28c1c;--chili-d:#c2410c;--ok:#1f7a3d;--g1:#e8590c;--g2:#0b7285;--g3:#d99a00;--g4:#2f9e44;--g5:#c2255c;--hdr:64px;--ease:cubic-bezier(.22,1,.36,1);--sh:0 12px 32px -14px rgba(20,83,45,.28)}
@@ -770,17 +771,15 @@
 
   <script>
     // ==========================================
-    // 1. SUPABASE CLOUD SYNC + LOCAL STORAGE ENGINE
+    // 1. SUPABASE CLOUD SYNC + AUTH ENGINE
     // ==========================================
     // Anda juga dapat mengisi langsung SUPABASE_URL & SUPABASE_ANON_KEY di bawah ini sebelum deploy ke Vercel:
     const PRESET_SUPABASE_URL = 'https://ngpbhllbbjwebarwgqjr.supabase.co';
     const PRESET_SUPABASE_ANON_KEY = 'sb_publishable_-7p7YEPrVuqENqkvRN8idA_Cc_oEeer';
 
     const STORAGE_KEYS = {
-      ACCOUNTS: 'bzooginer_accounts_v3',
       GROUPS: 'bzooginer_groups_v3',
       ORDERS: 'bzooginer_orders_v3',
-      SESSION: 'bzooginer_session_v3',
       ORIGIN: 'bzooginer_origin_v3',
       SB_URL: 'bzooginer_sb_url',
       SB_KEY: 'bzooginer_sb_key'
@@ -792,35 +791,59 @@
       return url && key ? { url, key } : null;
     }
 
-    async function sbRequest(table, method = 'GET', body = null, query = '') {
+    let _sbClient = null;
+    function getSupabase() {
+      if (_sbClient) return _sbClient;
       const cfg = getSupabaseConfig();
       if (!cfg) return null;
+      if (!window.supabase || !window.supabase.createClient) {
+        console.error('Supabase JS SDK belum termuat.');
+        return null;
+      }
+      _sbClient = window.supabase.createClient(cfg.url, cfg.key, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: false
+        }
+      });
+      return _sbClient;
+    }
+
+    async function sbRequest(table, method = 'GET', body = null, query = '') {
+      const cfg = getSupabaseConfig();
+      if (!cfg) throw new Error('Konfigurasi Supabase belum diatur.');
+      const sb = getSupabase();
+      if (!sb) throw new Error('Supabase SDK tidak siap.');
+
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session || !session.access_token) {
+        throw new Error('Sesi tidak aktif atau telah kedaluwarsa. Silakan login kembali.');
+      }
+
       const headers = {
         'apikey': cfg.key,
-        'Authorization': `Bearer ${cfg.key}`,
+        'Authorization': `Bearer ${session.access_token}`,
         'Content-Type': 'application/json',
         'Prefer': method === 'POST' ? 'resolution=merge-duplicates,return=representation' : 'return=representation'
       };
+
       const res = await fetch(`${cfg.url}/rest/v1/${table}${query}`, {
         method,
         headers,
         body: body ? JSON.stringify(body) : undefined
       });
-      if (!res.ok) throw new Error(await res.text());
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Database error (${res.status}): ${errText}`);
+      }
       return res.status === 204 ? [] : await res.json();
     }
 
     // ==========================================
-    // 2. DEFAULT CREDENTIALS & INITIAL DATA
+    // 2. INITIAL TEMPLATE DATA (GROUPS)
     // ==========================================
-    const DEFAULT_ACCOUNTS = [
-      { id: 'acc_super', role: 'superadmin', groupId: null, label: 'Superadmin (Master Promotor)', username: 'superadmin', password: 'master123' },
-      { id: 'acc_kel1', role: 'group_admin', groupId: 1, label: 'Admin Kelompok 1', username: 'admin_kel1', password: 'kel123' },
-      { id: 'acc_kel2', role: 'group_admin', groupId: 2, label: 'Admin Kelompok 2', username: 'admin_kel2', password: 'kel234' },
-      { id: 'acc_kel3', role: 'group_admin', groupId: 3, label: 'Admin Kelompok 3', username: 'admin_kel3', password: 'kel345' },
-      { id: 'acc_kel4', role: 'group_admin', groupId: 4, label: 'Admin Kelompok 4', username: 'admin_kel4', password: 'kel456' },
-      { id: 'acc_kel5', role: 'group_admin', groupId: 5, label: 'Admin Kelompok 5', username: 'admin_kel5', password: 'kel567' }
-    ];
 
     function makeSvgPoster(title, subtitle, c1, c2) {
       const x = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -900,15 +923,65 @@
     // ==========================================
     // 3. STATE & CLOUD SYNC FUNCTIONS
     // ==========================================
-    let accounts = JSON.parse(localStorage.getItem(STORAGE_KEYS.ACCOUNTS)) || structuredClone(DEFAULT_ACCOUNTS);
     let groups = JSON.parse(localStorage.getItem(STORAGE_KEYS.GROUPS)) || structuredClone(DEFAULT_GROUPS);
     let orders = JSON.parse(localStorage.getItem(STORAGE_KEYS.ORDERS)) || [];
-    let currentUser = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.SESSION)) || null;
-    let originId = sessionStorage.getItem(STORAGE_KEYS.ORIGIN) || null; // akun Superadmin asal saat berganti akun
+    let currentUser = null; // Verified Supabase Auth profile
+    let originUser = null;  // Original Superadmin profile saat impersonation
+    let allProfiles = [];   // List profil akun (dimuat khusus untuk superadmin)
     let superadminActivePage = 'etalase'; // Default to clean Etalase Promosi when Superadmin logs in
     let currentPoCart = {};
     let currentPoFilter = 'all';
     let pendingStatusOrderId = null;
+
+    // Helper memuat profil pengguna dari tabel bzooginer_profiles
+    async function loadUserProfile(userId, accessToken) {
+      const cfg = getSupabaseConfig();
+      if (!cfg || !accessToken) return null;
+      const headers = {
+        'apikey': cfg.key,
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      };
+      const res = await fetch(`${cfg.url}/rest/v1/bzooginer_profiles?id=eq.${encodeURIComponent(userId)}&select=*`, {
+        method: 'GET',
+        headers
+      });
+      if (!res.ok) throw new Error('Gagal mengambil data profil dari database.');
+      const data = await res.json();
+      if (!data || data.length === 0) return null;
+      const p = data[0];
+      return {
+        id: p.id,
+        username: p.username,
+        role: p.role,
+        groupId: p.group_id,
+        label: p.role === 'superadmin' ? 'Superadmin (Master Promotor)' : `Admin Kelompok ${p.group_id}`
+      };
+    }
+
+    // Helper memuat seluruh profil (diizinkan untuk Superadmin via policy profiles_select_own_or_superadmin)
+    async function loadAllProfiles(accessToken) {
+      const cfg = getSupabaseConfig();
+      if (!cfg || !accessToken) return [];
+      const headers = {
+        'apikey': cfg.key,
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      };
+      const res = await fetch(`${cfg.url}/rest/v1/bzooginer_profiles?select=*&order=group_id.asc.nullsfirst`, {
+        method: 'GET',
+        headers
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return (data || []).map(p => ({
+        id: p.id,
+        username: p.username,
+        role: p.role,
+        groupId: p.group_id,
+        label: p.role === 'superadmin' ? 'Superadmin (Master Promotor)' : `Admin Kelompok ${p.group_id}`
+      }));
+    }
 
     // Poster bawaan lama berisi SVG tidak valid; ganti dengan poster bawaan baru (poster unggahan/URL tidak disentuh)
     function upgradeDefaultPosters() {
@@ -936,31 +1009,34 @@
 
     async function syncFromSupabase() {
       const cfg = getSupabaseConfig();
-      if (!cfg) return;
+      const sb = getSupabase();
+      if (!cfg || !sb) return;
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) return;
+
       try {
-        const [remoteAcc, remoteGrp, remoteOrd] = await Promise.all([
-          sbRequest('bzooginer_accounts', 'GET', null, '?select=*&order=id.asc'),
+        const [remoteGrp, remoteOrd] = await Promise.all([
           sbRequest('bzooginer_groups', 'GET', null, '?select=*&order=id.asc'),
           sbRequest('bzooginer_orders', 'GET', null, '?select=*&order=created_at.desc')
         ]);
 
-        if (remoteAcc && remoteAcc.length > 0) {
-          accounts = remoteAcc.map(r => ({
-            id: r.id, role: r.role, groupId: r.group_id, label: r.label, username: r.username, password: r.password
-          }));
-        } else {
-          await pushAccountsToSupabase();
+        if (Array.isArray(remoteGrp)) {
+          if (currentUser && currentUser.role === 'superadmin') {
+            groups = remoteGrp.map(r => ({
+              id: r.id, name: r.name, tagline: r.tagline, poster: r.poster, products: r.products || []
+            }));
+          } else if (currentUser && currentUser.groupId) {
+            // Sinkronkan kelompok milik admin ini ke dalam array lokal
+            remoteGrp.forEach(r => {
+              const idx = groups.findIndex(g => g.id === r.id);
+              const mapped = { id: r.id, name: r.name, tagline: r.tagline, poster: r.poster, products: r.products || [] };
+              if (idx >= 0) groups[idx] = mapped;
+              else groups.push(mapped);
+            });
+          }
         }
 
-        if (remoteGrp && remoteGrp.length > 0) {
-          groups = remoteGrp.map(r => ({
-            id: r.id, name: r.name, tagline: r.tagline, poster: r.poster, products: r.products || []
-          }));
-        } else {
-          await pushGroupsToSupabase();
-        }
-
-        if (remoteOrd) {
+        if (Array.isArray(remoteOrd)) {
           orders = remoteOrd.map(r => ({
             id: r.id,
             createdAt: r.created_at_label,
@@ -977,26 +1053,20 @@
         }
 
         upgradeDefaultPosters();
-        localStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(accounts));
-        localStorage.setItem(STORAGE_KEYS.GROUPS, JSON.stringify(groups));
-        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
+        saveAllData();
         if (currentUser) refreshAllSections();
       } catch (err) {
         console.warn('Supabase sync notice:', err.message);
       }
     }
 
-    async function pushAccountsToSupabase() {
-      if (!getSupabaseConfig()) return;
-      const payload = accounts.map(a => ({
-        id: a.id, role: a.role, group_id: a.groupId, label: a.label, username: a.username, password: a.password
-      }));
-      await sbRequest('bzooginer_accounts', 'POST', payload);
-    }
-
     async function pushGroupsToSupabase() {
       if (!getSupabaseConfig()) return;
-      const payload = groups.map(g => ({
+      // Admin kelompok hanya mengirim kelompoknya sendiri agar sesuai dengan RLS groups_update_superadmin_or_own
+      const targetGroups = (currentUser && currentUser.role !== 'superadmin' && currentUser.groupId)
+        ? groups.filter(g => g.id === currentUser.groupId)
+        : groups;
+      const payload = targetGroups.map(g => ({
         id: g.id, name: g.name, tagline: g.tagline, poster: g.poster, products: g.products
       }));
       await sbRequest('bzooginer_groups', 'POST', payload);
@@ -1026,7 +1096,6 @@
     }
 
     function saveAllData() {
-      localStorage.setItem(STORAGE_KEYS.ACCOUNTS, JSON.stringify(accounts));
       localStorage.setItem(STORAGE_KEYS.GROUPS, JSON.stringify(groups));
       localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
     }
@@ -1068,16 +1137,18 @@
       }
       localStorage.setItem(STORAGE_KEYS.SB_URL, url);
       localStorage.setItem(STORAGE_KEYS.SB_KEY, key);
+      _sbClient = null;
       updateDbIndicator();
       closeModal('db-modal');
-      showToast('Menghubungkan & menyinkronkan ke Supabase...');
+      showToast('Menghubungkan ke Supabase...');
       await syncFromSupabase();
-      showToast('Sinkronisasi Supabase selesai!');
+      showToast('Koneksi Supabase aktif!');
     });
 
     function disconnectSupabase() {
       localStorage.removeItem(STORAGE_KEYS.SB_URL);
       localStorage.removeItem(STORAGE_KEYS.SB_KEY);
+      _sbClient = null;
       updateDbIndicator();
       closeModal('db-modal');
       showToast('Beralih ke penyimpanan lokal browser.');
@@ -1100,58 +1171,116 @@
 
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      await syncFromSupabase();
-      const usn = document.getElementById('login-username').value.trim();
-      const pw = document.getElementById('login-password').value;
+      const usnInput = document.getElementById('login-username').value.trim();
+      const pwInput = document.getElementById('login-password').value;
       const errBox = document.getElementById('login-error');
+      const submitBtn = e.target.querySelector('button[type="submit"]');
 
-      const found = accounts.find(a => a.username === usn && a.password === pw);
-      if (!found) {
+      if (!usnInput || !pwInput) {
+        errBox.textContent = 'Username dan kata sandi wajib diisi.';
         errBox.classList.remove('hidden');
         return;
       }
 
-      errBox.classList.add('hidden');
-      currentUser = found;
-      sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(found));
-      initAppView();
-      showToast(`Selamat datang, ${found.label}!`);
+      // Format username menjadi email Supabase Auth (mis. admin_kel1 -> admin_kel1@example.com)
+      const email = usnInput.includes('@') ? usnInput.toLowerCase() : `${usnInput.toLowerCase()}@example.com`;
+
+      const sb = getSupabase();
+      if (!sb) {
+        errBox.textContent = 'Koneksi Supabase belum siap. Periksa Project URL & Anon Key.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'MEMVERIFIKASI...'; }
+        errBox.classList.add('hidden');
+
+        const { data: authData, error: authErr } = await sb.auth.signInWithPassword({
+          email,
+          password: pwInput
+        });
+
+        if (authErr || !authData?.user) {
+          errBox.textContent = 'Username atau kata sandi tidak sesuai. Silakan periksa kembali.';
+          errBox.classList.remove('hidden');
+          return;
+        }
+
+        // Ambil profil resmi terverifikasi dari bzooginer_profiles
+        const profile = await loadUserProfile(authData.user.id, authData.session.access_token);
+        if (!profile) {
+          await sb.auth.signOut();
+          errBox.textContent = 'Akun Auth aktif tetapi profil B-Zooginer tidak ditemukan di database.';
+          errBox.classList.remove('hidden');
+          return;
+        }
+
+        currentUser = profile;
+        originUser = null;
+        sessionStorage.removeItem(STORAGE_KEYS.ORIGIN);
+
+        if (profile.role === 'superadmin') {
+          allProfiles = await loadAllProfiles(authData.session.access_token);
+        } else {
+          allProfiles = [profile];
+        }
+
+        await syncFromSupabase();
+        initAppView();
+        showToast(`Selamat datang, ${profile.label}!`);
+      } catch (err) {
+        console.error('Login error:', err);
+        errBox.textContent = err.message || 'Terjadi kendala autentikasi.';
+        errBox.classList.remove('hidden');
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'MASUK KE SISTEM'; }
+      }
     });
 
-    function logout() {
+    async function logout() {
       currentUser = null;
-      sessionStorage.removeItem(STORAGE_KEYS.SESSION);
+      originUser = null;
+      allProfiles = [];
       sessionStorage.removeItem(STORAGE_KEYS.ORIGIN);
-      originId = null;
+      const sb = getSupabase();
+      if (sb) {
+        try { await sb.auth.signOut(); } catch (e) { console.warn('Sign out notice:', e); }
+      }
       document.getElementById('app-view').classList.add('hidden');
       document.getElementById('login-view').classList.remove('hidden');
       document.getElementById('login-form').reset();
     }
 
     function openAccountModal() {
-      if (!currentUser || currentUser.role !== 'superadmin') return;
+      if (!currentUser || (currentUser.role !== 'superadmin' && (!originUser || originUser.role !== 'superadmin'))) return;
       renderAccountsEditor();
       openModal('account-modal');
     }
 
     function renderAccountsEditor() {
       const container = document.getElementById('accounts-editor-list');
-      container.innerHTML = accounts.map(acc => `
+      const list = allProfiles.length > 0 ? allProfiles : [
+        { id: 'superadmin', role: 'superadmin', groupId: null, label: 'Superadmin (Master Promotor)', username: 'superadmin' },
+        ...[1,2,3,4,5].map(gid => ({ id: `kel_${gid}`, role: 'group_admin', groupId: gid, label: `Admin Kelompok ${gid}`, username: `admin_kel${gid}` }))
+      ];
+
+      container.innerHTML = list.map(acc => `
         <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div class="min-w-[180px]">
             <span class="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${acc.role === 'superadmin' ? 'bg-amber-100 text-amber-800' : 'bg-brand-100 text-brand-700'}">
               ${acc.role === 'superadmin' ? 'Master' : 'Kelompok ' + acc.groupId}
             </span>
-            <p class="font-bold text-sm text-slate-900 mt-1">${acc.label}</p>
+            <p class="font-bold text-sm text-slate-900 mt-1">${esc(acc.label)}</p>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1">
             <div>
               <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Username</label>
-              <input id="edit-usn-${acc.id}" type="text" value="${acc.username}" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800" />
+              <input id="edit-usn-${acc.id}" type="text" value="${esc(acc.username)}" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800" />
             </div>
             <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Kata Sandi</label>
-              <input id="edit-pw-${acc.id}" type="text" value="${acc.password}" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800" />
+              <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Kata Sandi Baru</label>
+              <input id="edit-pw-${acc.id}" type="text" placeholder="Kosongkan jika tidak ganti" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs text-slate-800" />
             </div>
             <div class="flex items-end">
               <button type="button" onclick="saveAccountCredential('${acc.id}')" class="w-full py-2 px-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition cursor-pointer">
@@ -1164,48 +1293,91 @@
     }
 
     async function saveAccountCredential(accId) {
-      const newUsn = document.getElementById(`edit-usn-${accId}`).value.trim();
+      const newUsn = document.getElementById(`edit-usn-${accId}`).value.trim().toLowerCase();
       const newPw = document.getElementById(`edit-pw-${accId}`).value.trim();
 
-      if (!newUsn || !newPw) {
-        showToast('Username dan kata sandi tidak boleh kosong!', 'error');
+      if (!newUsn) {
+        showToast('Username tidak boleh kosong!', 'error');
         return;
       }
 
-      const duplicate = accounts.find(a => a.id !== accId && a.username.toLowerCase() === newUsn.toLowerCase());
+      const duplicate = allProfiles.find(a => a.id !== accId && a.username.toLowerCase() === newUsn);
       if (duplicate) {
         showToast('Username sudah dipakai akun lain!', 'error');
         return;
       }
 
-      const target = accounts.find(a => a.id === accId);
-      if (target) {
-        target.username = newUsn;
-        target.password = newPw;
-        if (currentUser && currentUser.id === accId) {
-          currentUser = target;
-          sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(target));
+      const target = allProfiles.find(a => a.id === accId);
+      if (!target) return;
+
+      const sb = getSupabase();
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        showToast('Sesi tidak aktif.', 'error');
+        return;
+      }
+
+      showToast(`Menyimpan perubahan untuk ${target.label}...`);
+
+      try {
+        const cfg = getSupabaseConfig();
+        const fnUrl = `${cfg.url}/functions/v1/manage-bzooginer-account`;
+
+        // 1. Pembaruan Username jika berubah
+        if (newUsn !== target.username.toLowerCase()) {
+          const res = await fetch(fnUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+              action: 'update-username',
+              targetUserId: accId,
+              newUsername: newUsn
+            })
+          });
+          const resData = await res.json();
+          if (!res.ok) {
+            throw new Error(resData.error || 'Gagal mengubah username melalui Edge Function.');
+          }
+          target.username = newUsn;
         }
-        saveAllData();
-        await pushAccountsToSupabase();
+
+        // 2. Pembaruan / Reset Kata Sandi jika diisi
+        if (newPw) {
+          const res = await fetch(fnUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+              action: 'reset-password',
+              targetUserId: accId,
+              newPassword: newPw
+            })
+          });
+          const resData = await res.json();
+          if (!res.ok) {
+            throw new Error(resData.error || 'Gagal mengubah kata sandi melalui Edge Function.');
+          }
+          showToast(`Kata sandi akun ${target.username} berhasil diubah!`);
+          document.getElementById(`edit-pw-${accId}`).value = '';
+        }
+
+        allProfiles = await loadAllProfiles(session.access_token);
+        renderAccountsEditor();
+        renderSwitcher();
         showToast(`Akun ${target.label} berhasil diperbarui!`);
+      } catch (err) {
+        console.warn('Edge Function notice:', err.message);
+        alert(`Perhatian Operasi Admin:\n${err.message}\n\nPastikan Supabase Edge Function 'manage-bzooginer-account' sudah dideploy. Lihat panduan di: supabase/functions/manage-bzooginer-account/README.md`);
       }
     }
 
     async function resetAccountsToDefault() {
-      if (!confirm('Kembalikan semua username dan kata sandi ke pengaturan awal?')) return;
-      accounts = structuredClone(DEFAULT_ACCOUNTS);
-      saveAllData();
-      await pushAccountsToSupabase();
-      if (currentUser) {
-        const refreshed = accounts.find(a => a.id === currentUser.id);
-        if (refreshed) {
-          currentUser = refreshed;
-          sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(refreshed));
-        }
-      }
-      renderAccountsEditor();
-      showToast('Semua akun telah direset ke default.');
+      alert('Reset kata sandi massal berbasis plaintext telah dinonaktifkan demi standar keamanan Supabase Auth. Untuk mereset kata sandi akun, gunakan kolom "Kata Sandi Baru" lalu klik "Simpan Akun" pada akun yang dituju.');
     }
 
     // ==========================================
@@ -1299,13 +1471,12 @@
     function canSwitchAccounts() {
       if (!currentUser) return false;
       if (currentUser.role === 'superadmin') return true;
-      const origin = accounts.find(a => a.id === originId);
-      return !!(origin && origin.role === 'superadmin');
+      return !!(originUser && originUser.role === 'superadmin');
     }
 
     function renderSwitcher() {
       const can = canSwitchAccounts();
-      const imp = !!originId && currentUser.role !== 'superadmin';
+      const imp = !!originUser && currentUser.role !== 'superadmin';
       document.getElementById('account-switcher').classList.toggle('hidden', !can);
       document.getElementById('impersonate-bar').classList.toggle('hidden', !imp);
       closeSwitcher();
@@ -1314,9 +1485,15 @@
       document.getElementById('switcher-label').textContent = isSuper ? 'Ganti akun' : `Kelompok ${currentUser.groupId}`;
       document.getElementById('switcher-dot').style.background = isSuper ? 'var(--paper)' : accent(currentUser.groupId);
       if (imp) document.getElementById('impersonate-text').innerHTML = `Sedang masuk sebagai <b>${esc(currentUser.label)}</b>`;
-      document.getElementById('switcher-pop').innerHTML = '<div class="pop-h">Pindah ke akun</div>' + accounts.map(a => {
+
+      const items = allProfiles.length > 0 ? allProfiles : [
+        { id: 'superadmin', role: 'superadmin', groupId: null, label: 'Superadmin (Master Promotor)', username: 'superadmin' },
+        ...[1, 2, 3, 4, 5].map(gid => ({ id: `kel_${gid}`, role: 'group_admin', groupId: gid, label: `Admin Kelompok ${gid}`, username: `admin_kel${gid}` }))
+      ];
+
+      document.getElementById('switcher-pop').innerHTML = '<div class="pop-h">Pindah ke akun</div>' + items.map(a => {
         const sup = a.role === 'superadmin';
-        const cur = a.id === currentUser.id;
+        const cur = (sup && currentUser.role === 'superadmin') || (!sup && currentUser.groupId === a.groupId);
         return `<button type="button" role="menuitem" class="pop-item" aria-current="${cur}" onclick="switchAccount('${a.id}')">
           <span class="av" style="--c:${sup ? 'var(--ink)' : accent(a.groupId)}">${sup ? 'S' : a.groupId}</span>
           <span style="flex:1;min-width:0"><b>${esc(a.label)}</b><small>@${esc(a.username)}</small></span>
@@ -1335,28 +1512,51 @@
     }
 
     function switchAccount(accId) {
-      const target = accounts.find(a => a.id === accId);
-      if (!target || !canSwitchAccounts()) return;
-      if (currentUser.id === accId) { closeSwitcher(); return; }
-      if (!originId) {
-        originId = currentUser.id;
-        sessionStorage.setItem(STORAGE_KEYS.ORIGIN, originId);
+      if (!canSwitchAccounts()) return;
+      const target = allProfiles.find(a => a.id === accId) ||
+        (accId === 'superadmin' ? { id: 'superadmin', role: 'superadmin', groupId: null, label: 'Superadmin (Master Promotor)', username: 'superadmin' } : null);
+      if (!target) return;
+
+      const isTargetSuper = target.role === 'superadmin';
+
+      if (isTargetSuper) {
+        if (originUser) {
+          currentUser = structuredClone(originUser);
+          originUser = null;
+          sessionStorage.removeItem(STORAGE_KEYS.ORIGIN);
+        }
+      } else {
+        if (!originUser) {
+          originUser = structuredClone(currentUser);
+          sessionStorage.setItem(STORAGE_KEYS.ORIGIN, JSON.stringify(originUser));
+        }
+        currentUser = {
+          id: target.id,
+          username: target.username,
+          role: 'group_admin',
+          groupId: target.groupId,
+          label: target.label,
+          isImpersonated: true
+        };
       }
-      if (target.id === originId) {
-        originId = null;
-        sessionStorage.removeItem(STORAGE_KEYS.ORIGIN);
-      }
-      currentUser = target;
-      sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(target));
+
       ['po-modal', 'poster-modal', 'product-modal', 'account-modal', 'summary-modal'].forEach(id => {
         const m = document.getElementById(id); if (m && !m.classList.contains('hidden')) closeModal(id);
       });
       initAppView();
       window.scrollTo({ top: 0 });
-      showToast(`Beralih ke ${target.label}`);
+      showToast(`Beralih ke ${currentUser.label}`);
     }
 
-    function returnToOrigin() { if (originId) switchAccount(originId); }
+    function returnToOrigin() {
+      if (originUser) {
+        currentUser = structuredClone(originUser);
+        originUser = null;
+        sessionStorage.removeItem(STORAGE_KEYS.ORIGIN);
+        initAppView();
+        showToast('Kembali ke Dashboard Superadmin');
+      }
+    }
 
     document.addEventListener('click', e => { if (!e.target.closest('#account-switcher')) closeSwitcher(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSwitcher(); });
@@ -1609,15 +1809,20 @@
         total,
         status,
         note,
-        recordedBy: currentUser.username
+        recordedBy: originUser ? `${originUser.username} (sebagai ${currentUser.username})` : currentUser.username
       };
 
-      orders.unshift(newOrder);
-      saveAllData();
-      await pushSingleOrderToSupabase(newOrder);
-      closeModal('po-modal');
-      refreshAllSections();
-      showToast(`PO atas nama ${buyerName} (${buyerClass}) berhasil dicatat!`);
+      try {
+        await pushSingleOrderToSupabase(newOrder);
+        orders.unshift(newOrder);
+        saveAllData();
+        closeModal('po-modal');
+        refreshAllSections();
+        showToast(`PO atas nama ${buyerName} (${buyerClass}) berhasil dicatat!`);
+      } catch (err) {
+        console.error('PO insert error:', err);
+        showToast(`Gagal mencatat PO ke database: ${err.message}`, 'error');
+      }
     });
 
     // ==========================================
@@ -1687,11 +1892,17 @@
       if (!pendingStatusOrderId) return;
       const order = orders.find(o => o.id === pendingStatusOrderId);
       if (order) {
+        const prevStatus = order.status;
         order.status = order.status === 'Lunas' ? 'Belum Lunas' : 'Lunas';
-        saveAllData();
-        await pushSingleOrderToSupabase(order);
-        refreshAllSections();
-        showToast(`Tervalidasi: Status ${order.buyerName} kini ${order.status}.`);
+        try {
+          await pushSingleOrderToSupabase(order);
+          saveAllData();
+          refreshAllSections();
+          showToast(`Tervalidasi: Status ${order.buyerName} kini ${order.status}.`);
+        } catch (err) {
+          order.status = prevStatus;
+          showToast(`Gagal menyimpan status ke database: ${err.message}`, 'error');
+        }
       }
       pendingStatusOrderId = null;
       closeModal('confirm-status-modal');
@@ -1699,11 +1910,15 @@
 
     async function deleteOrder(orderId) {
       if (!confirm('Hapus pesanan PO ini secara permanen?')) return;
-      orders = orders.filter(o => o.id !== orderId);
-      saveAllData();
-      await deleteOrderFromSupabase(orderId);
-      refreshAllSections();
-      showToast('Pesanan berhasil dihapus.');
+      try {
+        await deleteOrderFromSupabase(orderId);
+        orders = orders.filter(o => o.id !== orderId);
+        saveAllData();
+        refreshAllSections();
+        showToast('Pesanan berhasil dihapus.');
+      } catch (err) {
+        showToast(`Gagal menghapus pesanan dari database: ${err.message}`, 'error');
+      }
     }
 
     // ==========================================
@@ -2098,12 +2313,93 @@
       return wb.xlsx.writeBuffer();
     }
 
-    // Boot
-    updateDbIndicator();
-    syncFromSupabase();
-    if (currentUser) {
-      initAppView();
+    // Helper reset tampilan ke mode belum login
+    function handleSignedOutUI() {
+      currentUser = null;
+      originUser = null;
+      allProfiles = [];
+      sessionStorage.removeItem(STORAGE_KEYS.ORIGIN);
+      document.getElementById('app-view').classList.add('hidden');
+      document.getElementById('login-view').classList.remove('hidden');
+      updateDbIndicator();
     }
+
+    // Boot: Inisialisasi Auth & Session Supabase
+    updateDbIndicator();
+    (async function initSupabaseAuthBoot() {
+      try {
+        const sb = getSupabase();
+        if (!sb) {
+          handleSignedOutUI();
+          return;
+        }
+
+        // 1. Ambil session aktif dari SDK
+        const { data: { session }, error: sessionErr } = await sb.auth.getSession();
+        if (sessionErr || !session || !session.user) {
+          handleSignedOutUI();
+          return;
+        }
+
+        // 2. Ambil profil pengguna terverifikasi dari bzooginer_profiles
+        const profile = await loadUserProfile(session.user.id, session.access_token);
+        if (!profile) {
+          console.warn('Sesi aktif tetapi profil tidak ditemukan. Mengakhiri sesi.');
+          await sb.auth.signOut();
+          handleSignedOutUI();
+          return;
+        }
+
+        currentUser = profile;
+
+        // 3. Jika superadmin, muat seluruh daftar profil untuk switcher & manajemen akun
+        if (profile.role === 'superadmin') {
+          allProfiles = await loadAllProfiles(session.access_token);
+          // Periksa apakah sebelumnya sedang impersonation
+          const savedOrigin = sessionStorage.getItem(STORAGE_KEYS.ORIGIN);
+          if (savedOrigin) {
+            try {
+              const orig = JSON.parse(savedOrigin);
+              if (orig && orig.role === 'superadmin') {
+                originUser = orig;
+              }
+            } catch (e) {
+              sessionStorage.removeItem(STORAGE_KEYS.ORIGIN);
+            }
+          }
+        } else {
+          allProfiles = [profile];
+        }
+
+        // 4. Sinkronkan data groups dan orders
+        await syncFromSupabase();
+        initAppView();
+
+        // 5. Listener event auth aman (bebas deadlock)
+        sb.auth.onAuthStateChange((event, newSession) => {
+          if (event === 'SIGNED_OUT') {
+            handleSignedOutUI();
+          } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            if (newSession && (!currentUser || currentUser.id !== newSession.user.id)) {
+              setTimeout(async () => {
+                const refreshed = await loadUserProfile(newSession.user.id, newSession.access_token);
+                if (refreshed) {
+                  currentUser = refreshed;
+                  if (refreshed.role === 'superadmin') {
+                    allProfiles = await loadAllProfiles(newSession.access_token);
+                  }
+                  await syncFromSupabase();
+                  initAppView();
+                }
+              }, 0);
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Inisialisasi boot gagal:', err);
+        handleSignedOutUI();
+      }
+    })();
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
