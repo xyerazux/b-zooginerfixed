@@ -388,9 +388,8 @@
           <div id="login-error" class="err hidden">Username atau kata sandi tidak sesuai. Silakan periksa kembali.</div>
           <button type="submit" class="btn btn-cta btn-block" style="min-height:48px;font-size:14px">MASUK KE SISTEM</button>
         </form>
-        <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;font-size:12px">
+        <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--line);display:flex;justify-content:center;gap:10px;font-size:12px">
           <span id="db-mode-badge" class="mute">Penyimpanan: Lokal Browser</span>
-          <button type="button" onclick="openDbConfigModal()" style="background:none;border:0;padding:0;font:inherit;font-weight:700;color:var(--pri);cursor:pointer">Koneksi Supabase</button>
         </div>
       </div>
     </section>
@@ -420,7 +419,6 @@
           <a href="#section-admin-groups">Kelompok</a><a href="#section-orders">Pesanan</a><a href="#section-catalog">Menu &amp; Paket</a>
         </nav>
         <button id="btn-manage-accounts" type="button" class="btn btn-sm hidden" onclick="openAccountModal()">Kelola Akun</button>
-        <button id="btn-db-sync" type="button" class="btn btn-sm" onclick="openDbConfigModal()">Database</button>
         <span class="who"><b id="nav-user-name">-</b> · <span id="nav-user-role">-</span></span>
       </div></div>
       <div id="impersonate-bar" class="imp hidden"><div class="wrap"><span id="impersonate-text"></span><button type="button" onclick="returnToOrigin()">Kembali ke Superadmin</button></div></div>
@@ -720,40 +718,6 @@
     </div>
   </div>
 
-  <!-- MODAL: SUPABASE / DATABASE CONNECTION CONFIG -->
-  <div id="db-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div id="db-modal-box" class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
-      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
-        <div>
-          <span class="text-[11px] uppercase tracking-wider font-bold text-emerald-300">Sinkronisasi Multi-Perangkat</span>
-          <h4 class="font-display text-base font-bold">Koneksi Database Supabase</h4>
-        </div>
-        <button type="button" onclick="closeModal('db-modal')" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm cursor-pointer">&times;</button>
-      </div>
-      <form id="db-config-form" class="p-6 space-y-4">
-        <p class="text-xs text-slate-600 leading-relaxed">
-          Masukkan <strong>Project URL</strong> dan <strong>Anon Public Key</strong> dari proyek Supabase Anda agar seluruh pesanan, poster, produk, dan akun tersinkronisasi secara real-time antar HP/Laptop Superadmin dan Admin Kelompok.
-        </p>
-        <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Supabase Project URL</label>
-          <input id="sb-url-input" type="url" placeholder="https://xxxxxxxxxxxx.supabase.co" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono" />
-        </div>
-        <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Supabase Anon Key</label>
-          <input id="sb-key-input" type="text" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono" />
-        </div>
-        <div class="flex flex-wrap items-center justify-between gap-2 pt-2">
-          <button type="button" onclick="disconnectSupabase()" class="px-3.5 py-2 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold cursor-pointer">
-            Putuskan / Pakai Lokal
-          </button>
-          <div class="flex gap-2">
-            <button type="button" onclick="closeModal('db-modal')" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer">Tutup</button>
-            <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold cursor-pointer">Simpan &amp; Sinkronkan</button>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
 
   <!-- MODAL: REKAP PRODUKSI -->
   <div id="summary-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
@@ -999,12 +963,7 @@
     function updateDbIndicator() {
       const cfg = getSupabaseConfig();
       const loginBadge = document.getElementById('db-mode-badge');
-      const navBtn = document.getElementById('btn-db-sync');
       if (loginBadge) loginBadge.textContent = cfg ? 'Supabase Cloud: Terhubung' : 'Penyimpanan: Lokal Browser';
-      if (navBtn) {
-        navBtn.textContent = cfg ? 'Cloud Aktif' : 'Database';
-        navBtn.className = cfg ? 'btn btn-sm btn-okl' : 'btn btn-sm';
-      }
     }
 
     async function syncFromSupabase() {
@@ -1119,42 +1078,6 @@
         el.classList.add('anim-exit');
         setTimeout(() => el.remove(), 220);
       }, 2600);
-    }
-
-    // ==========================================
-    // 4. DATABASE CONFIG MODAL HANDLERS
-    // ==========================================
-    function openDbConfigModal() {
-      document.getElementById('sb-url-input').value = localStorage.getItem(STORAGE_KEYS.SB_URL) || PRESET_SUPABASE_URL;
-      document.getElementById('sb-key-input').value = localStorage.getItem(STORAGE_KEYS.SB_KEY) || PRESET_SUPABASE_ANON_KEY;
-      openModal('db-modal');
-    }
-
-    document.getElementById('db-config-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const url = document.getElementById('sb-url-input').value.trim();
-      const key = document.getElementById('sb-key-input').value.trim();
-      if (!url || !key) {
-        showToast('Isi URL dan Anon Key Supabase terlebih dahulu.', 'error');
-        return;
-      }
-      localStorage.setItem(STORAGE_KEYS.SB_URL, url);
-      localStorage.setItem(STORAGE_KEYS.SB_KEY, key);
-      _sbClient = null;
-      updateDbIndicator();
-      closeModal('db-modal');
-      showToast('Menghubungkan ke Supabase...');
-      await syncFromSupabase();
-      showToast('Koneksi Supabase aktif!');
-    });
-
-    function disconnectSupabase() {
-      localStorage.removeItem(STORAGE_KEYS.SB_URL);
-      localStorage.removeItem(STORAGE_KEYS.SB_KEY);
-      _sbClient = null;
-      updateDbIndicator();
-      closeModal('db-modal');
-      showToast('Beralih ke penyimpanan lokal browser.');
     }
 
     // ==========================================
