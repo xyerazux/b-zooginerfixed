@@ -1092,7 +1092,10 @@
 
     async function deleteOrderFromSupabase(orderId) {
       if (!getSupabaseConfig()) return;
-      await sbRequest('bzooginer_orders', 'DELETE', null, `?id=eq.${encodeURIComponent(orderId)}`);
+      const res = await sbRequest('bzooginer_orders', 'DELETE', null, `?id=eq.${encodeURIComponent(orderId)}`);
+      if (Array.isArray(res) && res.length === 0) {
+        throw new Error('Penghapusan ditolak oleh database (hanya Superadmin atau pemilik pesanan yang berwenang).');
+      }
     }
 
     function saveAllData() {
@@ -1252,8 +1255,19 @@
       document.getElementById('login-form').reset();
     }
 
-    function openAccountModal() {
+    async function openAccountModal() {
       if (!currentUser || (currentUser.role !== 'superadmin' && (!originUser || originUser.role !== 'superadmin'))) return;
+      if (allProfiles.length === 0) {
+        const sb = getSupabase();
+        const { data: { session } } = (await sb?.auth.getSession()) || { data: {} };
+        if (session?.access_token) {
+          try {
+            allProfiles = await loadAllProfiles(session.access_token);
+          } catch (e) {
+            console.warn('Load profiles notice:', e);
+          }
+        }
+      }
       renderAccountsEditor();
       openModal('account-modal');
     }

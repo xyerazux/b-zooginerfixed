@@ -1,5 +1,5 @@
 // Supabase Edge Function: manage-bzooginer-account
-// Securely manage user credentials (username, email, password) by Superadmin only
+// Securely manage user credentials (username, email, password) by verified Superadmin only
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.8";
@@ -9,6 +9,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const USERNAME_REGEX = /^[a-z0-9_]{3,24}$/;
 
 function generateStrongPassword(length = 14): string {
   const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*";
@@ -22,9 +25,17 @@ function generateStrongPassword(length = 14): string {
 }
 
 serve(async (req: Request) => {
-  // Handle CORS preflight
+  // 1. Handle CORS Preflight
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
+  // 2. Enforce POST Method
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({ error: "Metode HTTP tidak diizinkan. Gunakan POST." }),
+      { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 
   try {
@@ -32,43 +43,52 @@ serve(async (req: Request) => {
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    if (!supabaseUrl || !serviceRoleKey) {
+    // Environment sanity check - never fallback service role key into client
+    if (!supabaseUrl || !supabaseAnonKey || !serviceRoleKey) {
+      console.error("Missing required server environment variables.");
       return new Response(
-        JSON.stringify({ error: "Server configuration missing required environment variables." }),
+        JSON.stringify({ error: "Konfigurasi server belum lengkap." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // 1. Verify Caller Authentication via JWT
+    // 3. Extract & Validate Bearer Token
     const authHeader = req.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({ error: "Missing or invalid Authorization header." }),
+        JSON.stringify({ error: "Header Authorization tidak ditemukan atau format tidak valid." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     const token = authHeader.replace("Bearer ", "").trim();
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: "Token akses kosong." }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    // Client with caller's token for auth verification
-    const callerClient = createClient(supabaseUrl, supabaseAnonKey || serviceRoleKey, {
+    // 4. Verify JWT Signature & Identity using caller client (anon key only)
+    const callerClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: `Bearer ${token}` } },
       auth: { persistSession: false },
     });
 
     const { data: { user: callerUser }, error: callerError } = await callerClient.auth.getUser(token);
     if (callerError || !callerUser) {
+      console.warn("JWT verification failed:", callerError?.message);
       return new Response(
-        JSON.stringify({ error: "Session tidak valid atau sudah kedaluwarsa. Silakan login kembali." }),
+        JSON.stringify({ error: "Sesi tidak valid atau telah kedaluwarsa. Silakan login kembali." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // 2. Client with Service Role Key for Admin Operations & Role Check
+    // 5. Initialize Server Admin Client (Service Role Key isolated to server-side only)
     const adminClient = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
-    // Verify caller is superadmin in bzooginer_profiles
+    // 6. Verify Caller Authorization in bzooginer_profiles
     const { data: callerProfile, error: profileErr } = await adminClient
       .from("bzooginer_profiles")
       .select("role, username")
@@ -76,24 +96,34 @@ serve(async (req: Request) => {
       .single();
 
     if (profileErr || !callerProfile || callerProfile.role !== "superadmin") {
+      console.warn(`Unauthorized access attempt by user ${callerUser.id} (${callerProfile?.role || 'no profile'})`);
       return new Response(
-        JSON.stringify({ error: "Akses ditolak: Operasi ini hanya diizinkan untuk Superadmin." }),
+        JSON.stringify({ error: "Akses ditolak: Operasi administratif ini hanya diizinkan untuk Superadmin." }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // 3. Parse Request Payload
-    const body = await req.json();
-    const { action, targetUserId } = body;
-
-    if (!targetUserId) {
+    // 7. Parse & Validate Payload
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
       return new Response(
-        JSON.stringify({ error: "Target user ID wajib disertakan." }),
+        JSON.stringify({ error: "Format body JSON tidak valid." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Verify target user exists in bzooginer_profiles
+    const { action, targetUserId } = body;
+
+    if (!targetUserId || !UUID_REGEX.test(targetUserId)) {
+      return new Response(
+        JSON.stringify({ error: "Format ID target akun tidak valid (harus UUID)." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 8. Verify Target User Exists
     const { data: targetProfile, error: targetProfileErr } = await adminClient
       .from("bzooginer_profiles")
       .select("id, username, role, group_id")
@@ -107,7 +137,7 @@ serve(async (req: Request) => {
       );
     }
 
-    // 4. Handle Actions
+    // 9. Execute Actions with Safety Guardrails
     if (action === "update-username") {
       const rawUsername = body.newUsername;
       if (!rawUsername || typeof rawUsername !== "string") {
@@ -116,15 +146,24 @@ serve(async (req: Request) => {
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
       const newUsername = rawUsername.trim().toLowerCase();
-      if (!/^[a-z0-9_]{3,24}$/.test(newUsername)) {
+      if (!USERNAME_REGEX.test(newUsername)) {
         return new Response(
-          JSON.stringify({ error: "Username harus 3-24 karakter (huruf kecil, angka, atau garis bawah)." }),
+          JSON.stringify({ error: "Username harus 3-24 karakter (huruf kecil a-z, angka 0-9, atau garis bawah _)." }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      // Check duplicate in bzooginer_profiles
+      // Safeguard: Do not rename superadmin master account
+      if (targetProfile.role === "superadmin" && targetProfile.username === "superadmin" && newUsername !== "superadmin") {
+        return new Response(
+          JSON.stringify({ error: "Username akun master Superadmin tidak dapat diubah demi stabilitas sistem." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Check username collision in bzooginer_profiles
       const { data: existingUser } = await adminClient
         .from("bzooginer_profiles")
         .select("id")
@@ -141,27 +180,30 @@ serve(async (req: Request) => {
 
       const newEmail = `${newUsername}@example.com`;
 
-      // Update Supabase Auth user email
+      // Update email & metadata in Supabase Auth via Admin API
       const { error: authUpdateErr } = await adminClient.auth.admin.updateUserById(targetUserId, {
         email: newEmail,
         user_metadata: { username: newUsername },
       });
+
       if (authUpdateErr) {
+        console.error("Auth update error:", authUpdateErr.message);
         return new Response(
-          JSON.stringify({ error: `Gagal memperbarui Auth email: ${authUpdateErr.message}` }),
+          JSON.stringify({ error: "Gagal memperbarui data login di Supabase Auth." }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      // Update profile record in bzooginer_profiles
+      // Update username in bzooginer_profiles
       const { error: profileUpdateErr } = await adminClient
         .from("bzooginer_profiles")
         .update({ username: newUsername })
         .eq("id", targetUserId);
 
       if (profileUpdateErr) {
+        console.error("Profile update error:", profileUpdateErr.message);
         return new Response(
-          JSON.stringify({ error: `Gagal memperbarui profil: ${profileUpdateErr.message}` }),
+          JSON.stringify({ error: "Gagal menyinkronkan profil database." }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -181,27 +223,40 @@ serve(async (req: Request) => {
       let tempPassword = body.newPassword;
       let isGenerated = false;
 
-      if (!tempPassword || typeof tempPassword !== "string" || tempPassword.trim().length === 0) {
-        tempPassword = generateStrongPassword(14);
-        isGenerated = true;
-      } else {
-        tempPassword = tempPassword.trim();
-        if (tempPassword.length < 6) {
+      // Safeguard: If target is Superadmin, require explicit password to prevent accidental lockout
+      if (targetProfile.role === "superadmin") {
+        if (!tempPassword || typeof tempPassword !== "string" || tempPassword.trim().length < 8) {
           return new Response(
-            JSON.stringify({ error: "Kata sandi minimal 6 karakter." }),
+            JSON.stringify({ error: "Pengubahan kata sandi Superadmin wajib memasukkan kata sandi baru secara eksplisit (minimal 8 karakter)." }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
+        tempPassword = tempPassword.trim();
+      } else {
+        // Group Admin: Allow explicit password or generate strong temporary password
+        if (!tempPassword || typeof tempPassword !== "string" || tempPassword.trim().length === 0) {
+          tempPassword = generateStrongPassword(14);
+          isGenerated = true;
+        } else {
+          tempPassword = tempPassword.trim();
+          if (tempPassword.length < 6) {
+            return new Response(
+              JSON.stringify({ error: "Kata sandi minimal 6 karakter." }),
+              { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        }
       }
 
-      // Update password in Supabase Auth via Admin API
+      // Update password via Supabase Admin API
       const { error: pwErr } = await adminClient.auth.admin.updateUserById(targetUserId, {
         password: tempPassword,
       });
 
       if (pwErr) {
+        console.error("Password update error:", pwErr.message);
         return new Response(
-          JSON.stringify({ error: `Gagal mereset kata sandi: ${pwErr.message}` }),
+          JSON.stringify({ error: "Gagal mereset kata sandi pada sistem Auth." }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -209,7 +264,7 @@ serve(async (req: Request) => {
       return new Response(
         JSON.stringify({
           success: true,
-          message: `Kata sandi akun ${targetProfile.username} berhasil direset.`,
+          message: `Kata sandi akun ${targetProfile.username} berhasil diperbarui.`,
           targetUserId,
           username: targetProfile.username,
           temporaryPassword: tempPassword,
@@ -220,13 +275,14 @@ serve(async (req: Request) => {
 
     } else {
       return new Response(
-        JSON.stringify({ error: `Aksi '${action}' tidak dikenali. Pilihan: 'update-username', 'reset-password'.` }),
+        JSON.stringify({ error: `Aksi '${action}' tidak valid. Pilihan: 'update-username', 'reset-password'.` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
   } catch (err: any) {
+    console.error("Internal unhandled error in manage-bzooginer-account:", err);
     return new Response(
-      JSON.stringify({ error: err.message || "Terjadi kesalahan internal server." }),
+      JSON.stringify({ error: "Terjadi kesalahan internal pada server saat memproses akun." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
