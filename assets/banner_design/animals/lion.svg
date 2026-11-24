@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><circle cx="55.0" cy="34.0" r="8" fill="#d9731a"/><circle cx="52.7" cy="44.0" r="8" fill="#d9731a"/><circle cx="46.3" cy="52.0" r="8" fill="#d9731a"/><circle cx="37.1" cy="56.4" r="8" fill="#d9731a"/><circle cx="26.9" cy="56.4" r="8" fill="#d9731a"/><circle cx="17.7" cy="52.0" r="8" fill="#d9731a"/><circle cx="11.3" cy="44.0" r="8" fill="#d9731a"/><circle cx="9.0" cy="34.0" r="8" fill="#d9731a"/><circle cx="11.3" cy="24.0" r="8" fill="#d9731a"/><circle cx="17.7" cy="16.0" r="8" fill="#d9731a"/><circle cx="26.9" cy="11.6" r="8" fill="#d9731a"/><circle cx="37.1" cy="11.6" r="8" fill="#d9731a"/><circle cx="46.3" cy="16.0" r="8" fill="#d9731a"/><circle cx="52.7" cy="24.0" r="8" fill="#d9731a"/><circle cx="32" cy="34" r="24" fill="#d9731a"/>
+<circle cx="32" cy="34" r="20" fill="#e88a22"/>
+<circle cx="19" cy="21" r="6" fill="#ffc266"/><circle cx="45" cy="21" r="6" fill="#ffc266"/>
+<circle cx="19" cy="21" r="3" fill="#e0805a"/><circle cx="45" cy="21" r="3" fill="#e0805a"/>
+<ellipse cx="32" cy="37" rx="15" ry="14.5" fill="#ffc266"/>
+<circle cx="23.5" cy="33" r="2.4" fill="#3a2a1f"/><circle cx="40.5" cy="33" r="2.4" fill="#3a2a1f"/><circle cx="24.3" cy="32.1" r=".8" fill="#fff"/><circle cx="41.3" cy="32.1" r=".8" fill="#fff"/>
+<ellipse cx="32" cy="43" rx="8.5" ry="6.5" fill="#fff1d6"/>
+<path d="M28.5 39.5h7l-3.5 4z" fill="#6b3a1e" stroke="#6b3a1e" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M32 43.5v2.5M32 46q-3 3-6.5.5M32 46q3 3 6.5.5" fill="none" stroke="#3a2a1f" stroke-width="1.6" stroke-linecap="round"/></svg>
