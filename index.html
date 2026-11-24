@@ -3246,8 +3246,8 @@
         <div class="flex items-center justify-end gap-2.5 pt-2">
           <button type="button" onclick="closeModal('po-modal')"
             class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">Batal</button>
-          <button type="submit"
-            class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-lg shadow-brand-600/20 cursor-pointer">Simpan
+          <button type="submit" id="po-submit-btn"
+            class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-lg shadow-brand-600/20 cursor-pointer flex items-center justify-center transition-all">Simpan
             Pesanan PO</button>
         </div>
       </form>
@@ -3338,8 +3338,8 @@
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="closeModal('product-modal')"
             class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer">Batal</button>
-          <button type="submit"
-            class="px-4 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold cursor-pointer">Simpan Produk</button>
+          <button type="submit" id="product-submit-btn"
+            class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold cursor-pointer flex items-center justify-center transition-all">Simpan Produk</button>
         </div>
       </form>
     </div>
@@ -3984,8 +3984,12 @@
       }
     });
 
+    let isLoggingIn = false;
+
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (isLoggingIn) return;
+
       const usnInput = document.getElementById('login-username').value.trim();
       const pwInput = document.getElementById('login-password').value;
       const errBox = document.getElementById('login-error');
@@ -4007,6 +4011,7 @@
         return;
       }
 
+      isLoggingIn = true;
       try {
         if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'MEMVERIFIKASI...'; }
         errBox.classList.add('hidden');
@@ -4056,6 +4061,7 @@
         errBox.textContent = err.message || 'Terjadi kendala autentikasi.';
         errBox.classList.remove('hidden');
       } finally {
+        isLoggingIn = false;
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'MASUK KE SISTEM'; }
       }
     });
@@ -4180,8 +4186,8 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-1.5 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-200">
-            <button type="button" onclick="saveAccountCredential('${acc.id}')"
-              class="py-1.5 px-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition cursor-pointer shadow-xs">
+            <button id="btn-save-acc-${acc.id}" type="button" onclick="saveAccountCredential('${acc.id}')"
+              class="py-1.5 px-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition cursor-pointer shadow-xs flex items-center justify-center">
               Simpan
             </button>
 
@@ -4215,7 +4221,11 @@
       }).join('');
     }
 
+    let isSavingAccountCredential = false;
+
     async function saveAccountCredential(accId) {
+      if (isSavingAccountCredential) return;
+
       const newUsn = document.getElementById(`edit-usn-${accId}`).value.trim().toLowerCase();
       const newPw = document.getElementById(`edit-pw-${accId}`).value.trim();
 
@@ -4238,6 +4248,19 @@
       if (!session) {
         showToast('Sesi tidak aktif.', 'error');
         return;
+      }
+
+      const saveBtn = document.getElementById(`btn-save-acc-${accId}`);
+      const origBtnHtml = saveBtn ? saveBtn.innerHTML : 'Simpan';
+
+      isSavingAccountCredential = true;
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `
+          <svg class="animate-spin w-3 h-3 inline mr-1 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg> Menyimpan...`;
       }
 
       showToast(`Menyimpan perubahan untuk @${target.username}...`);
@@ -4286,7 +4309,8 @@
             throw new Error(resData.error || 'Gagal mengubah kata sandi melalui Edge Function.');
           }
           showToast(`Kata sandi akun @${target.username} berhasil diubah!`);
-          document.getElementById(`edit-pw-${accId}`).value = '';
+          const pwInput = document.getElementById(`edit-pw-${accId}`);
+          if (pwInput) pwInput.value = '';
         }
 
         allProfiles = await loadAllProfiles(session.access_token);
@@ -4297,6 +4321,12 @@
       } catch (err) {
         console.warn('Account update error:', err.message);
         showToast(err.message, 'error');
+      } finally {
+        isSavingAccountCredential = false;
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = origBtnHtml;
+        }
       }
     }
 
@@ -4332,7 +4362,11 @@
       openModal('confirm-account-action-modal');
     }
 
+    let isExecutingAccountAction = false;
+
     async function executeAccountAction() {
+      if (isExecutingAccountAction) return;
+
       const accId = document.getElementById('confirm-acc-id').value;
       const action = document.getElementById('confirm-acc-action').value;
       const btn = document.getElementById('confirm-acc-proceed-btn');
@@ -4347,8 +4381,16 @@
         return;
       }
 
-      btn.disabled = true;
-      btn.textContent = 'Memproses…';
+      isExecutingAccountAction = true;
+      const origBtnHtml = btn ? btn.innerHTML : 'Konfirmasi';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `
+          <svg class="animate-spin w-3.5 h-3.5 inline mr-1 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg> Memproses…`;
+      }
 
       try {
         const cfg = getSupabaseConfig();
@@ -4388,8 +4430,11 @@
         console.error('Account action error:', err);
         showToast(err.message, 'error');
       } finally {
-        btn.disabled = false;
-        btn.textContent = 'Konfirmasi';
+        isExecutingAccountAction = false;
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origBtnHtml;
+        }
       }
     }
 
@@ -4412,8 +4457,12 @@
       }
     }
 
+    let isCreatingAccount = false;
+
     document.getElementById('add-account-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (isCreatingAccount) return;
+
       const username = document.getElementById('add-acc-username').value.trim().toLowerCase();
       const password = document.getElementById('add-acc-password').value.trim();
       const role = document.getElementById('add-acc-role').value;
@@ -4433,8 +4482,16 @@
         return;
       }
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Membuat Akun…';
+      isCreatingAccount = true;
+      const origBtnText = submitBtn ? submitBtn.textContent : 'Buat Akun';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+          <svg class="animate-spin w-3.5 h-3.5 inline mr-1 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg> Membuat Akun…`;
+      }
 
       try {
         const cfg = getSupabaseConfig();
@@ -4470,8 +4527,11 @@
         console.error('Create account error:', err);
         showToast(err.message, 'error');
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Buat Akun';
+        isCreatingAccount = false;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = origBtnText;
+        }
       }
     });
 
@@ -4982,8 +5042,11 @@
       openModal('group-modal');
     }
 
+    let isSubmittingGroup = false;
+
     document.getElementById('group-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (isSubmittingGroup) return;
       if (!currentUser || currentUser.role !== 'superadmin') {
         showToast('Aksi ditolak: hanya Superadmin.', 'error');
         return;
@@ -4997,9 +5060,17 @@
       const fileInput = document.getElementById('group-modal-poster-file');
       const urlInput = document.getElementById('group-modal-poster-url').value.trim();
 
+      isSubmittingGroup = true;
       const submitBtn = document.getElementById('group-modal-submit-btn');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Menyimpan…';
+      const origBtnText = mode === 'add' ? 'Tambah Kelompok' : 'Simpan Perubahan';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+          <svg class="animate-spin w-3.5 h-3.5 inline mr-1 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg> Menyimpan…`;
+      }
 
       try {
         let posterData = null;
@@ -5123,8 +5194,11 @@
         console.error('Group save error:', err);
         showToast(`Gagal menyimpan kelompok: ${err.message}`, 'error');
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = mode === 'add' ? 'Tambah Kelompok' : 'Simpan Perubahan';
+        isSubmittingGroup = false;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = origBtnText;
+        }
       }
     });
 
@@ -5169,7 +5243,10 @@
       openModal('archive-modal');
     }
 
+    let isTogglingArchive = false;
+
     async function executeToggleArchive() {
+      if (isTogglingArchive) return;
       const groupId = Number(document.getElementById('archive-modal-gid').value);
       const action = document.getElementById('archive-modal-action').value;
       const confirmBtn = document.getElementById('archive-modal-confirm-btn');
@@ -5177,8 +5254,16 @@
       const group = groups.find(g => g.id === groupId);
       if (!group) return;
 
-      confirmBtn.disabled = true;
-      confirmBtn.textContent = 'Memproses…';
+      isTogglingArchive = true;
+      const origBtnText = action === 'archive' ? 'Ya, Arsipkan Kelompok' : 'Ya, Aktifkan Kelompok';
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = `
+          <svg class="animate-spin w-3.5 h-3.5 inline mr-1 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg> Memproses…`;
+      }
 
       try {
         const nextActive = action === 'activate';
@@ -5194,8 +5279,11 @@
         console.error('Archive toggle error:', err);
         showToast(`Gagal mengubah status kelompok: ${err.message}`, 'error');
       } finally {
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = 'Konfirmasi';
+        isTogglingArchive = false;
+        if (confirmBtn) {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = origBtnText;
+        }
       }
     }
 
@@ -5208,6 +5296,13 @@
       if (group.is_active === false) {
         showToast('Kelompok ini dinonaktifkan (diarsipkan) dan tidak dapat menerima pesanan baru.', 'error');
         return;
+      }
+
+      isSubmittingPo = false;
+      const submitBtn = document.getElementById('po-submit-btn');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Simpan Pesanan PO';
       }
 
       document.getElementById('po-group-id').value = groupId;
@@ -5297,8 +5392,13 @@
       document.getElementById('po-selected-summary').textContent = labels.length ? labels.join(', ') : 'Belum ada item dipilih';
     }
 
+    let isSubmittingPo = false;
+    let _lastPoSubmission = null;
+
     document.getElementById('po-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (isSubmittingPo) return;
+
       const groupId = Number(document.getElementById('po-group-id').value);
       const group = groups.find(g => g.id === groupId);
       if (!group) return;
@@ -5334,8 +5434,33 @@
         return;
       }
 
+      // Deduplikasi: cegah pengiriman ganda pesanan identik dalam jendela 3 detik
+      const now = Date.now();
+      if (_lastPoSubmission &&
+          _lastPoSubmission.groupId === group.id &&
+          _lastPoSubmission.buyerName === buyerName &&
+          _lastPoSubmission.buyerClass === buyerClass &&
+          _lastPoSubmission.total === total &&
+          (now - _lastPoSubmission.time < 3000)) {
+        showToast('Pesanan serupa baru saja dicatat, mohon tunggu beberapa saat.', 'error');
+        return;
+      }
+
+      isSubmittingPo = true;
+      const submitBtn = document.getElementById('po-submit-btn') || e.target.querySelector('button[type="submit"]');
+      const origBtnHtml = submitBtn ? submitBtn.innerHTML : 'Simpan Pesanan PO';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+          <svg class="animate-spin w-4 h-4 inline mr-1.5 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg> Menyimpan Pesanan...`;
+      }
+
+      const orderId = 'PO-' + now + '-' + Math.random().toString(36).substring(2, 7);
       const newOrder = {
-        id: 'PO-' + Date.now(),
+        id: orderId,
         createdAt: new Date().toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
         groupId: group.id,
         groupName: group.name,
@@ -5351,6 +5476,7 @@
       try {
         await pushSingleOrderToSupabase(newOrder);
         orders.unshift(newOrder);
+        _lastPoSubmission = { groupId: group.id, buyerName, buyerClass, total, time: now };
         saveAllData();
         closeModal('po-modal');
         refreshAllSections();
@@ -5358,6 +5484,12 @@
       } catch (err) {
         console.error('PO insert error:', err);
         showToast(`Gagal mencatat PO ke database: ${err.message}`, 'error');
+      } finally {
+        isSubmittingPo = false;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = origBtnHtml;
+        }
       }
     });
 
@@ -5527,27 +5659,52 @@
       openModal('confirm-status-modal');
     }
 
+    let isUpdatingPaymentStatus = false;
+
     document.getElementById('confirm-status-proceed-btn').addEventListener('click', async () => {
+      if (isUpdatingPaymentStatus) return;
       if (!pendingStatusOrderId) return;
       const order = orders.find(o => o.id === pendingStatusOrderId);
-      if (order) {
-        const prevStatus = order.status;
-        order.status = order.status === 'Lunas' ? 'Belum Lunas' : 'Lunas';
-        try {
-          await pushSingleOrderToSupabase(order);
-          saveAllData();
-          refreshAllSections();
-          showToast(`Tervalidasi: Status ${order.buyerName} kini ${order.status}.`);
-        } catch (err) {
-          order.status = prevStatus;
-          showToast(`Gagal menyimpan status ke database: ${err.message}`, 'error');
+      if (!order) {
+        closeModal('confirm-status-modal');
+        return;
+      }
+
+      isUpdatingPaymentStatus = true;
+      const proceedBtn = document.getElementById('confirm-status-proceed-btn');
+      const origBtnHtml = proceedBtn ? proceedBtn.innerHTML : 'Ya, Konfirmasi Perubahan';
+      if (proceedBtn) {
+        proceedBtn.disabled = true;
+        proceedBtn.innerHTML = `
+          <svg class="animate-spin w-3.5 h-3.5 inline mr-1 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg> Memproses...`;
+      }
+
+      const prevStatus = order.status;
+      order.status = order.status === 'Lunas' ? 'Belum Lunas' : 'Lunas';
+      try {
+        await pushSingleOrderToSupabase(order);
+        saveAllData();
+        refreshAllSections();
+        closeModal('confirm-status-modal');
+        showToast(`Tervalidasi: Status ${order.buyerName} kini ${order.status}.`);
+      } catch (err) {
+        order.status = prevStatus;
+        showToast(`Gagal menyimpan status ke database: ${err.message}`, 'error');
+      } finally {
+        isUpdatingPaymentStatus = false;
+        pendingStatusOrderId = null;
+        if (proceedBtn) {
+          proceedBtn.disabled = false;
+          proceedBtn.innerHTML = origBtnHtml;
         }
       }
-      pendingStatusOrderId = null;
-      closeModal('confirm-status-modal');
     });
 
     let pendingDeleteOrderId = null;
+    let isDeletingOrder = false;
 
     function openDeleteOrderModal(orderId) {
       const order = orders.find(o => o.id === orderId);
@@ -5559,18 +5716,38 @@
     }
 
     document.getElementById('delete-order-proceed-btn').addEventListener('click', async () => {
+      if (isDeletingOrder) return;
       if (!pendingDeleteOrderId) return;
+
       const orderId = pendingDeleteOrderId;
-      pendingDeleteOrderId = null;
-      closeModal('delete-order-modal');
+      isDeletingOrder = true;
+      const delBtn = document.getElementById('delete-order-proceed-btn');
+      const origBtnHtml = delBtn ? delBtn.innerHTML : 'Hapus Pesanan';
+      if (delBtn) {
+        delBtn.disabled = true;
+        delBtn.innerHTML = `
+          <svg class="animate-spin w-3.5 h-3.5 inline mr-1 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg> Menghapus...`;
+      }
+
       try {
         await deleteOrderFromSupabase(orderId);
         orders = orders.filter(o => o.id !== orderId);
         saveAllData();
         refreshAllSections();
+        closeModal('delete-order-modal');
         showToast('Pesanan berhasil dihapus.');
       } catch (err) {
         showToast(`Gagal menghapus pesanan dari database: ${err.message}`, 'error');
+      } finally {
+        isDeletingOrder = false;
+        pendingDeleteOrderId = null;
+        if (delBtn) {
+          delBtn.disabled = false;
+          delBtn.innerHTML = origBtnHtml;
+        }
       }
     });
 
@@ -5593,8 +5770,12 @@
       openModal('poster-modal');
     }
 
+    let isSubmittingPoster = false;
+
     document.getElementById('poster-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (isSubmittingPoster) return;
+
       const groupId = Number(document.getElementById('poster-group-id').value);
       const group = groups.find(g => g.id === groupId);
       if (!group) {
@@ -5612,6 +5793,7 @@
         return;
       }
 
+      isSubmittingPoster = true;
       const submitBtn = document.getElementById('poster-submit-btn') || e.target.querySelector('button[type="submit"]');
       const origText = submitBtn ? submitBtn.innerHTML : 'Simpan Perubahan';
       if (submitBtn) {
@@ -5686,6 +5868,7 @@
         console.error('Group card save error:', err);
         showToast(`Gagal menyimpan perubahan: ${err.message || 'Kesalahan jaringan atau database'}`, 'error');
       } finally {
+        isSubmittingPoster = false;
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerHTML = origText;
@@ -5746,12 +5929,22 @@
         showToast('Kelompok ini sedang diarsipkan. Hanya Superadmin yang dapat mengelola produk kelompok diarsipkan.', 'error');
         return;
       }
+      isSubmittingProduct = false;
+      const submitBtn = document.getElementById('product-submit-btn');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Simpan Produk';
+      }
       document.getElementById('product-form').reset();
       openModal('product-modal');
     }
 
+    let isSubmittingProduct = false;
+
     document.getElementById('product-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (isSubmittingProduct) return;
+
       const groupId = Number(document.getElementById('catalog-group-select').value);
       const group = groups.find(g => g.id === groupId);
       if (!group) return;
@@ -5760,22 +5953,51 @@
         return;
       }
 
-      group.products.push({
-        id: `k${groupId}_` + Date.now(),
+      isSubmittingProduct = true;
+      const submitBtn = document.getElementById('product-submit-btn') || e.target.querySelector('button[type="submit"]');
+      const origBtnHtml = submitBtn ? submitBtn.innerHTML : 'Simpan Produk';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+          <svg class="animate-spin w-3.5 h-3.5 inline mr-1 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg> Menyimpan...`;
+      }
+
+      const prodId = `k${groupId}_` + Date.now();
+      const newProduct = {
+        id: prodId,
         type: document.getElementById('prod-type').value,
         name: document.getElementById('prod-name').value.trim(),
         price: Number(document.getElementById('prod-price').value),
         desc: document.getElementById('prod-desc').value.trim()
-      });
+      };
+      group.products.push(newProduct);
 
-      saveAllData();
-      await pushGroupsToSupabase();
-      closeModal('product-modal');
-      refreshAllSections();
-      showToast('Produk baru berhasil ditambahkan!');
+      try {
+        await pushGroupsToSupabase();
+        saveAllData();
+        closeModal('product-modal');
+        refreshAllSections();
+        showToast('Produk baru berhasil ditambahkan!');
+      } catch (err) {
+        console.error('Add product error:', err);
+        group.products = group.products.filter(p => p.id !== prodId);
+        showToast(`Gagal menambahkan produk: ${err.message}`, 'error');
+      } finally {
+        isSubmittingProduct = false;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = origBtnHtml;
+        }
+      }
     });
 
+    let isDeletingProduct = false;
+
     async function deleteProduct(groupId, prodId) {
+      if (isDeletingProduct) return;
       const group = groups.find(g => g.id === groupId);
       if (!group) return;
       if (group.is_active === false && currentUser?.role !== 'superadmin') {
@@ -5786,11 +6008,22 @@
         showToast('Minimal harus tersisa 1 produk di kelompok.', 'error');
         return;
       }
+
+      isDeletingProduct = true;
+      const origProducts = [...group.products];
       group.products = group.products.filter(p => p.id !== prodId);
-      saveAllData();
-      await pushGroupsToSupabase();
-      refreshAllSections();
-      showToast('Produk dihapus dari katalog.');
+      try {
+        await pushGroupsToSupabase();
+        saveAllData();
+        refreshAllSections();
+        showToast('Produk dihapus dari katalog.');
+      } catch (err) {
+        console.error('Delete product error:', err);
+        group.products = origProducts;
+        showToast(`Gagal menghapus produk: ${err.message}`, 'error');
+      } finally {
+        isDeletingProduct = false;
+      }
     }
 
     // ==========================================
