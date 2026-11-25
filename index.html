@@ -2684,11 +2684,14 @@
               <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" />
             </svg>Layar penuh</button>
           <nav id="group-admin-nav" class="seg hidden">
-            <a href="#section-admin-groups">Kelompok</a><a href="#section-orders">Pesanan</a><a href="#section-order-monitoring" onclick="scrollToOrderMonitoringSection()">Monitoring</a><a
+            <a href="#section-admin-groups">Kelompok</a><a href="#section-orders">Pesanan</a><a href="#section-order-monitoring" onclick="scrollToOrderMonitoringSection()">Monitoring</a><a href="#section-finance" onclick="scrollToFinanceSection()">Keuangan</a><a
               href="#section-catalog">Menu &amp; Paket</a><a href="#section-device-monitoring" class="flex items-center gap-1.5" onclick="scrollToMonitoringSection()">Perangkat Aktif <span id="group-nav-online-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span></a>
           </nav>
           <button id="btn-order-monitoring-nav-superadmin" type="button" class="btn btn-sm hidden flex items-center gap-1.5" onclick="scrollToOrderMonitoringSection()" title="Buka pusat monitoring pesanan dan pembayaran">
             <span>📊 Monitoring Pesanan</span>
+          </button>
+          <button id="btn-finance-nav-superadmin" type="button" class="btn btn-sm hidden flex items-center gap-1.5" onclick="scrollToFinanceSection()" title="Buka modul manajemen keuangan & akuntansi">
+            <span>💵 Keuangan</span>
           </button>
           <button id="btn-monitoring-nav-superadmin" type="button" class="btn btn-sm hidden flex items-center gap-1.5" onclick="scrollToMonitoringSection()" title="Buka panel monitoring perangkat">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -2901,20 +2904,43 @@
                 </p>
               </div>
 
-              <!-- Top Sub-Tabs Switcher -->
-              <div class="seg" id="order-monitoring-tab-switcher">
-                <button type="button" id="tab-mon-completeness" class="on" onclick="switchMonitoringTab('completeness')">
-                  📋 Kelengkapan Data
-                </button>
-                <button type="button" id="tab-mon-payments" onclick="switchMonitoringTab('payments')">
-                  💰 Status Pembayaran
-                </button>
-                <button type="button" id="tab-mon-groups" onclick="switchMonitoringTab('groups')">
-                  📊 Kinerja Kelompok
+              <!-- Top Sub-Tabs Switcher & Toggle -->
+              <div class="flex items-center gap-2 flex-wrap">
+                <div class="seg" id="order-monitoring-tab-switcher">
+                  <button type="button" id="tab-mon-completeness" class="on" onclick="switchMonitoringTab('completeness')">
+                    📋 Kelengkapan Data
+                  </button>
+                  <button type="button" id="tab-mon-payments" onclick="switchMonitoringTab('payments')">
+                    💰 Status Pembayaran
+                  </button>
+                  <button type="button" id="tab-mon-groups" onclick="switchMonitoringTab('groups')">
+                    📊 Kinerja Kelompok
+                  </button>
+                </div>
+                <button type="button" id="btn-toggle-order-monitoring" class="btn btn-sm btn-sub flex items-center gap-1.5" onclick="toggleOrderMonitoringCollapse()" title="Sembunyikan / Tampilkan isi Pusat Monitoring">
+                  <span id="btn-toggle-mon-icon">👁️</span>
+                  <span id="btn-toggle-mon-text">Sembunyikan</span>
                 </button>
               </div>
             </div>
 
+            <!-- COLLAPSED SUMMARY BANNER (Shown when collapsed) -->
+            <div id="order-monitoring-collapsed-bar" class="hidden p-4 bg-amber-50/70 border-t border-amber-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div class="flex items-center gap-3 flex-wrap">
+                <span class="font-bold text-amber-900 flex items-center gap-1.5">
+                  <span>🔒</span> Pusat Monitoring Diminimalkan
+                </span>
+                <span id="mon-collapsed-summary-pill" class="px-2.5 py-1 rounded-full bg-white text-slate-700 border border-amber-200 shadow-xs font-semibold">
+                  Memuat ringkasan...
+                </span>
+              </div>
+              <button type="button" class="btn btn-xs btn-amber flex items-center gap-1" onclick="toggleOrderMonitoringCollapse(false)">
+                <span>Buka Pusat Monitoring</span> ▾
+              </button>
+            </div>
+
+            <!-- WRAPPER FOR MONITORING VIEWS (Collapsed / Expanded) -->
+            <div id="order-monitoring-content-wrap">
             <!-- VIEW 1: KELENGKAPAN DATA PESANAN -->
             <div id="mon-view-completeness" class="space-y-0">
               <!-- Summary KPI Metrics Cards -->
@@ -3079,6 +3105,590 @@
             <div id="mon-view-groups" class="hidden p-4 sm:p-5">
               <div id="mon-groups-performance-content">
                 <!-- Injected by renderGroupPerformanceMonitoring() -->
+              </div>
+            </div>
+            </div><!-- /#order-monitoring-content-wrap -->
+          </section>
+
+          <!-- SECTION: MANAJEMEN KEUANGAN & AKUNTANSI (PHASE 5) -->
+          <section id="section-finance" class="panel no-print" style="margin-top:24px">
+            <div class="panel-h" style="flex-wrap:wrap;gap:12px">
+              <div>
+                <div class="flex items-center gap-2.5 flex-wrap">
+                  <h3 class="disp h2">Manajemen Keuangan &amp; Akuntansi</h3>
+                  <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-xs flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Phase 5 · Live Ledger</span>
+                  </span>
+                </div>
+                <p class="mute" style="margin:4px 0 0;font-size:13px">
+                  Pengelolaan HPP produk, pencatatan kas masuk &amp; beban operasional, modal kelompok, serta laporan laba rugi &amp; arus kas.
+                </p>
+              </div>
+
+              <!-- Top Controls: Filter Periode & Switcher -->
+              <div class="flex flex-wrap items-center gap-2">
+                <!-- Group filter for superadmin -->
+                <div id="filter-finance-group-wrap" class="hidden">
+                  <select id="filter-finance-group" class="inp text-xs py-1.5 px-3" onchange="onFinanceGroupChange()">
+                    <option value="all">Semua Kelompok (Konsolidasi)</option>
+                    <option value="1">Kelompok 1</option>
+                    <option value="2">Kelompok 2</option>
+                    <option value="3">Kelompok 3</option>
+                    <option value="4">Kelompok 4</option>
+                    <option value="5">Kelompok 5</option>
+                    <option value="6">Kelompok 6</option>
+                  </select>
+                </div>
+
+                <!-- Period filter -->
+                <select id="filter-finance-period" class="inp text-xs py-1.5 px-3" onchange="onFinancePeriodChange()">
+                  <option value="all">Semua Waktu</option>
+                  <option value="today">Hari Ini</option>
+                  <option value="this_week">Minggu Ini</option>
+                  <option value="this_month">Bulan Ini</option>
+                  <option value="custom">Kustom Tanggal...</option>
+                </select>
+
+                <!-- Custom Date Inputs (hidden by default) -->
+                <div id="finance-custom-date-wrap" class="hidden flex items-center gap-1.5 text-xs">
+                  <input type="date" id="filter-finance-start-date" class="inp text-xs py-1 px-2" onchange="renderAllFinance()" />
+                  <span class="text-slate-400">s/d</span>
+                  <input type="date" id="filter-finance-end-date" class="inp text-xs py-1 px-2" onchange="renderAllFinance()" />
+                </div>
+
+                <!-- Sub-Tabs Switcher -->
+                <div class="seg" id="finance-tab-switcher">
+                  <button type="button" id="tab-fin-overview" class="on" onclick="switchFinanceTab('overview')">
+                    📊 Dashboard
+                  </button>
+                  <button type="button" id="tab-fin-hpp" onclick="switchFinanceTab('hpp')">
+                    🏷️ HPP Produk
+                  </button>
+                  <button type="button" id="tab-fin-revenue" onclick="switchFinanceTab('revenue')">
+                    📥 Kas Masuk &amp; PO
+                  </button>
+                  <button type="button" id="tab-fin-expenses" onclick="switchFinanceTab('expenses')">
+                    📤 Pengeluaran
+                  </button>
+                  <button type="button" id="tab-fin-capital" onclick="switchFinanceTab('capital')">
+                    💼 Modal
+                  </button>
+                  <button type="button" id="tab-fin-reports" onclick="switchFinanceTab('reports')">
+                    📑 Laba Rugi &amp; Arus Kas
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- VIEW 1: DASHBOARD & 10 METRIK KPI -->
+            <div id="fin-view-overview" class="space-y-0">
+              <!-- Missing HPP Warning Banner (shown when hasMissingHpp) -->
+              <div id="fin-missing-hpp-banner" class="hidden p-4 bg-amber-50 border-b border-amber-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex items-center gap-2.5 text-amber-900">
+                  <span class="text-base">⚠️</span>
+                  <div>
+                    <b class="block font-bold">Peringatan: Terdapat produk terjual yang belum memiliki HPP (Harga Pokok Penjualan)</b>
+                    <span id="fin-missing-hpp-list" class="text-amber-700 block mt-0.5 text-[11px]">Laba kotor dan laba bersih di bawah mungkin belum akurat sampai seluruh produk diisi HPP.</span>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-xs btn-amber" onclick="switchFinanceTab('hpp')">
+                  Atur HPP Produk Sekarang &rarr;
+                </button>
+              </div>
+
+              <!-- 10 KPI Cards Grid -->
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 p-4 bg-slate-50/80 border-b border-slate-200 text-xs">
+                <!-- 1. Total Penjualan -->
+                <div class="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
+                  <div class="flex items-center justify-between text-slate-500 font-bold uppercase text-[10px]">
+                    <span>1. Total Penjualan</span>
+                    <span title="Omzet gabungan PO & penjualan manual">🛒</span>
+                  </div>
+                  <b id="fin-kpi-total-sales" class="text-lg font-black text-slate-900 block mt-1 truncate">Rp 0</b>
+                  <span class="text-[11px] text-slate-400 block truncate" id="fin-kpi-sales-sub">PO: Rp 0 · Manual: Rp 0</span>
+                </div>
+
+                <!-- 2. Total Uang Diterima -->
+                <div class="p-3 bg-white rounded-2xl border border-emerald-200 shadow-xs bg-emerald-50/20">
+                  <div class="flex items-center justify-between text-emerald-700 font-bold uppercase text-[10px]">
+                    <span>2. Uang Diterima</span>
+                    <span title="Kas nyata diterima dari pembeli">💵</span>
+                  </div>
+                  <b id="fin-kpi-cash-received" class="text-lg font-black text-emerald-700 block mt-1 truncate">Rp 0</b>
+                  <span class="text-[11px] text-emerald-600/80 block truncate">Kas fisik dari PO &amp; jual langsung</span>
+                </div>
+
+                <!-- 3. Total Piutang -->
+                <div class="p-3 bg-white rounded-2xl border border-amber-200 shadow-xs bg-amber-50/30">
+                  <div class="flex items-center justify-between text-amber-700 font-bold uppercase text-[10px]">
+                    <span>3. Total Piutang</span>
+                    <span title="Pesanan belum lunas yang masih harus ditagih">⏳</span>
+                  </div>
+                  <b id="fin-kpi-receivables" class="text-lg font-black text-amber-700 block mt-1 truncate">Rp 0</b>
+                  <span class="text-[11px] text-amber-600/80 block truncate" id="fin-kpi-unpaid-count">0 pesanan belum lunas</span>
+                </div>
+
+                <!-- 4. Pendapatan Manual (Luar PO) -->
+                <div class="p-3 bg-white rounded-2xl border border-blue-200 shadow-xs bg-blue-50/20">
+                  <div class="flex items-center justify-between text-blue-700 font-bold uppercase text-[10px]">
+                    <span>4. Pendapatan Manual</span>
+                    <span title="Penjualan langsung stan & lain-lain di luar sistem PO">🏷️</span>
+                  </div>
+                  <b id="fin-kpi-manual-revenue" class="text-lg font-black text-blue-700 block mt-1 truncate">Rp 0</b>
+                  <span class="text-[11px] text-blue-600/80 block truncate">Luar pemesanan PO</span>
+                </div>
+
+                <!-- 5. Total Modal Masuk -->
+                <div class="p-3 bg-white rounded-2xl border border-purple-200 shadow-xs bg-purple-50/20">
+                  <div class="flex items-center justify-between text-purple-700 font-bold uppercase text-[10px]">
+                    <span>5. Modal Kelompok</span>
+                    <span title="Modal awal / tambahan dari anggota, bukan omzet!">💼</span>
+                  </div>
+                  <b id="fin-kpi-capital" class="text-lg font-black text-purple-700 block mt-1 truncate">Rp 0</b>
+                  <span class="text-[11px] text-purple-600/80 block truncate">Dana awal &amp; setoran</span>
+                </div>
+
+                <!-- 6. Total Pengeluaran -->
+                <div class="p-3 bg-white rounded-2xl border border-rose-200 shadow-xs bg-rose-50/20">
+                  <div class="flex items-center justify-between text-rose-700 font-bold uppercase text-[10px]">
+                    <span>6. Pengeluaran</span>
+                    <span title="Total beban operasional yang dikeluarkan">📤</span>
+                  </div>
+                  <b id="fin-kpi-expenses" class="text-lg font-black text-rose-700 block mt-1 truncate">Rp 0</b>
+                  <span class="text-[11px] text-rose-600/80 block truncate" id="fin-kpi-expenses-sub">Bahan, kemasan, dll.</span>
+                </div>
+
+                <!-- 7. Total HPP -->
+                <div class="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
+                  <div class="flex items-center justify-between text-slate-500 font-bold uppercase text-[10px]">
+                    <span>7. Total HPP</span>
+                    <span title="Harga Pokok Penjualan dari produk yang telah terjual">📦</span>
+                  </div>
+                  <b id="fin-kpi-total-hpp" class="text-lg font-black text-slate-800 block mt-1 truncate">Rp 0</b>
+                  <span class="text-[11px] text-slate-400 block truncate" id="fin-kpi-hpp-sub">Beban pokok barang terjual</span>
+                </div>
+
+                <!-- 8. Laba Kotor -->
+                <div class="p-3 bg-white rounded-2xl border border-brand-200 shadow-xs bg-brand-50/20">
+                  <div class="flex items-center justify-between text-brand-800 font-bold uppercase text-[10px]">
+                    <span>8. Laba Kotor</span>
+                    <span title="Penjualan dikurangi HPP">📈</span>
+                  </div>
+                  <b id="fin-kpi-gross-profit" class="text-lg font-black text-brand-900 block mt-1 truncate">Rp 0</b>
+                  <span class="text-[11px] text-brand-700/80 block truncate">Penjualan - HPP</span>
+                </div>
+
+                <!-- 9. Laba Bersih -->
+                <div class="p-3 bg-white rounded-2xl border border-emerald-300 shadow-xs bg-emerald-50/30">
+                  <div class="flex items-center justify-between text-emerald-800 font-bold uppercase text-[10px]">
+                    <span>9. Laba Bersih</span>
+                    <span title="Laba Kotor dikurangi Beban Pengeluaran">🏆</span>
+                  </div>
+                  <b id="fin-kpi-net-profit" class="text-lg font-black text-emerald-800 block mt-1 truncate">Rp 0</b>
+                  <span class="text-[11px] text-emerald-700/80 block truncate">Laba Kotor - Beban</span>
+                </div>
+
+                <!-- 10. Saldo Kas Saat Ini -->
+                <div class="p-3 bg-white rounded-2xl border border-cyan-200 shadow-xs bg-cyan-50/20">
+                  <div class="flex items-center justify-between text-cyan-800 font-bold uppercase text-[10px]">
+                    <span>10. Saldo Kas Real</span>
+                    <span title="Modal + Kas Masuk - Pengeluaran">🏦</span>
+                  </div>
+                  <b id="fin-kpi-cash-balance" class="text-lg font-black text-cyan-800 block mt-1 truncate">Rp 0</b>
+                  <span class="text-[11px] text-cyan-700/80 block truncate">Uang kas tersedia di dompet</span>
+                </div>
+              </div>
+
+              <!-- Quick Action Toolbar -->
+              <div class="p-3.5 bg-white border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex flex-wrap items-center gap-2">
+                  <button type="button" class="btn btn-sm btn-sub flex items-center gap-1.5" onclick="openAddExpenseModal()">
+                    <span>📤 Catat Pengeluaran</span>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-sub flex items-center gap-1.5" onclick="openAddCapitalModal()">
+                    <span>💼 Tambah Modal</span>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-sub flex items-center gap-1.5" onclick="openAddManualRevenueModal()">
+                    <span>📥 Pendapatan Manual</span>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-sub flex items-center gap-1.5" onclick="switchFinanceTab('hpp')">
+                    <span>🏷️ Atur HPP Produk</span>
+                  </button>
+                </div>
+                <div class="text-[11px] text-slate-500 font-medium flex items-center gap-2">
+                  <span id="fin-overview-group-label" class="font-bold text-slate-700">Semua Kelompok</span>
+                  <span class="text-slate-300">|</span>
+                  <span id="fin-overview-period-label" class="text-slate-500">Semua Waktu</span>
+                </div>
+              </div>
+
+              <!-- Superadmin Comparative Table for 6 Groups -->
+              <div id="fin-comparative-section" class="p-4 sm:p-5">
+                <div class="flex items-center justify-between mb-3">
+                  <div>
+                    <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                      <span>📊 Komparasi Kinerja Keuangan 6 Kelompok</span>
+                    </h4>
+                    <p class="text-xs text-slate-500">Perbandingan modal, omzet, HPP, pengeluaran, laba bersih, dan saldo kas per kelompok.</p>
+                  </div>
+                  <button type="button" class="btn btn-xs btn-sub" onclick="renderAllFinance()">Segarkan Data</button>
+                </div>
+
+                <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                  <table class="otable">
+                    <thead>
+                      <tr>
+                        <th>Kelompok</th>
+                        <th style="text-align:right">Modal</th>
+                        <th style="text-align:right">Penjualan PO</th>
+                        <th style="text-align:right">Penjualan Langsung</th>
+                        <th style="text-align:right">Total Omzet</th>
+                        <th style="text-align:right">Total HPP</th>
+                        <th style="text-align:right">Pengeluaran</th>
+                        <th style="text-align:right">Laba Bersih</th>
+                        <th style="text-align:right">Saldo Kas</th>
+                        <th style="text-align:center">Status HPP</th>
+                        <th class="no-print" style="text-align:center">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody id="fin-comparative-tbody">
+                      <!-- Rendered by renderFinanceComparative() -->
+                    </tbody>
+                    <tfoot id="fin-comparative-tfoot" class="bg-slate-50 font-bold border-t border-slate-200 text-xs">
+                      <!-- Total aggregate footer -->
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- VIEW 2: HPP MANUAL PER PRODUK -->
+            <div id="fin-view-hpp" class="hidden space-y-0">
+              <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div>
+                  <h4 class="font-bold text-slate-800 text-sm">Standar HPP (Harga Pokok Penjualan) per Menu</h4>
+                  <p class="text-xs text-slate-500 mt-0.5">Tentukan biaya bahan per porsi. Perubahan dicatat dalam riwayat audit dan tidak mengubah laba pesanan lampau.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div id="filter-hpp-group-wrap" class="hidden">
+                    <select id="filter-hpp-group" class="inp text-xs py-1.5 px-3" onchange="renderFinanceHpp()">
+                      <option value="1">Kelompok 1</option>
+                      <option value="2">Kelompok 2</option>
+                      <option value="3">Kelompok 3</option>
+                      <option value="4">Kelompok 4</option>
+                      <option value="5">Kelompok 5</option>
+                      <option value="6">Kelompok 6</option>
+                    </select>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-ink flex items-center gap-1.5" onclick="openHppModal()">
+                    <span>+ Atur HPP Produk</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="otable">
+                  <thead>
+                    <tr>
+                      <th>Kelompok</th>
+                      <th>Menu / Paket</th>
+                      <th style="text-align:right">Harga Jual</th>
+                      <th style="text-align:right">HPP Satuan</th>
+                      <th style="text-align:right">Margin Kotor</th>
+                      <th style="text-align:center">Terjual (Qty)</th>
+                      <th style="text-align:right">Total Nilai HPP</th>
+                      <th>Tanggal Berlaku</th>
+                      <th>Pembaruan Terakhir</th>
+                      <th class="no-print" style="text-align:right;width:120px">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="fin-hpp-tbody">
+                    <!-- Rendered by renderFinanceHpp() -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- VIEW 3: KAS MASUK & PEMBAYARAN PO -->
+            <div id="fin-view-revenue" class="hidden space-y-0">
+              <div class="p-3.5 bg-white border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex flex-wrap items-center gap-2 flex-1 min-w-[240px]">
+                  <input id="filter-rev-search" class="inp" type="search" placeholder="Cari transaksi / pembeli..." oninput="renderFinanceRevenue()" style="max-width:240px" />
+                  <select id="filter-rev-type" class="inp" onchange="renderFinanceRevenue()">
+                    <option value="all">Semua Jenis Kas Masuk</option>
+                    <option value="po">Pembayaran Pesanan PO</option>
+                    <option value="manual">Pendapatan Manual (Luar PO)</option>
+                  </select>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button type="button" class="btn btn-sm btn-sub flex items-center gap-1.5" onclick="openRecordPaymentModal()">
+                    <span>💰 Catat Bayar PO</span>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-ink flex items-center gap-1.5" onclick="openAddManualRevenueModal()">
+                    <span>+ Pendapatan Manual</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="otable">
+                  <thead>
+                    <tr>
+                      <th style="width:130px">Waktu</th>
+                      <th>Sumber &amp; Referensi</th>
+                      <th>Kelompok</th>
+                      <th>Pembeli / Keterangan</th>
+                      <th>Tipe Pembayaran</th>
+                      <th style="text-align:right">Nominal Masuk</th>
+                      <th>Dicatat Oleh</th>
+                      <th class="no-print" style="text-align:right;width:80px">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="fin-revenue-tbody">
+                    <!-- Rendered by renderFinanceRevenue() -->
+                  </tbody>
+                </table>
+              </div>
+              <div id="fin-revenue-pagination" class="no-print flex flex-wrap items-center justify-between gap-3 p-4 border-t border-slate-200 bg-slate-50/60 text-xs"></div>
+            </div>
+
+            <!-- VIEW 4: PENGELUARAN & BEBAN -->
+            <div id="fin-view-expenses" class="hidden space-y-0">
+              <div class="p-3.5 bg-white border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex flex-wrap items-center gap-2 flex-1 min-w-[240px]">
+                  <input id="filter-exp-search" class="inp" type="search" placeholder="Cari keterangan / pengeluaran..." oninput="renderFinanceExpenses()" style="max-width:240px" />
+                  <select id="filter-exp-category" class="inp" onchange="renderFinanceExpenses()">
+                    <option value="all">Semua Kategori Beban</option>
+                    <option value="Bahan Baku">Bahan Baku</option>
+                    <option value="Kemasan">Kemasan</option>
+                    <option value="Peralatan">Peralatan</option>
+                    <option value="Transportasi">Transportasi</option>
+                    <option value="Operasional">Operasional</option>
+                    <option value="Promosi">Promosi</option>
+                    <option value="Sewa">Sewa</option>
+                    <option value="Lain-lain">Lain-lain</option>
+                  </select>
+                </div>
+                <button type="button" class="btn btn-sm btn-rose flex items-center gap-1.5" onclick="openAddExpenseModal()">
+                  <span>+ Catat Pengeluaran Baru</span>
+                </button>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="otable">
+                  <thead>
+                    <tr>
+                      <th style="width:130px">Waktu</th>
+                      <th>Kelompok</th>
+                      <th>Kategori</th>
+                      <th>Rincian Keterangan</th>
+                      <th style="text-align:right">Nominal</th>
+                      <th>Dicatat Oleh</th>
+                      <th class="no-print" style="text-align:right;width:100px">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="fin-expenses-tbody">
+                    <!-- Rendered by renderFinanceExpenses() -->
+                  </tbody>
+                </table>
+              </div>
+              <div id="fin-expenses-pagination" class="no-print flex flex-wrap items-center justify-between gap-3 p-4 border-t border-slate-200 bg-slate-50/60 text-xs"></div>
+            </div>
+
+            <!-- VIEW 5: MODAL KELOMPOK -->
+            <div id="fin-view-capital" class="hidden space-y-0">
+              <div class="p-4 bg-purple-50/70 border-b border-purple-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div>
+                  <h4 class="font-bold text-purple-900 text-sm flex items-center gap-1.5">
+                    <span>💼 Rekapitulasi Modal Disetor</span>
+                  </h4>
+                  <p class="text-xs text-purple-800/80 mt-0.5">
+                    Modal merupakan kas awal atau suntikan dana dari anggota, TIDAK dihitung sebagai omzet penjualan atau laba.
+                  </p>
+                </div>
+                <button type="button" class="btn btn-sm btn-sub flex items-center gap-1.5" onclick="openAddCapitalModal()">
+                  <span>+ Catat Setoran Modal</span>
+                </button>
+              </div>
+
+              <!-- Capital Summary Cards -->
+              <div id="fin-capital-cards-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-slate-50/80 border-b border-slate-200 text-xs">
+                <!-- Injected by renderFinanceCapital() -->
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="otable">
+                  <thead>
+                    <tr>
+                      <th style="width:130px">Waktu</th>
+                      <th>Kelompok</th>
+                      <th>Jenis Modal</th>
+                      <th>Keterangan / Sumber</th>
+                      <th style="text-align:right">Nominal Setoran</th>
+                      <th>Dicatat Oleh</th>
+                      <th class="no-print" style="text-align:right;width:90px">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="fin-capital-tbody">
+                    <!-- Rendered by renderFinanceCapital() -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- VIEW 6: LAPORAN LABA RUGI & ARUS KAS -->
+            <div id="fin-view-reports" class="hidden p-4 sm:p-6 space-y-6">
+              <!-- Report Top Bar -->
+              <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
+                <div>
+                  <h4 class="font-black text-slate-900 text-base flex items-center gap-2">
+                    <span>📑 Laporan Keuangan Standar Akuntansi</span>
+                  </h4>
+                  <p id="fin-report-period-text" class="text-slate-500 mt-0.5">Periode: Semua Waktu</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button type="button" class="btn btn-sm btn-sub flex items-center gap-1.5" onclick="window.print()">
+                    <span>🖨️ Cetak Laporan (PDF)</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Statements Grid -->
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- 1. LAPORAN LABA RUGI (INCOME STATEMENT) -->
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 space-y-4">
+                  <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+                    <div>
+                      <h5 class="font-black text-slate-900 text-sm uppercase tracking-wide">Laporan Laba Rugi</h5>
+                      <span class="text-[11px] text-slate-400">Income Statement</span>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700">Akrual Kas</span>
+                  </div>
+
+                  <div class="space-y-3 text-xs">
+                    <!-- Pendapatan -->
+                    <div>
+                      <div class="font-bold text-slate-800 uppercase text-[11px] tracking-wider mb-1">A. PENDAPATAN OPERASIONAL</div>
+                      <div class="flex justify-between py-1 border-b border-slate-100">
+                        <span class="text-slate-600">Penjualan Pesanan PO</span>
+                        <b id="rep-inc-po-sales" class="text-slate-900">Rp 0</b>
+                      </div>
+                      <div class="flex justify-between py-1 border-b border-slate-100">
+                        <span class="text-slate-600">Penjualan Manual / Stan Langsung</span>
+                        <b id="rep-inc-manual-sales" class="text-slate-900">Rp 0</b>
+                      </div>
+                      <div class="flex justify-between py-1.5 font-bold text-slate-900 bg-slate-50 px-2 rounded-lg mt-1">
+                        <span>Total Pendapatan (Omzet)</span>
+                        <span id="rep-inc-total-rev">Rp 0</span>
+                      </div>
+                    </div>
+
+                    <!-- HPP -->
+                    <div>
+                      <div class="font-bold text-slate-800 uppercase text-[11px] tracking-wider mb-1">B. HARGA POKOK PENJUALAN (HPP)</div>
+                      <div class="flex justify-between py-1 border-b border-slate-100">
+                        <span class="text-slate-600">Total HPP Barang Terjual</span>
+                        <b id="rep-inc-total-hpp" class="text-slate-900">Rp 0</b>
+                      </div>
+                    </div>
+
+                    <!-- Laba Kotor Highlight -->
+                    <div class="p-3 bg-brand-50/60 rounded-xl border border-brand-200 flex justify-between items-center font-bold text-brand-900 text-sm">
+                      <span>LABA KOTOR (A - B)</span>
+                      <span id="rep-inc-gross-profit" class="text-base font-black">Rp 0</span>
+                    </div>
+
+                    <!-- Beban Operasional -->
+                    <div>
+                      <div class="font-bold text-slate-800 uppercase text-[11px] tracking-wider mb-1">C. BEBAN OPERASIONAL (PENGELUARAN)</div>
+                      <div id="rep-inc-expense-breakdown" class="space-y-1">
+                        <!-- Dynamic by categories -->
+                      </div>
+                      <div class="flex justify-between py-1.5 font-bold text-rose-700 bg-rose-50/60 px-2 rounded-lg mt-1">
+                        <span>Total Beban Operasional</span>
+                        <span id="rep-inc-total-exp">Rp 0</span>
+                      </div>
+                    </div>
+
+                    <!-- Laba Bersih Highlight -->
+                    <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-300 flex justify-between items-center text-emerald-950 font-bold">
+                      <div>
+                        <span class="text-sm uppercase tracking-wide block">LABA BERSIH (NET PROFIT)</span>
+                        <span class="text-[11px] text-emerald-700/80 font-normal">Laba Kotor - Total Beban</span>
+                      </div>
+                      <span id="rep-inc-net-profit" class="text-xl font-black text-emerald-800">Rp 0</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2. LAPORAN ARUS KAS (CASH FLOW STATEMENT) -->
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 space-y-4">
+                  <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+                    <div>
+                      <h5 class="font-black text-slate-900 text-sm uppercase tracking-wide">Laporan Arus Kas</h5>
+                      <span class="text-[11px] text-slate-400">Cash Flow Statement</span>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700">Kas Nyata</span>
+                  </div>
+
+                  <div class="space-y-3 text-xs">
+                    <!-- Kas Masuk -->
+                    <div>
+                      <div class="font-bold text-slate-800 uppercase text-[11px] tracking-wider mb-1">A. ARUS KAS MASUK</div>
+                      <div class="flex justify-between py-1 border-b border-slate-100">
+                        <span class="text-slate-600">Penerimaan Kas Pesanan PO (Terverifikasi)</span>
+                        <b id="rep-cf-po-cash" class="text-emerald-700">Rp 0</b>
+                      </div>
+                      <div class="flex justify-between py-1 border-b border-slate-100">
+                        <span class="text-slate-600">Penerimaan Kas Penjualan Langsung</span>
+                        <b id="rep-cf-manual-cash" class="text-emerald-700">Rp 0</b>
+                      </div>
+                      <div class="flex justify-between py-1 border-b border-slate-100">
+                        <span class="text-slate-600">Setoran Modal (Awal &amp; Tambahan)</span>
+                        <b id="rep-cf-capital" class="text-purple-700">Rp 0</b>
+                      </div>
+                      <div class="flex justify-between py-1.5 font-bold text-emerald-800 bg-emerald-50/60 px-2 rounded-lg mt-1">
+                        <span>Total Arus Kas Masuk</span>
+                        <span id="rep-cf-total-in">Rp 0</span>
+                      </div>
+                    </div>
+
+                    <!-- Kas Keluar -->
+                    <div>
+                      <div class="font-bold text-slate-800 uppercase text-[11px] tracking-wider mb-1">B. ARUS KAS KELUAR</div>
+                      <div class="flex justify-between py-1 border-b border-slate-100">
+                        <span class="text-slate-600">Pengeluaran Beban Operasional</span>
+                        <b id="rep-cf-expenses" class="text-rose-700">Rp 0</b>
+                      </div>
+                      <div class="flex justify-between py-1.5 font-bold text-rose-800 bg-rose-50/60 px-2 rounded-lg mt-1">
+                        <span>Total Arus Kas Keluar</span>
+                        <span id="rep-cf-total-out">Rp 0</span>
+                      </div>
+                    </div>
+
+                    <!-- Arus Kas Bersih -->
+                    <div class="p-3 bg-slate-100 rounded-xl border border-slate-200 flex justify-between items-center font-bold text-slate-800 text-sm">
+                      <span>ARUS KAS BERSIH (A - B)</span>
+                      <span id="rep-cf-net-flow" class="text-base font-black">Rp 0</span>
+                    </div>
+
+                    <!-- Saldo Kas Akhir Highlight -->
+                    <div class="p-4 bg-cyan-50 rounded-2xl border border-cyan-300 flex justify-between items-center text-cyan-950 font-bold">
+                      <div>
+                        <span class="text-sm uppercase tracking-wide block">SALDO KAS SAAT INI</span>
+                        <span class="text-[11px] text-cyan-700/80 font-normal">Total Kas Masuk - Total Kas Keluar</span>
+                      </div>
+                      <span id="rep-cf-ending-balance" class="text-xl font-black text-cyan-800">Rp 0</span>
+                    </div>
+
+                    <!-- Piutang reminder note -->
+                    <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 flex items-center justify-between">
+                      <span>⏳ Piutang Belum Diterima (PO Kasir):</span>
+                      <b id="rep-cf-receivables" class="font-bold text-amber-800">Rp 0</b>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -3723,6 +4333,17 @@
           </button>
           <button type="button"
             class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between hover:bg-slate-100 text-slate-700 cursor-pointer"
+            onclick="switchSuperadminPage('dashboard'); setTimeout(scrollToFinanceSection, 150); closeMobileNav();">
+            <div class="flex items-center gap-2.5">
+              <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Manajemen Keuangan</span>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Phase 5</span>
+          </button>
+          <button type="button"
+            class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between hover:bg-slate-100 text-slate-700 cursor-pointer"
             onclick="switchSuperadminPage('dashboard'); setTimeout(scrollToMonitoringSection, 150); closeMobileNav();">
             <div class="flex items-center gap-2.5">
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -3771,6 +4392,14 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
             Monitoring Pesanan
+          </a>
+          <a href="#section-finance"
+            class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer"
+            onclick="closeMobileNav(); scrollToFinanceSection();">
+            <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Manajemen Keuangan
           </a>
           <a href="#section-catalog"
             class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer"
@@ -4326,6 +4955,413 @@
             class="px-5 py-2.5 rounded-xl text-white text-xs font-bold shadow-md cursor-pointer">Konfirmasi</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CATAT PEMBAYARAN PESANAN PO (PHASE 5) -->
+  <div id="record-payment-modal" onclick="if(event.target===this) closeModal('record-payment-modal')"
+    class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div id="record-payment-modal-box" class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200">
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+          <span class="text-xs font-bold uppercase tracking-wider text-emerald-300">Catat Pembayaran Pesanan PO</span>
+        </div>
+        <button type="button" onclick="closeModal('record-payment-modal')"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm cursor-pointer">&times;</button>
+      </div>
+      <form id="record-payment-form" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Pilih Pesanan PO *</label>
+          <select id="pay-modal-order-select" class="inp w-full" onchange="onPaymentOrderSelected()" required>
+            <option value="">-- Pilih Pesanan --</option>
+          </select>
+        </div>
+
+        <div id="pay-modal-order-info" class="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-1.5 hidden">
+          <div class="flex justify-between text-slate-600">
+            <span>Pembeli:</span>
+            <b id="pay-modal-buyer-text" class="text-slate-900">-</b>
+          </div>
+          <div class="flex justify-between text-slate-600">
+            <span>Total Nilai Pesanan:</span>
+            <b id="pay-modal-total-text" class="text-slate-900">Rp 0</b>
+          </div>
+          <div class="flex justify-between text-emerald-700">
+            <span>Telah Diterima:</span>
+            <b id="pay-modal-paid-text">Rp 0</b>
+          </div>
+          <div class="flex justify-between text-amber-700 font-bold border-t border-slate-200 pt-1">
+            <span>Sisa Piutang (Kekurangan):</span>
+            <b id="pay-modal-unpaid-text">Rp 0</b>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Jenis Pembayaran *</label>
+            <select id="pay-modal-type" class="inp w-full" onchange="onPaymentTypeChanged()" required>
+              <option value="full">Lunas Penuh</option>
+              <option value="dp">Uang Muka (DP)</option>
+              <option value="repayment">Pelunasan Sisa</option>
+              <option value="partial">Cicilan / Parsial</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nominal Masuk (Rp) *</label>
+            <input type="number" id="pay-modal-amount" class="inp w-full font-bold" min="1" placeholder="50000" required />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal &amp; Jam *</label>
+            <input type="datetime-local" id="pay-modal-date" class="inp w-full text-xs" required />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Metode *</label>
+            <input type="text" id="pay-modal-method" class="inp w-full bg-slate-100 text-slate-600" value="Tunai / Cash" readonly />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Catatan Tambahan (Opsional)</label>
+          <input type="text" id="pay-modal-notes" class="inp w-full text-xs" placeholder="Misal: Diterima kasir stand 2" />
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeModal('record-payment-modal')"
+            class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">Batal</button>
+          <button type="submit" id="record-payment-submit-btn"
+            class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5">
+            <span>Simpan Pembayaran</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ATUR HPP PRODUK (PHASE 5) -->
+  <div id="hpp-modal" onclick="if(event.target===this) closeModal('hpp-modal')"
+    class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div id="hpp-modal-box" class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200">
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-brand-400"></span>
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-300">Atur HPP (Harga Pokok Penjualan) Menu</span>
+        </div>
+        <button type="button" onclick="closeModal('hpp-modal')"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm cursor-pointer">&times;</button>
+      </div>
+      <form id="hpp-form" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Pilih Kelompok *</label>
+          <select id="hpp-modal-group-select" class="inp w-full" onchange="onHppGroupChange()" required>
+            <!-- Injected -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Pilih Menu / Produk *</label>
+          <select id="hpp-modal-product-select" class="inp w-full" onchange="onHppProductChange()" required>
+            <!-- Injected -->
+          </select>
+        </div>
+
+        <div id="hpp-modal-product-preview" class="p-3 bg-amber-50/60 rounded-2xl border border-amber-200 text-xs space-y-1">
+          <div class="flex justify-between text-slate-700">
+            <span>Harga Jual Menu:</span>
+            <b id="hpp-modal-sell-price" class="text-slate-900">Rp 0</b>
+          </div>
+          <div class="flex justify-between text-slate-700">
+            <span>HPP Satuan Saat Ini:</span>
+            <b id="hpp-modal-current-cost" class="text-amber-800">Rp 0</b>
+          </div>
+          <div class="flex justify-between text-slate-700 border-t border-amber-200 pt-1">
+            <span>Margin Kotor:</span>
+            <b id="hpp-modal-current-margin" class="text-emerald-700">Rp 0 (0%)</b>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">HPP Satuan Baru (Rp) *</label>
+            <input type="number" id="hpp-modal-cost-input" class="inp w-full font-bold" min="0" placeholder="10000" required />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Berlaku *</label>
+            <input type="date" id="hpp-modal-date" class="inp w-full text-xs" required />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Catatan / Keterangan Perubahan</label>
+          <input type="text" id="hpp-modal-notes" class="inp w-full text-xs" placeholder="Contoh: Kenaikan harga bahan baku ayam &amp; bumbu" />
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeModal('hpp-modal')"
+            class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">Batal</button>
+          <button type="submit" id="hpp-submit-btn"
+            class="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5">
+            <span>Simpan HPP</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CATAT PENGELUARAN / BEBAN (PHASE 5) -->
+  <div id="add-expense-modal" onclick="if(event.target===this) closeModal('add-expense-modal')"
+    class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div id="add-expense-modal-box" class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200">
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+          <span class="text-xs font-bold uppercase tracking-wider text-rose-300">Catat Pengeluaran Operasional</span>
+        </div>
+        <button type="button" onclick="closeModal('add-expense-modal')"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm cursor-pointer">&times;</button>
+      </div>
+      <form id="add-expense-form" class="p-6 space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Kelompok *</label>
+            <select id="expense-modal-group" class="inp w-full" required>
+              <!-- Injected -->
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Pengeluaran *</label>
+            <select id="expense-modal-category" class="inp w-full" required>
+              <option value="Bahan Baku">Bahan Baku</option>
+              <option value="Kemasan">Kemasan</option>
+              <option value="Peralatan">Peralatan</option>
+              <option value="Transportasi">Transportasi</option>
+              <option value="Operasional">Operasional</option>
+              <option value="Promosi">Promosi</option>
+              <option value="Sewa">Sewa</option>
+              <option value="Lain-lain">Lain-lain</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nominal Beban (Rp) *</label>
+            <input type="number" id="expense-modal-amount" class="inp w-full font-bold" min="1" placeholder="25000" required />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Transaksi *</label>
+            <input type="datetime-local" id="expense-modal-date" class="inp w-full text-xs" required />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Rincian Pengeluaran *</label>
+          <input type="text" id="expense-modal-desc" class="inp w-full text-xs" placeholder="Contoh: Beli es batu 5 kantong dan plastik cup" required />
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeModal('add-expense-modal')"
+            class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">Batal</button>
+          <button type="submit" id="add-expense-submit-btn"
+            class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5">
+            <span>Simpan Pengeluaran</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: TAMBAH MODAL KELOMPOK (PHASE 5) -->
+  <div id="add-capital-modal" onclick="if(event.target===this) closeModal('add-capital-modal')"
+    class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div id="add-capital-modal-box" class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200">
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+          <span class="text-xs font-bold uppercase tracking-wider text-purple-300">Catat Setoran Modal Kelompok</span>
+        </div>
+        <button type="button" onclick="closeModal('add-capital-modal')"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm cursor-pointer">&times;</button>
+      </div>
+      <form id="add-capital-form" class="p-6 space-y-4">
+        <div class="p-3 bg-purple-50 rounded-2xl border border-purple-200 text-xs text-purple-900">
+          <b>Penting:</b> Modal adalah setoran dana awal / tambahan dari anggota, bukan omzet penjualan, dan tidak dihitung sebagai keuntungan.
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Kelompok *</label>
+            <select id="capital-modal-group" class="inp w-full" required>
+              <!-- Injected -->
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Jenis Modal *</label>
+            <select id="capital-modal-category" class="inp w-full" required>
+              <option value="Modal Awal">Modal Awal</option>
+              <option value="Tambahan Modal">Tambahan Modal</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nominal Setoran (Rp) *</label>
+            <input type="number" id="capital-modal-amount" class="inp w-full font-bold" min="1" placeholder="100000" required />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Setoran *</label>
+            <input type="datetime-local" id="capital-modal-date" class="inp w-full text-xs" required />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Sumber Dana / Keterangan *</label>
+          <input type="text" id="capital-modal-desc" class="inp w-full text-xs" placeholder="Contoh: Iuran 5 anggota (@Rp 20.000)" required />
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeModal('add-capital-modal')"
+            class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">Batal</button>
+          <button type="submit" id="add-capital-submit-btn"
+            class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5">
+            <span>Simpan Modal</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CATAT PENDAPATAN MANUAL / LUAR PO (PHASE 5) -->
+  <div id="add-manual-revenue-modal" onclick="if(event.target===this) closeModal('add-manual-revenue-modal')"
+    class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div id="add-manual-revenue-modal-box" class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200">
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
+          <span class="text-xs font-bold uppercase tracking-wider text-blue-300">Catat Pendapatan Manual (Luar PO)</span>
+        </div>
+        <button type="button" onclick="closeModal('add-manual-revenue-modal')"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm cursor-pointer">&times;</button>
+      </div>
+      <form id="add-manual-revenue-form" class="p-6 space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Kelompok *</label>
+            <select id="manual-rev-modal-group" class="inp w-full" required>
+              <!-- Injected -->
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Pendapatan *</label>
+            <select id="manual-rev-modal-category" class="inp w-full" required>
+              <option value="Penjualan Langsung">Penjualan Langsung di Stan</option>
+              <option value="Pendapatan Tambahan">Pendapatan Tambahan</option>
+              <option value="Lain-lain">Lain-lain</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nominal Diterima (Rp) *</label>
+            <input type="number" id="manual-rev-modal-amount" class="inp w-full font-bold" min="1" placeholder="50000" required />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Transaksi *</label>
+            <input type="datetime-local" id="manual-rev-modal-date" class="inp w-full text-xs" required />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Keterangan / Pembeli *</label>
+          <input type="text" id="manual-rev-modal-desc" class="inp w-full text-xs" placeholder="Contoh: Pembelian langsung 3 porsi oleh pengunjung umum" required />
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeModal('add-manual-revenue-modal')"
+            class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">Batal</button>
+          <button type="submit" id="add-manual-rev-submit-btn"
+            class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5">
+            <span>Simpan Pendapatan</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: RIWAYAT HPP PRODUK (PHASE 5) -->
+  <div id="hpp-history-modal" onclick="if(event.target===this) closeModal('hpp-history-modal')"
+    class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div id="hpp-history-modal-box" class="bg-white rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl border border-slate-200">
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-300">Riwayat Perubahan HPP</span>
+          <p id="hpp-history-product-name" class="text-xs text-slate-300 mt-0.5">-</p>
+        </div>
+        <button type="button" onclick="closeModal('hpp-history-modal')"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm cursor-pointer">&times;</button>
+      </div>
+      <div class="p-6">
+        <div class="overflow-x-auto rounded-xl border border-slate-200 max-h-80">
+          <table class="otable">
+            <thead>
+              <tr>
+                <th>Waktu Diubah</th>
+                <th>HPP Baru</th>
+                <th>Tanggal Berlaku</th>
+                <th>Diubah Oleh</th>
+                <th>Alasan</th>
+              </tr>
+            </thead>
+            <tbody id="hpp-history-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+        <div class="flex justify-end mt-4">
+          <button type="button" onclick="closeModal('hpp-history-modal')"
+            class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KOREKSI / BATALKAN TRANSAKSI KEUANGAN (PHASE 5) -->
+  <div id="reverse-transaction-modal" onclick="if(event.target===this) closeModal('reverse-transaction-modal')"
+    class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div id="reverse-transaction-modal-box" class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200">
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wider text-rose-400">Batalkan / Koreksi Transaksi</span>
+        <button type="button" onclick="closeModal('reverse-transaction-modal')"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm cursor-pointer">&times;</button>
+      </div>
+      <form id="reverse-transaction-form" class="p-6 space-y-4">
+        <p class="text-xs text-slate-600">
+          Anda akan membatalkan transaksi ini dari pencatatan aktif. Transaksi akan ditandai sebagai <b>dibatalkan (reversed)</b> dalam audit trail keuangan.
+        </p>
+
+        <div id="reverse-transaction-info" class="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-1">
+          <!-- Injected info -->
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Alasan Pembatalan / Koreksi *</label>
+          <input type="text" id="reverse-transaction-reason" class="inp w-full text-xs" placeholder="Contoh: Salah input nominal atau transaksi ganda" required />
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeModal('reverse-transaction-modal')"
+            class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">Batal</button>
+          <button type="submit" id="reverse-transaction-submit-btn"
+            class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md cursor-pointer flex items-center gap-1.5">
+            <span>Konfirmasi Pembatalan</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -4986,11 +6022,20 @@
       if (!session) return;
 
       try {
-        const [remoteGrp, remoteOrd] = await Promise.all([
+        const [remoteGrp, remoteOrd, remoteCosts, remoteTxs, remotePayments, remoteCats] = await Promise.all([
           sbRequest('bzooginer_groups', 'GET', null, '?select=*&order=id.asc'),
           sbRequest('bzooginer_orders', 'GET', null, '?select=*&order=created_at.desc'),
+          sbRequest('bzooginer_product_costs', 'GET', null, '?select=*&order=updated_at.desc'),
+          sbRequest('bzooginer_finance_transactions', 'GET', null, '?select=*&order=transaction_date.desc'),
+          sbRequest('bzooginer_order_payments', 'GET', null, '?select=*&order=payment_date.desc'),
+          sbRequest('bzooginer_finance_categories', 'GET', null, '?select=*&order=sort_order.asc'),
           loadMasterClasses()
         ]);
+
+        if (Array.isArray(remoteCosts)) productCosts = remoteCosts;
+        if (Array.isArray(remoteTxs)) financeTransactions = remoteTxs;
+        if (Array.isArray(remotePayments)) orderPayments = remotePayments;
+        if (Array.isArray(remoteCats)) financeCategories = remoteCats;
 
         if (Array.isArray(remoteGrp)) {
           if (currentUser && currentUser.role === 'superadmin') {
@@ -5133,6 +6178,10 @@
     function saveAllData() {
       localStorage.setItem(STORAGE_KEYS.GROUPS, JSON.stringify(groups));
       localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
+      localStorage.setItem('bzooginer_product_costs_v5', JSON.stringify(productCosts));
+      localStorage.setItem('bzooginer_finance_txs_v5', JSON.stringify(financeTransactions));
+      localStorage.setItem('bzooginer_order_payments_v5', JSON.stringify(orderPayments));
+      localStorage.setItem('bzooginer_finance_cats_v5', JSON.stringify(financeCategories));
     }
 
     function formatRupiah(num) {
@@ -5303,6 +6352,30 @@
         })
         .on('broadcast', { event: 'group_event' }, ({ payload }) => {
           if (payload) handleRealtimeGroupEvent(payload);
+        })
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'bzooginer_finance_transactions'
+        }, (payload) => {
+          handleRealtimeFinanceEvent('transaction', payload);
+        })
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'bzooginer_order_payments'
+        }, (payload) => {
+          handleRealtimeFinanceEvent('payment', payload);
+        })
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'bzooginer_product_costs'
+        }, (payload) => {
+          handleRealtimeFinanceEvent('product_cost', payload);
+        })
+        .on('broadcast', { event: 'finance_event' }, ({ payload }) => {
+          if (payload) handleRealtimeFinanceEvent(payload.type, payload);
         });
 
       // 2. Presence Channel
@@ -6390,6 +7463,1504 @@
     }
 
     // ==========================================
+    // 4.5. PHASE 5: FINANCIAL MANAGEMENT & ACCOUNTING MODULE
+    // ==========================================
+
+    let financeTransactions = [];
+    let productCosts = [];
+    let orderPayments = [];
+    let financeCategories = [];
+    let currentFinanceTab = 'overview';
+    let financePeriod = 'all';
+    let financeGroupFilter = 'all';
+    let currentHppGroup = 1;
+    let currentRevPage = 1;
+    let currentExpPage = 1;
+    const FINANCE_PAGE_SIZE = 12;
+    let pendingReverseTx = null;
+
+    // Load initial local cache if available
+    try {
+      const pc = localStorage.getItem('bzooginer_product_costs_v5');
+      if (pc) productCosts = JSON.parse(pc);
+      const ft = localStorage.getItem('bzooginer_finance_txs_v5');
+      if (ft) financeTransactions = JSON.parse(ft);
+      const op = localStorage.getItem('bzooginer_order_payments_v5');
+      if (op) orderPayments = JSON.parse(op);
+      const fc = localStorage.getItem('bzooginer_finance_cats_v5');
+      if (fc) financeCategories = JSON.parse(fc);
+    } catch (e) {
+      console.warn('Load local finance cache notice:', e);
+    }
+
+    // --- UI Improvement: Hide/Show Pusat Monitoring ---
+    function initOrderMonitoringCollapseState() {
+      const collapsed = localStorage.getItem('bzooginer_monitoring_collapsed') === 'true';
+      toggleOrderMonitoringCollapse(collapsed, false);
+      updateCollapsedMonitoringSummary();
+    }
+
+    function toggleOrderMonitoringCollapse(forceState = null, saveStorage = true) {
+      const content = document.getElementById('order-monitoring-content-wrap');
+      const banner = document.getElementById('order-monitoring-collapsed-bar');
+      const icon = document.getElementById('btn-toggle-mon-icon');
+      const text = document.getElementById('btn-toggle-mon-text');
+      if (!content) return;
+
+      const isCurrentlyCollapsed = content.classList.contains('hidden');
+      const shouldCollapse = forceState !== null ? forceState : !isCurrentlyCollapsed;
+
+      if (shouldCollapse) {
+        content.classList.add('hidden');
+        if (banner) banner.classList.remove('hidden');
+        if (icon) icon.textContent = '👁️‍🗨️';
+        if (text) text.textContent = 'Tampilkan';
+        if (saveStorage) localStorage.setItem('bzooginer_monitoring_collapsed', 'true');
+        updateCollapsedMonitoringSummary();
+      } else {
+        content.classList.remove('hidden');
+        if (banner) banner.classList.add('hidden');
+        if (icon) icon.textContent = '👁️';
+        if (text) text.textContent = 'Sembunyikan';
+        if (saveStorage) localStorage.setItem('bzooginer_monitoring_collapsed', 'false');
+      }
+    }
+
+    function updateCollapsedMonitoringSummary() {
+      const pill = document.getElementById('mon-collapsed-summary-pill');
+      if (!pill) return;
+      const list = getAccessibleOrders();
+      const total = list.length;
+      let validCount = 0;
+      let paidCount = 0;
+      let paidAmount = 0;
+      for (const ord of list) {
+        const check = validateOrderCompleteness(ord);
+        if (check.status === 'Lengkap') validCount++;
+        const paid = getOrderPaidAmount(ord);
+        if (paid >= ord.total) paidCount++;
+        paidAmount += paid;
+      }
+      pill.textContent = `Total: ${total} Pesanan · ${validCount} Lengkap · ${paidCount} Lunas (${formatRupiah(paidAmount)})`;
+    }
+
+    // --- Navigation & Section Init ---
+    function scrollToFinanceSection(tab = null) {
+      if (currentUser && currentUser.role === 'superadmin') {
+        switchSuperadminPage('dashboard');
+      }
+      if (tab) switchFinanceTab(tab);
+      const sec = document.getElementById('section-finance');
+      if (sec) {
+        sec.scrollIntoView({ behavior: 'smooth' });
+        sec.classList.add('ring-2', 'ring-emerald-500');
+        setTimeout(() => sec.classList.remove('ring-2', 'ring-emerald-500'), 1500);
+      }
+    }
+
+    function switchFinanceTab(tab) {
+      currentFinanceTab = tab;
+      const tabs = ['overview', 'hpp', 'revenue', 'expenses', 'capital', 'reports'];
+      tabs.forEach(t => {
+        const btn = document.getElementById('tab-fin-' + t);
+        const view = document.getElementById('fin-view-' + t);
+        if (btn) btn.classList.toggle('on', t === tab);
+        if (view) view.classList.toggle('hidden', t !== tab);
+      });
+      renderAllFinance();
+    }
+
+    function onFinancePeriodChange() {
+      const select = document.getElementById('filter-finance-period');
+      financePeriod = select ? select.value : 'all';
+      const customWrap = document.getElementById('finance-custom-date-wrap');
+      if (customWrap) {
+        customWrap.classList.toggle('hidden', financePeriod !== 'custom');
+      }
+      renderAllFinance();
+    }
+
+    function onFinanceGroupChange() {
+      const select = document.getElementById('filter-finance-group');
+      financeGroupFilter = select ? select.value : 'all';
+      renderAllFinance();
+    }
+
+    function initFinanceSectionUI() {
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const groupWrap = document.getElementById('filter-finance-group-wrap');
+      if (groupWrap) groupWrap.classList.toggle('hidden', !isSuper);
+
+      const hppGroupWrap = document.getElementById('filter-hpp-group-wrap');
+      if (hppGroupWrap) hppGroupWrap.classList.toggle('hidden', !isSuper);
+
+      if (!isSuper && currentUser) {
+        financeGroupFilter = String(currentUser.groupId);
+        currentHppGroup = currentUser.groupId;
+      }
+
+      // Populate group select in finance header
+      const finGroupSelect = document.getElementById('filter-finance-group');
+      if (finGroupSelect && isSuper) {
+        const opts = `<option value="all">Semua Kelompok (Konsolidasi)</option>` +
+          groups.map(g => `<option value="${g.id}">Kelompok ${g.id} (${esc(g.name)})</option>`).join('');
+        finGroupSelect.innerHTML = opts;
+      }
+
+      // Populate group select in HPP view
+      const hppGroupSelect = document.getElementById('filter-hpp-group');
+      if (hppGroupSelect) {
+        hppGroupSelect.innerHTML = groups.map(g => `<option value="${g.id}">Kelompok ${g.id} (${esc(g.name)})</option>`).join('');
+        if (!isSuper) hppGroupSelect.value = String(currentUser.groupId);
+      }
+    }
+
+    // --- Date Filter Helper ---
+    function isDateInPeriod(dateInput, period, customStart, customEnd) {
+      if (!dateInput) return false;
+      if (period === 'all') return true;
+
+      const d = new Date(dateInput);
+      if (isNaN(d.getTime())) return true;
+
+      // Extract local date in YYYY-MM-DD
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+
+      const now = new Date();
+      const nowY = now.getFullYear();
+      const nowM = String(now.getMonth() + 1).padStart(2, '0');
+      const nowD = String(now.getDate()).padStart(2, '0');
+      const todayStr = `${nowY}-${nowM}-${nowD}`;
+
+      if (period === 'today') {
+        return dateStr === todayStr;
+      }
+      if (period === 'this_week') {
+        const dayOfWeek = now.getDay(); // 0 is Sunday
+        const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const monday = new Date(now);
+        monday.setDate(now.getDate() + diff);
+        const monY = monday.getFullYear();
+        const monM = String(monday.getMonth() + 1).padStart(2, '0');
+        const monD = String(monday.getDate()).padStart(2, '0');
+        const monStr = `${monY}-${monM}-${monD}`;
+        return dateStr >= monStr && dateStr <= todayStr;
+      }
+      if (period === 'this_month') {
+        const curMonthPrefix = `${nowY}-${nowM}`;
+        return dateStr.startsWith(curMonthPrefix);
+      }
+      if (period === 'custom') {
+        const s = customStart || '2000-01-01';
+        const e = customEnd || '2099-12-31';
+        return dateStr >= s && dateStr <= e;
+      }
+      return true;
+    }
+
+    // --- Baseline Historical Reconciliation & Order Payment Calculations ---
+    function getOrderPaidAmount(order) {
+      if (!order) return 0;
+      // 1. Look for ledger payments in orderPayments
+      const matchingPayments = orderPayments.filter(p => p.order_id === order.id);
+      if (matchingPayments.length > 0) {
+        return matchingPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+      }
+      // 2. Baseline Reconciliation for 102 historical orders:
+      // If order.status === 'Lunas' and no payment row recorded yet, count order total as paid
+      if (order.status === 'Lunas') {
+        return Number(order.total || 0);
+      }
+      return 0;
+    }
+
+    function getOrderUnpaidAmount(order) {
+      if (!order) return 0;
+      const paid = getOrderPaidAmount(order);
+      return Math.max(0, Number(order.total || 0) - paid);
+    }
+
+    function getOrderPaymentStatusBadge(order) {
+      if (!order) return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">Unknown</span>`;
+      const paid = getOrderPaidAmount(order);
+      const total = Number(order.total || 0);
+      if (paid >= total && total > 0) {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Lunas</span>`;
+      }
+      if (paid > 0 && paid < total) {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">DP: ${formatRupiah(paid)}</span>`;
+      }
+      return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Belum Lunas</span>`;
+    }
+
+    // --- Financial Metrics Computation ---
+    function computeFinancialMetrics(targetGroupId = 'all', period = 'all') {
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const effectiveGroup = !isSuper ? currentUser.groupId : targetGroupId;
+
+      const startDate = document.getElementById('filter-finance-start-date')?.value || '';
+      const endDate = document.getElementById('filter-finance-end-date')?.value || '';
+
+      // Filter accessible orders
+      let accessibleOrders = getAccessibleOrders();
+      if (effectiveGroup !== 'all') {
+        accessibleOrders = accessibleOrders.filter(o => o.groupId === Number(effectiveGroup));
+      }
+
+      // Filter orders by period (order date)
+      const periodOrders = accessibleOrders.filter(o => isDateInPeriod(o.createdAt || o.updatedAt, period, startDate, endDate));
+
+      // 1. PO Sales & Receivables
+      const totalPoSales = periodOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+      const totalPoCashReceived = periodOrders.reduce((sum, o) => sum + getOrderPaidAmount(o), 0);
+      const totalReceivables = periodOrders.reduce((sum, o) => sum + getOrderUnpaidAmount(o), 0);
+      const unpaidOrdersCount = periodOrders.filter(o => getOrderUnpaidAmount(o) > 0).length;
+
+      // 2. Transactions
+      let txs = financeTransactions.filter(t => !t.is_reversed);
+      if (effectiveGroup !== 'all') {
+        txs = txs.filter(t => t.group_id === Number(effectiveGroup));
+      }
+      const periodTxs = txs.filter(t => isDateInPeriod(t.transaction_date, period, startDate, endDate));
+
+      // Manual revenue
+      const manualRevTxs = periodTxs.filter(t => t.type === 'revenue');
+      const totalManualRevenue = manualRevTxs.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+      // Capital (strictly isolated from revenue)
+      const capitalTxs = periodTxs.filter(t => t.type === 'capital');
+      const totalCapital = capitalTxs.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+      // Expenses
+      const expenseTxs = periodTxs.filter(t => t.type === 'expense');
+      const totalExpenses = expenseTxs.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+      const expensesByCategory = {};
+      expenseTxs.forEach(t => {
+        const cat = t.category_name || 'Lain-lain';
+        expensesByCategory[cat] = (expensesByCategory[cat] || 0) + Number(t.amount || 0);
+      });
+
+      // HPP & Missing HPP Detection
+      let totalHpp = 0;
+      const missingHppMap = new Map();
+
+      periodOrders.forEach(ord => {
+        const gId = ord.groupId;
+        (ord.items || []).forEach(item => {
+          const pCost = productCosts.find(c => c.group_id === gId && c.product_id === item.id);
+          if (pCost && Number(pCost.cost_per_unit) > 0) {
+            totalHpp += Number(pCost.cost_per_unit) * (Number(item.qty) || 1);
+          } else {
+            const key = `${gId}_${item.id}`;
+            if (!missingHppMap.has(key)) {
+              missingHppMap.set(key, { groupId: gId, productId: item.id, productName: item.name });
+            }
+          }
+        });
+      });
+
+      const missingHppList = Array.from(missingHppMap.values());
+      const hasMissingHpp = missingHppList.length > 0;
+
+      // Master totals
+      const totalSales = totalPoSales + totalManualRevenue;
+      const totalCashReceived = totalPoCashReceived + totalManualRevenue;
+      const grossProfit = totalSales - totalHpp;
+      const netProfit = grossProfit - totalExpenses;
+      const cashBalance = totalCapital + totalCashReceived - totalExpenses;
+
+      return {
+        totalPoSales,
+        totalPoCashReceived,
+        totalReceivables,
+        unpaidOrdersCount,
+        totalManualRevenue,
+        totalSales,
+        totalCashReceived,
+        totalCapital,
+        totalExpenses,
+        expensesByCategory,
+        totalHpp,
+        hasMissingHpp,
+        missingHppList,
+        grossProfit,
+        netProfit,
+        cashBalance
+      };
+    }
+
+    // --- Master Render Router ---
+    function renderAllFinance() {
+      if (currentFinanceTab === 'overview') {
+        renderFinanceOverview();
+      } else if (currentFinanceTab === 'hpp') {
+        renderFinanceHpp();
+      } else if (currentFinanceTab === 'revenue') {
+        renderFinanceRevenue();
+      } else if (currentFinanceTab === 'expenses') {
+        renderFinanceExpenses();
+      } else if (currentFinanceTab === 'capital') {
+        renderFinanceCapital();
+      } else if (currentFinanceTab === 'reports') {
+        renderFinanceReports();
+      }
+    }
+
+    // --- View 1: Overview & KPI Dashboard ---
+    function renderFinanceOverview() {
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const effectiveGroup = !isSuper ? currentUser.groupId : financeGroupFilter;
+      const m = computeFinancialMetrics(effectiveGroup, financePeriod);
+
+      // 1. Update 10 KPI Cards
+      const elSales = document.getElementById('fin-kpi-total-sales');
+      if (elSales) elSales.textContent = formatRupiah(m.totalSales);
+
+      const elSalesSub = document.getElementById('fin-kpi-sales-sub');
+      if (elSalesSub) elSalesSub.textContent = `PO: ${formatRupiah(m.totalPoSales)} · Manual: ${formatRupiah(m.totalManualRevenue)}`;
+
+      const elCashRec = document.getElementById('fin-kpi-cash-received');
+      if (elCashRec) elCashRec.textContent = formatRupiah(m.totalCashReceived);
+
+      const elRecv = document.getElementById('fin-kpi-receivables');
+      if (elRecv) elRecv.textContent = formatRupiah(m.totalReceivables);
+
+      const elUnpaidSub = document.getElementById('fin-kpi-unpaid-count');
+      if (elUnpaidSub) elUnpaidSub.textContent = `${m.unpaidOrdersCount} pesanan belum lunas`;
+
+      const elManRev = document.getElementById('fin-kpi-manual-revenue');
+      if (elManRev) elManRev.textContent = formatRupiah(m.totalManualRevenue);
+
+      const elCap = document.getElementById('fin-kpi-capital');
+      if (elCap) elCap.textContent = formatRupiah(m.totalCapital);
+
+      const elExp = document.getElementById('fin-kpi-expenses');
+      if (elExp) elExp.textContent = formatRupiah(m.totalExpenses);
+
+      const elHpp = document.getElementById('fin-kpi-total-hpp');
+      if (elHpp) elHpp.textContent = formatRupiah(m.totalHpp);
+
+      const elHppSub = document.getElementById('fin-kpi-hpp-sub');
+      if (elHppSub) {
+        elHppSub.textContent = m.hasMissingHpp
+          ? `⚠️ ${m.missingHppList.length} menu belum set HPP`
+          : `Beban pokok seluruh menu terjual`;
+        elHppSub.classList.toggle('text-amber-600', m.hasMissingHpp);
+      }
+
+      const elGross = document.getElementById('fin-kpi-gross-profit');
+      if (elGross) {
+        elGross.textContent = formatRupiah(m.grossProfit);
+        elGross.className = `text-lg font-black block mt-1 truncate ${m.grossProfit >= 0 ? 'text-brand-900' : 'text-rose-600'}`;
+      }
+
+      const elNet = document.getElementById('fin-kpi-net-profit');
+      if (elNet) {
+        elNet.textContent = formatRupiah(m.netProfit);
+        elNet.className = `text-lg font-black block mt-1 truncate ${m.netProfit >= 0 ? 'text-emerald-800' : 'text-rose-600'}`;
+      }
+
+      const elBal = document.getElementById('fin-kpi-cash-balance');
+      if (elBal) {
+        elBal.textContent = formatRupiah(m.cashBalance);
+        elBal.className = `text-lg font-black block mt-1 truncate ${m.cashBalance >= 0 ? 'text-cyan-800' : 'text-rose-600'}`;
+      }
+
+      // 2. Missing HPP Alert Banner
+      const banner = document.getElementById('fin-missing-hpp-banner');
+      const bannerList = document.getElementById('fin-missing-hpp-list');
+      if (banner && bannerList) {
+        if (m.hasMissingHpp) {
+          banner.classList.remove('hidden');
+          const sampleNames = m.missingHppList.slice(0, 4).map(x => `Kel. ${x.groupId}: ${esc(x.productName)}`).join(', ');
+          const extra = m.missingHppList.length > 4 ? ` dan ${m.missingHppList.length - 4} lainnya.` : '.';
+          bannerList.textContent = `Produk belum diisi HPP: ${sampleNames}${extra} Laba kotor & bersih dihitung dari HPP yang ada.`;
+        } else {
+          banner.classList.add('hidden');
+        }
+      }
+
+      // 3. Overview toolbar labels
+      const grpLabel = document.getElementById('fin-overview-group-label');
+      if (grpLabel) {
+        if (effectiveGroup === 'all') grpLabel.textContent = 'Semua Kelompok (Konsolidasi)';
+        else {
+          const g = groups.find(x => x.id === Number(effectiveGroup));
+          grpLabel.textContent = `Kelompok ${effectiveGroup}${g ? ' (' + g.name + ')' : ''}`;
+        }
+      }
+
+      const perLabel = document.getElementById('fin-overview-period-label');
+      if (perLabel) {
+        const periodNames = { all: 'Semua Waktu', today: 'Hari Ini', this_week: 'Minggu Ini', this_month: 'Bulan Ini', custom: 'Kustom Tanggal' };
+        perLabel.textContent = periodNames[financePeriod] || financePeriod;
+      }
+
+      // 4. Comparative Section (Superadmin Only when 'all' is selected)
+      const compSec = document.getElementById('fin-comparative-section');
+      const compTbody = document.getElementById('fin-comparative-tbody');
+      const compTfoot = document.getElementById('fin-comparative-tfoot');
+
+      if (compSec && compTbody) {
+        if (isSuper && effectiveGroup === 'all') {
+          compSec.classList.remove('hidden');
+
+          let aggCapital = 0, aggPo = 0, aggMan = 0, aggOmzet = 0, aggHpp = 0, aggExp = 0, aggNet = 0, aggCash = 0;
+
+          const rowsHtml = groups.map(g => {
+            const gm = computeFinancialMetrics(g.id, financePeriod);
+            aggCapital += gm.totalCapital;
+            aggPo += gm.totalPoSales;
+            aggMan += gm.totalManualRevenue;
+            aggOmzet += gm.totalSales;
+            aggHpp += gm.totalHpp;
+            aggExp += gm.totalExpenses;
+            aggNet += gm.netProfit;
+            aggCash += gm.cashBalance;
+
+            const hppStatusBadge = gm.hasMissingHpp
+              ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300" title="${gm.missingHppList.length} menu belum ada HPP">⚠️ Perlu Diisi (${gm.missingHppList.length})</span>`
+              : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">✓ Lengkap</span>`;
+
+            return `
+              <tr class="hover:bg-slate-50/80 transition-colors">
+                <td>
+                  <div class="font-bold text-slate-900">Kelompok ${g.id}</div>
+                  <div class="text-[11px] text-slate-500">${esc(g.name)}</div>
+                </td>
+                <td style="text-align:right" class="text-purple-700 font-semibold">${formatRupiah(gm.totalCapital)}</td>
+                <td style="text-align:right" class="text-slate-800">${formatRupiah(gm.totalPoSales)}</td>
+                <td style="text-align:right" class="text-blue-700">${formatRupiah(gm.totalManualRevenue)}</td>
+                <td style="text-align:right" class="font-bold text-slate-900">${formatRupiah(gm.totalSales)}</td>
+                <td style="text-align:right" class="text-slate-600">${formatRupiah(gm.totalHpp)}</td>
+                <td style="text-align:right" class="text-rose-700 font-semibold">${formatRupiah(gm.totalExpenses)}</td>
+                <td style="text-align:right" class="font-bold ${gm.netProfit >= 0 ? 'text-emerald-700' : 'text-rose-600'}">${formatRupiah(gm.netProfit)}</td>
+                <td style="text-align:right" class="font-bold ${gm.cashBalance >= 0 ? 'text-cyan-800' : 'text-rose-600'}">${formatRupiah(gm.cashBalance)}</td>
+                <td style="text-align:center">${hppStatusBadge}</td>
+                <td class="no-print" style="text-align:center">
+                  <button type="button" class="btn btn-xs btn-sub" onclick="setFinanceGroupFilter(${g.id})">Lihat Detail</button>
+                </td>
+              </tr>
+            `;
+          }).join('');
+
+          compTbody.innerHTML = rowsHtml;
+
+          if (compTfoot) {
+            compTfoot.innerHTML = `
+              <tr>
+                <td>TOTAL KONSOLIDASI (6 KELOMPOK)</td>
+                <td style="text-align:right" class="text-purple-700">${formatRupiah(aggCapital)}</td>
+                <td style="text-align:right">${formatRupiah(aggPo)}</td>
+                <td style="text-align:right" class="text-blue-700">${formatRupiah(aggMan)}</td>
+                <td style="text-align:right" class="text-slate-900">${formatRupiah(aggOmzet)}</td>
+                <td style="text-align:right">${formatRupiah(aggHpp)}</td>
+                <td style="text-align:right" class="text-rose-700">${formatRupiah(aggExp)}</td>
+                <td style="text-align:right" class="${aggNet >= 0 ? 'text-emerald-700' : 'text-rose-600'}">${formatRupiah(aggNet)}</td>
+                <td style="text-align:right" class="${aggCash >= 0 ? 'text-cyan-800' : 'text-rose-600'}">${formatRupiah(aggCash)}</td>
+                <td style="text-align:center">-</td>
+                <td class="no-print" style="text-align:center">-</td>
+              </tr>
+            `;
+          }
+        } else {
+          compSec.classList.add('hidden');
+        }
+      }
+    }
+
+    function setFinanceGroupFilter(groupId) {
+      const select = document.getElementById('filter-finance-group');
+      if (select) {
+        select.value = String(groupId);
+        financeGroupFilter = String(groupId);
+      }
+      renderAllFinance();
+    }
+
+    // --- View 2: HPP Manual per Produk ---
+    function renderFinanceHpp() {
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const hppSelect = document.getElementById('filter-hpp-group');
+      const selectedGid = isSuper && hppSelect ? Number(hppSelect.value) : currentUser.groupId;
+      currentHppGroup = selectedGid;
+
+      const group = groups.find(g => g.id === selectedGid);
+      const tbody = document.getElementById('fin-hpp-tbody');
+      if (!group || !tbody) return;
+
+      const products = group.products || [];
+      if (products.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-slate-400">Belum ada menu terdaftar di Kelompok ${selectedGid}.</td></tr>`;
+        return;
+      }
+
+      // Calculate sold quantity per product in this group from orders
+      const groupOrders = orders.filter(o => o.groupId === selectedGid);
+      const soldMap = {};
+      groupOrders.forEach(ord => {
+        (ord.items || []).forEach(it => {
+          soldMap[it.id] = (soldMap[it.id] || 0) + (Number(it.qty) || 1);
+        });
+      });
+
+      const rowsHtml = products.map(p => {
+        const costEntry = productCosts.find(c => c.group_id === selectedGid && c.product_id === p.id);
+        const costPerUnit = costEntry ? Number(costEntry.cost_per_unit || 0) : 0;
+        const sellPrice = Number(p.price || 0);
+        const margin = sellPrice - costPerUnit;
+        const marginPct = sellPrice > 0 ? ((margin / sellPrice) * 100).toFixed(1) : '0';
+        const soldQty = soldMap[p.id] || 0;
+        const totalHppSold = costPerUnit * soldQty;
+        const effDate = costEntry?.effective_date ? costEntry.effective_date : '-';
+        const updatedTime = costEntry?.updated_at ? formatTimeAgo(costEntry.updated_at) : 'Belum diatur';
+
+        const hasCost = costPerUnit > 0;
+        const costBadge = hasCost
+          ? `<b class="text-slate-900 font-bold">${formatRupiah(costPerUnit)}</b>`
+          : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">⚠️ Belum Diatur</span>`;
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td>
+              <span class="font-bold text-slate-800">Kelompok ${selectedGid}</span>
+            </td>
+            <td>
+              <div class="font-bold text-slate-900">${esc(p.name)}</div>
+              <span class="text-[10px] text-slate-400 uppercase tracking-wider">${p.type === 'bundling' ? 'Paket Bundling' : 'Menu Satuan'} · ID: ${esc(p.id)}</span>
+            </td>
+            <td style="text-align:right" class="font-semibold text-slate-800">${formatRupiah(sellPrice)}</td>
+            <td style="text-align:right">${costBadge}</td>
+            <td style="text-align:right" class="${margin >= 0 ? 'text-emerald-700' : 'text-rose-600'} font-semibold">
+              ${hasCost ? `${formatRupiah(margin)} <span class="text-[11px] font-normal">(${marginPct}%)</span>` : '-'}
+            </td>
+            <td style="text-align:center" class="font-bold text-slate-700">${soldQty}</td>
+            <td style="text-align:right" class="text-slate-800 font-medium">${formatRupiah(totalHppSold)}</td>
+            <td class="text-slate-600 text-[11px]">${effDate}</td>
+            <td class="text-slate-500 text-[11px]">${updatedTime}</td>
+            <td class="no-print" style="text-align:right">
+              <div class="flex items-center justify-end gap-1.5">
+                <button type="button" class="btn btn-xs btn-sub" onclick="openHppModal(${selectedGid}, '${p.id}')">Edit HPP</button>
+                <button type="button" class="btn btn-xs btn-sub" onclick="openHppHistoryModal(${selectedGid}, '${p.id}', '${esc(p.name)}')">Riwayat</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.innerHTML = rowsHtml;
+    }
+
+    // --- View 3: Kas Masuk & Pembayaran PO ---
+    function renderFinanceRevenue() {
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const effectiveGroup = !isSuper ? currentUser.groupId : financeGroupFilter;
+      const searchKeyword = (document.getElementById('filter-rev-search')?.value || '').toLowerCase().trim();
+      const typeFilter = document.getElementById('filter-rev-type')?.value || 'all';
+      const tbody = document.getElementById('fin-revenue-tbody');
+      const pag = document.getElementById('fin-revenue-pagination');
+      if (!tbody) return;
+
+      // 1. Gather PO payments
+      const poEntries = [];
+      orders.forEach(o => {
+        if (effectiveGroup !== 'all' && o.groupId !== Number(effectiveGroup)) return;
+
+        const ledgerPayments = orderPayments.filter(p => p.order_id === o.id);
+        if (ledgerPayments.length > 0) {
+          ledgerPayments.forEach(p => {
+            poEntries.push({
+              id: p.id,
+              date: p.payment_date || o.createdAt,
+              ref: `PO-${o.id.slice(0, 8)}`,
+              source: 'Pesanan PO',
+              groupId: o.groupId,
+              buyer: `${o.buyerName} (${o.buyerClass})`,
+              paymentType: p.payment_type ? p.payment_type.toUpperCase() : 'CASH',
+              amount: Number(p.amount || 0),
+              recordedBy: p.recorded_by_name || 'Admin',
+              notes: p.notes || o.note || '',
+              isManual: false
+            });
+          });
+        } else if (o.status === 'Lunas') {
+          // Historical baseline reconciliation
+          poEntries.push({
+            id: `recon_${o.id}`,
+            date: o.createdAt,
+            ref: `PO-${o.id.slice(0, 8)}`,
+            source: 'Pesanan PO (Baseline Lunas)',
+            groupId: o.groupId,
+            buyer: `${o.buyerName} (${o.buyerClass})`,
+            paymentType: 'LUNAS LAMA',
+            amount: Number(o.total || 0),
+            recordedBy: o.recordedBy || 'Admin',
+            notes: o.note || 'Rekonsiliasi 102 pesanan lunas historis',
+            isManual: false
+          });
+        }
+      });
+
+      // 2. Gather Manual Revenue
+      const manualEntries = [];
+      financeTransactions.filter(t => t.type === 'revenue' && !t.is_reversed).forEach(t => {
+        if (effectiveGroup !== 'all' && t.group_id !== Number(effectiveGroup)) return;
+        manualEntries.push({
+          id: t.id,
+          date: t.transaction_date,
+          ref: t.reference_id || `MAN-${t.id.slice(0, 6)}`,
+          source: t.category_name || 'Penjualan Langsung',
+          groupId: t.group_id,
+          buyer: t.description || 'Pengunjung Stan',
+          paymentType: 'CASH',
+          amount: Number(t.amount || 0),
+          recordedBy: t.recorded_by_name || 'Admin',
+          notes: t.description || '',
+          isManual: true,
+          txRaw: t
+        });
+      });
+
+      // Combine and filter
+      let combined = [];
+      if (typeFilter === 'all') combined = [...poEntries, ...manualEntries];
+      else if (typeFilter === 'po') combined = poEntries;
+      else if (typeFilter === 'manual') combined = manualEntries;
+
+      if (searchKeyword) {
+        combined = combined.filter(x =>
+          x.buyer.toLowerCase().includes(searchKeyword) ||
+          x.ref.toLowerCase().includes(searchKeyword) ||
+          x.source.toLowerCase().includes(searchKeyword) ||
+          x.notes.toLowerCase().includes(searchKeyword)
+        );
+      }
+
+      // Sort by date desc
+      combined.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+      const totalItems = combined.length;
+      const totalPages = Math.ceil(totalItems / FINANCE_PAGE_SIZE) || 1;
+      currentRevPage = Math.min(Math.max(1, currentRevPage), totalPages);
+      const startIdx = (currentRevPage - 1) * FINANCE_PAGE_SIZE;
+      const pageSlice = combined.slice(startIdx, startIdx + FINANCE_PAGE_SIZE);
+
+      if (pageSlice.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-400">Tidak ada catatan kas masuk yang sesuai filter.</td></tr>`;
+        if (pag) pag.innerHTML = '';
+        return;
+      }
+
+      const rowsHtml = pageSlice.map(r => {
+        const timeAgo = formatTimeAgo(r.date);
+        const actionBtn = r.isManual
+          ? `<button type="button" class="btn btn-xs btn-rose" onclick="openReverseTransactionModal('${r.id}')" title="Koreksi transaksi">Batal</button>`
+          : `<span class="text-[10px] text-slate-400">PO Valid</span>`;
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td>
+              <div class="font-bold text-slate-900">${formatDateShort(r.date)}</div>
+              <span class="text-[10px] text-slate-400">${timeAgo}</span>
+            </td>
+            <td>
+              <span class="font-mono text-xs font-bold text-slate-800">${esc(r.ref)}</span>
+              <span class="block text-[10px] text-slate-500">${esc(r.source)}</span>
+            </td>
+            <td>
+              <span class="font-bold text-slate-800">Kel. ${r.groupId}</span>
+            </td>
+            <td>
+              <div class="font-bold text-slate-900">${esc(r.buyer)}</div>
+              <span class="text-[11px] text-slate-500 truncate block max-w-xs">${esc(r.notes)}</span>
+            </td>
+            <td>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">${esc(r.paymentType)}</span>
+            </td>
+            <td style="text-align:right" class="font-bold text-emerald-700">${formatRupiah(r.amount)}</td>
+            <td class="text-slate-600 text-[11px]">${esc(r.recordedBy)}</td>
+            <td class="no-print" style="text-align:right">${actionBtn}</td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.innerHTML = rowsHtml;
+
+      // Render pagination
+      if (pag) {
+        pag.innerHTML = `
+          <div class="text-slate-500 text-[11px]">Menampilkan ${startIdx + 1}–${Math.min(startIdx + FINANCE_PAGE_SIZE, totalItems)} dari ${totalItems} kas masuk</div>
+          <div class="flex items-center gap-1.5">
+            <button type="button" class="btn btn-xs" ${currentRevPage <= 1 ? 'disabled' : ''} onclick="currentRevPage--;renderFinanceRevenue()">Prev</button>
+            <span class="px-2 text-xs font-bold">${currentRevPage} / ${totalPages}</span>
+            <button type="button" class="btn btn-xs" ${currentRevPage >= totalPages ? 'disabled' : ''} onclick="currentRevPage++;renderFinanceRevenue()">Next</button>
+          </div>
+        `;
+      }
+    }
+
+    // --- View 4: Pengeluaran & Beban ---
+    function renderFinanceExpenses() {
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const effectiveGroup = !isSuper ? currentUser.groupId : financeGroupFilter;
+      const searchKeyword = (document.getElementById('filter-exp-search')?.value || '').toLowerCase().trim();
+      const catFilter = document.getElementById('filter-exp-category')?.value || 'all';
+      const tbody = document.getElementById('fin-expenses-tbody');
+      const pag = document.getElementById('fin-expenses-pagination');
+      if (!tbody) return;
+
+      let list = financeTransactions.filter(t => t.type === 'expense' && !t.is_reversed);
+      if (effectiveGroup !== 'all') {
+        list = list.filter(t => t.group_id === Number(effectiveGroup));
+      }
+      if (catFilter !== 'all') {
+        list = list.filter(t => t.category_name === catFilter);
+      }
+      if (searchKeyword) {
+        list = list.filter(t =>
+          (t.description || '').toLowerCase().includes(searchKeyword) ||
+          (t.category_name || '').toLowerCase().includes(searchKeyword)
+        );
+      }
+
+      list.sort((a, b) => new Date(b.transaction_date || 0) - new Date(a.transaction_date || 0));
+
+      const totalItems = list.length;
+      const totalPages = Math.ceil(totalItems / FINANCE_PAGE_SIZE) || 1;
+      currentExpPage = Math.min(Math.max(1, currentExpPage), totalPages);
+      const startIdx = (currentExpPage - 1) * FINANCE_PAGE_SIZE;
+      const pageSlice = list.slice(startIdx, startIdx + FINANCE_PAGE_SIZE);
+
+      if (pageSlice.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">Belum ada pengeluaran yang tercatat pada filter ini.</td></tr>`;
+        if (pag) pag.innerHTML = '';
+        return;
+      }
+
+      const rowsHtml = pageSlice.map(t => {
+        const timeAgo = formatTimeAgo(t.transaction_date);
+        return `
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td>
+              <div class="font-bold text-slate-900">${formatDateShort(t.transaction_date)}</div>
+              <span class="text-[10px] text-slate-400">${timeAgo}</span>
+            </td>
+            <td>
+              <span class="font-bold text-slate-800">Kelompok ${t.group_id}</span>
+            </td>
+            <td>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">${esc(t.category_name)}</span>
+            </td>
+            <td>
+              <div class="font-semibold text-slate-900">${esc(t.description)}</div>
+            </td>
+            <td style="text-align:right" class="font-bold text-rose-700">${formatRupiah(t.amount)}</td>
+            <td class="text-slate-600 text-[11px]">${esc(t.recorded_by_name || 'Admin')}</td>
+            <td class="no-print" style="text-align:right">
+              <button type="button" class="btn btn-xs btn-rose" onclick="openReverseTransactionModal('${t.id}')">Koreksi</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.innerHTML = rowsHtml;
+
+      if (pag) {
+        pag.innerHTML = `
+          <div class="text-slate-500 text-[11px]">Menampilkan ${startIdx + 1}–${Math.min(startIdx + FINANCE_PAGE_SIZE, totalItems)} dari ${totalItems} transaksi pengeluaran</div>
+          <div class="flex items-center gap-1.5">
+            <button type="button" class="btn btn-xs" ${currentExpPage <= 1 ? 'disabled' : ''} onclick="currentExpPage--;renderFinanceExpenses()">Prev</button>
+            <span class="px-2 text-xs font-bold">${currentExpPage} / ${totalPages}</span>
+            <button type="button" class="btn btn-xs" ${currentExpPage >= totalPages ? 'disabled' : ''} onclick="currentExpPage++;renderFinanceExpenses()">Next</button>
+          </div>
+        `;
+      }
+    }
+
+    // --- View 5: Modal Kelompok ---
+    function renderFinanceCapital() {
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const effectiveGroup = !isSuper ? currentUser.groupId : financeGroupFilter;
+      const cardsGrid = document.getElementById('fin-capital-cards-grid');
+      const tbody = document.getElementById('fin-capital-tbody');
+      if (!cardsGrid || !tbody) return;
+
+      // Filter capital transactions
+      let capitalTxs = financeTransactions.filter(t => t.type === 'capital' && !t.is_reversed);
+      if (effectiveGroup !== 'all') {
+        capitalTxs = capitalTxs.filter(t => t.group_id === Number(effectiveGroup));
+      }
+      capitalTxs.sort((a, b) => new Date(b.transaction_date || 0) - new Date(a.transaction_date || 0));
+
+      // Capital summary cards per group
+      const targetGroups = effectiveGroup === 'all'
+        ? groups
+        : groups.filter(g => g.id === Number(effectiveGroup));
+
+      cardsGrid.innerHTML = targetGroups.map(g => {
+        const m = computeFinancialMetrics(g.id, 'all');
+        return `
+          <div class="p-3 bg-white rounded-2xl border border-purple-200 shadow-xs">
+            <div class="flex items-center justify-between text-purple-700 font-bold uppercase text-[10px]">
+              <span>Kelompok ${g.id} (${esc(g.name)})</span>
+              <span>💼</span>
+            </div>
+            <b class="text-xl font-black text-purple-900 block mt-1">${formatRupiah(m.totalCapital)}</b>
+            <div class="mt-2 pt-2 border-t border-purple-100 flex justify-between text-[11px] text-slate-500">
+              <span>Beban Operasional:</span>
+              <b class="text-rose-600">${formatRupiah(m.totalExpenses)}</b>
+            </div>
+            <div class="flex justify-between text-[11px] text-slate-500 mt-0.5">
+              <span>Saldo Kas Saat Ini:</span>
+              <b class="text-cyan-800 font-bold">${formatRupiah(m.cashBalance)}</b>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if (capitalTxs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400">Belum ada setoran modal yang tercatat.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = capitalTxs.map(t => `
+        <tr class="hover:bg-slate-50/80 transition-colors">
+          <td>
+            <div class="font-bold text-slate-900">${formatDateShort(t.transaction_date)}</div>
+            <span class="text-[10px] text-slate-400">${formatTimeAgo(t.transaction_date)}</span>
+          </td>
+          <td>
+            <span class="font-bold text-slate-800">Kelompok ${t.group_id}</span>
+          </td>
+          <td>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">${esc(t.category_name)}</span>
+          </td>
+          <td>
+            <div class="font-semibold text-slate-900">${esc(t.description)}</div>
+          </td>
+          <td style="text-align:right" class="font-bold text-purple-700">${formatRupiah(t.amount)}</td>
+          <td class="text-slate-600 text-[11px]">${esc(t.recorded_by_name || 'Admin')}</td>
+          <td class="no-print" style="text-align:right">
+            <button type="button" class="btn btn-xs btn-rose" onclick="openReverseTransactionModal('${t.id}')">Koreksi</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // --- View 6: Laporan Laba Rugi & Arus Kas ---
+    function renderFinanceReports() {
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const effectiveGroup = !isSuper ? currentUser.groupId : financeGroupFilter;
+      const m = computeFinancialMetrics(effectiveGroup, financePeriod);
+
+      // Period Label
+      const periodLabel = document.getElementById('fin-report-period-text');
+      if (periodLabel) {
+        const pNames = { all: 'Semua Waktu', today: 'Hari Ini', this_week: 'Minggu Ini', this_month: 'Bulan Ini', custom: 'Kustom Tanggal' };
+        const gName = effectiveGroup === 'all' ? 'Seluruh Kelompok (Konsolidasi)' : `Kelompok ${effectiveGroup}`;
+        periodLabel.textContent = `Kelompok: ${gName} · Periode: ${pNames[financePeriod] || financePeriod}`;
+      }
+
+      // Income Statement
+      const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      setTxt('rep-inc-po-sales', formatRupiah(m.totalPoSales));
+      setTxt('rep-inc-manual-sales', formatRupiah(m.totalManualRevenue));
+      setTxt('rep-inc-total-rev', formatRupiah(m.totalSales));
+      setTxt('rep-inc-total-hpp', formatRupiah(m.totalHpp));
+      setTxt('rep-inc-gross-profit', formatRupiah(m.grossProfit));
+      setTxt('rep-inc-total-exp', formatRupiah(m.totalExpenses));
+      setTxt('rep-inc-net-profit', formatRupiah(m.netProfit));
+
+      // Expense breakdown by category
+      const expContainer = document.getElementById('rep-inc-expense-breakdown');
+      if (expContainer) {
+        const catKeys = Object.keys(m.expensesByCategory);
+        if (catKeys.length === 0) {
+          expContainer.innerHTML = `<div class="text-slate-400 text-[11px] py-1">Tidak ada pengeluaran pada periode ini.</div>`;
+        } else {
+          expContainer.innerHTML = catKeys.map(cat => `
+            <div class="flex justify-between py-1 border-b border-slate-50 text-slate-600">
+              <span>Beban ${esc(cat)}</span>
+              <b class="text-rose-700">${formatRupiah(m.expensesByCategory[cat])}</b>
+            </div>
+          `).join('');
+        }
+      }
+
+      // Cash Flow Statement
+      setTxt('rep-cf-po-cash', formatRupiah(m.totalPoCashReceived));
+      setTxt('rep-cf-manual-cash', formatRupiah(m.totalManualRevenue));
+      setTxt('rep-cf-capital', formatRupiah(m.totalCapital));
+      const totalCashIn = m.totalCashReceived + m.totalCapital;
+      setTxt('rep-cf-total-in', formatRupiah(totalCashIn));
+      setTxt('rep-cf-expenses', formatRupiah(m.totalExpenses));
+      setTxt('rep-cf-total-out', formatRupiah(m.totalExpenses));
+      const netCashFlow = totalCashIn - m.totalExpenses;
+      setTxt('rep-cf-net-flow', formatRupiah(netCashFlow));
+      setTxt('rep-cf-ending-balance', formatRupiah(m.cashBalance));
+      setTxt('rep-cf-receivables', formatRupiah(m.totalReceivables));
+    }
+
+    // --- Modal Opening & Dynamic Handling ---
+
+    function openRecordPaymentModal(prefilledOrderId = null) {
+      const orderSelect = document.getElementById('pay-modal-order-select');
+      if (!orderSelect) return;
+
+      const accessible = getAccessibleOrders();
+      orderSelect.innerHTML = `<option value="">-- Pilih Pesanan --</option>` +
+        accessible.map(o => {
+          const unpaid = getOrderUnpaidAmount(o);
+          const statusText = unpaid <= 0 ? '[LUNAS]' : `[Sisa: ${formatRupiah(unpaid)}]`;
+          return `<option value="${o.id}">Kel. ${o.groupId} · ${esc(o.buyerName)} (${esc(o.buyerClass)}) · Total ${formatRupiah(o.total)} ${statusText}</option>`;
+        }).join('');
+
+      const nowLocal = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      document.getElementById('pay-modal-date').value = nowLocal;
+
+      if (prefilledOrderId) {
+        orderSelect.value = prefilledOrderId;
+        onPaymentOrderSelected();
+      } else {
+        document.getElementById('pay-modal-order-info').classList.add('hidden');
+        document.getElementById('pay-modal-amount').value = '';
+      }
+
+      openModal('record-payment-modal');
+    }
+
+    function onPaymentOrderSelected() {
+      const orderId = document.getElementById('pay-modal-order-select').value;
+      const infoBox = document.getElementById('pay-modal-order-info');
+      const amountInput = document.getElementById('pay-modal-amount');
+      const order = orders.find(o => o.id === orderId);
+
+      if (!order || !infoBox) {
+        if (infoBox) infoBox.classList.add('hidden');
+        return;
+      }
+
+      infoBox.classList.remove('hidden');
+      const paid = getOrderPaidAmount(order);
+      const unpaid = getOrderUnpaidAmount(order);
+
+      document.getElementById('pay-modal-buyer-text').textContent = `${order.buyerName} (${order.buyerClass}) — Kelompok ${order.groupId}`;
+      document.getElementById('pay-modal-total-text').textContent = formatRupiah(order.total);
+      document.getElementById('pay-modal-paid-text').textContent = formatRupiah(paid);
+      document.getElementById('pay-modal-unpaid-text').textContent = formatRupiah(unpaid);
+
+      const payType = document.getElementById('pay-modal-type').value;
+      if (payType === 'full' || payType === 'repayment') {
+        amountInput.value = unpaid > 0 ? unpaid : order.total;
+      }
+    }
+
+    function onPaymentTypeChanged() {
+      const orderId = document.getElementById('pay-modal-order-select').value;
+      const order = orders.find(o => o.id === orderId);
+      const type = document.getElementById('pay-modal-type').value;
+      const amountInput = document.getElementById('pay-modal-amount');
+      if (!order || !amountInput) return;
+
+      const unpaid = getOrderUnpaidAmount(order);
+      if (type === 'full' || type === 'repayment') {
+        amountInput.value = unpaid > 0 ? unpaid : order.total;
+      }
+    }
+
+    function openHppModal(groupId = null, productId = null) {
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const effectiveGid = groupId || (isSuper ? (document.getElementById('filter-hpp-group')?.value || 1) : currentUser.groupId);
+
+      const grpSelect = document.getElementById('hpp-modal-group-select');
+      if (grpSelect) {
+        grpSelect.innerHTML = isSuper
+          ? groups.map(g => `<option value="${g.id}">Kelompok ${g.id} (${esc(g.name)})</option>`).join('')
+          : `<option value="${currentUser.groupId}">Kelompok ${currentUser.groupId}</option>`;
+        grpSelect.value = String(effectiveGid);
+      }
+
+      onHppGroupChange();
+
+      if (productId) {
+        const prodSelect = document.getElementById('hpp-modal-product-select');
+        if (prodSelect) {
+          prodSelect.value = productId;
+          onHppProductChange();
+        }
+      }
+
+      const todayStr = new Date().toISOString().slice(0, 10);
+      document.getElementById('hpp-modal-date').value = todayStr;
+      openModal('hpp-modal');
+    }
+
+    function onHppGroupChange() {
+      const gid = Number(document.getElementById('hpp-modal-group-select').value);
+      const prodSelect = document.getElementById('hpp-modal-product-select');
+      const group = groups.find(g => g.id === gid);
+      if (!group || !prodSelect) return;
+
+      prodSelect.innerHTML = (group.products || []).map(p =>
+        `<option value="${p.id}">${esc(p.name)} [Jual: ${formatRupiah(p.price)}]</option>`
+      ).join('');
+
+      onHppProductChange();
+    }
+
+    function onHppProductChange() {
+      const gid = Number(document.getElementById('hpp-modal-group-select').value);
+      const pid = document.getElementById('hpp-modal-product-select').value;
+      const group = groups.find(g => g.id === gid);
+      const product = (group?.products || []).find(p => p.id === pid);
+      if (!product) return;
+
+      const costEntry = productCosts.find(c => c.group_id === gid && c.product_id === pid);
+      const currentCost = costEntry ? Number(costEntry.cost_per_unit || 0) : 0;
+      const sellPrice = Number(product.price || 0);
+      const margin = sellPrice - currentCost;
+      const marginPct = sellPrice > 0 ? ((margin / sellPrice) * 100).toFixed(1) : 0;
+
+      document.getElementById('hpp-modal-sell-price').textContent = formatRupiah(sellPrice);
+      document.getElementById('hpp-modal-current-cost').textContent = formatRupiah(currentCost);
+      document.getElementById('hpp-modal-current-margin').textContent = `${formatRupiah(margin)} (${marginPct}%)`;
+
+      document.getElementById('hpp-modal-cost-input').value = currentCost > 0 ? currentCost : '';
+    }
+
+    async function openHppHistoryModal(groupId, productId, productName) {
+      const title = document.getElementById('hpp-history-product-name');
+      const tbody = document.getElementById('hpp-history-tbody');
+      if (title) title.textContent = `Kelompok ${groupId} · ${productName}`;
+      if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Memuat riwayat perubahan...</td></tr>`;
+      openModal('hpp-history-modal');
+
+      try {
+        const rows = await sbRequest('bzooginer_product_cost_history', 'GET', null, `?group_id=eq.${groupId}&product_id=eq.${productId}&order=created_at.desc`);
+        if (!rows || rows.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Belum ada riwayat perubahan HPP tercatat untuk menu ini.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = rows.map(r => `
+          <tr>
+            <td class="text-xs text-slate-800">${formatDateShort(r.created_at)}</td>
+            <td class="font-bold text-slate-900">${formatRupiah(r.cost_per_unit)}</td>
+            <td class="text-xs text-slate-600">${r.effective_date || '-'}</td>
+            <td class="text-xs text-slate-600">${r.created_by_name || 'Admin'}</td>
+            <td class="text-xs text-slate-500">${esc(r.notes || '-')}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-rose-500">Gagal memuat: ${err.message}</td></tr>`;
+      }
+    }
+
+    function openAddExpenseModal() {
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const grpSelect = document.getElementById('expense-modal-group');
+      if (grpSelect) {
+        grpSelect.innerHTML = isSuper
+          ? groups.map(g => `<option value="${g.id}">Kelompok ${g.id} (${esc(g.name)})</option>`).join('')
+          : `<option value="${currentUser.groupId}">Kelompok ${currentUser.groupId}</option>`;
+        if (!isSuper) grpSelect.value = String(currentUser.groupId);
+      }
+      const nowLocal = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      document.getElementById('expense-modal-date').value = nowLocal;
+      document.getElementById('add-expense-form').reset();
+      document.getElementById('expense-modal-date').value = nowLocal;
+      openModal('add-expense-modal');
+    }
+
+    function openAddCapitalModal() {
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const grpSelect = document.getElementById('capital-modal-group');
+      if (grpSelect) {
+        grpSelect.innerHTML = isSuper
+          ? groups.map(g => `<option value="${g.id}">Kelompok ${g.id} (${esc(g.name)})</option>`).join('')
+          : `<option value="${currentUser.groupId}">Kelompok ${currentUser.groupId}</option>`;
+        if (!isSuper) grpSelect.value = String(currentUser.groupId);
+      }
+      const nowLocal = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      document.getElementById('capital-modal-date').value = nowLocal;
+      document.getElementById('add-capital-form').reset();
+      document.getElementById('capital-modal-date').value = nowLocal;
+      openModal('add-capital-modal');
+    }
+
+    function openAddManualRevenueModal() {
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const grpSelect = document.getElementById('manual-rev-modal-group');
+      if (grpSelect) {
+        grpSelect.innerHTML = isSuper
+          ? groups.map(g => `<option value="${g.id}">Kelompok ${g.id} (${esc(g.name)})</option>`).join('')
+          : `<option value="${currentUser.groupId}">Kelompok ${currentUser.groupId}</option>`;
+        if (!isSuper) grpSelect.value = String(currentUser.groupId);
+      }
+      const nowLocal = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      document.getElementById('manual-rev-modal-date').value = nowLocal;
+      document.getElementById('add-manual-revenue-form').reset();
+      document.getElementById('manual-rev-modal-date').value = nowLocal;
+      openModal('add-manual-revenue-modal');
+    }
+
+    function openReverseTransactionModal(txId) {
+      const tx = financeTransactions.find(t => t.id === txId);
+      if (!tx) return;
+      pendingReverseTx = tx;
+
+      const info = document.getElementById('reverse-transaction-info');
+      if (info) {
+        info.innerHTML = `
+          <div><b>Tipe:</b> ${esc(tx.type.toUpperCase())} · Kelompok ${tx.group_id}</div>
+          <div><b>Nominal:</b> ${formatRupiah(tx.amount)}</div>
+          <div><b>Keterangan:</b> ${esc(tx.description || tx.category_name)}</div>
+          <div><b>Waktu:</b> ${formatDateShort(t.transaction_date)}</div>
+        `;
+      }
+      document.getElementById('reverse-transaction-reason').value = '';
+      openModal('reverse-transaction-modal');
+    }
+
+    // --- Form Submissions & Database Persistence ---
+
+    // 1. Submit Payment
+    document.getElementById('record-payment-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('record-payment-submit-btn');
+      const orderId = document.getElementById('pay-modal-order-select').value;
+      const order = orders.find(o => o.id === orderId);
+      if (!order) {
+        showToast('Pilih pesanan yang valid.', 'error');
+        return;
+      }
+
+      const amount = Number(document.getElementById('pay-modal-amount').value);
+      if (!amount || amount <= 0) {
+        showToast('Nominal pembayaran harus lebih besar dari 0.', 'error');
+        return;
+      }
+
+      const paymentType = document.getElementById('pay-modal-type').value;
+      const paymentDate = document.getElementById('pay-modal-date').value;
+      const notes = document.getElementById('pay-modal-notes').value.trim();
+      const idempotencyKey = `pay_${order.id}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+      try {
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Menyimpan...'; }
+
+        const payload = {
+          order_id: order.id,
+          group_id: order.groupId,
+          amount: amount,
+          payment_type: paymentType,
+          payment_date: new Date(paymentDate).toISOString(),
+          payment_method: 'cash',
+          recorded_by_name: currentUser ? currentUser.username : 'Admin',
+          notes: notes,
+          idempotency_key: idempotencyKey
+        };
+
+        const [inserted] = await sbRequest('bzooginer_order_payments', 'POST', payload);
+        if (inserted) {
+          orderPayments.push(inserted);
+        } else {
+          orderPayments.push({ ...payload, id: `local_${Date.now()}` });
+        }
+
+        // If total paid equals or exceeds order total, update order status to 'Lunas'
+        const newTotalPaid = getOrderPaidAmount(order);
+        if (newTotalPaid >= order.total && order.status !== 'Lunas') {
+          order.status = 'Lunas';
+          await sbRequest('bzooginer_orders', 'PATCH', { status: 'Lunas' }, `?id=eq.${order.id}`);
+        }
+
+        saveAllData();
+        refreshAllSections();
+        closeModal('record-payment-modal');
+        showToast(`Pembayaran ${formatRupiah(amount)} untuk ${order.buyerName} berhasil dicatat.`);
+
+        // Broadcast realtime
+        broadcastFinanceChange('payment', { order_id: order.id, amount });
+      } catch (err) {
+        showToast(`Gagal menyimpan pembayaran: ${err.message}`, 'error');
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Simpan Pembayaran'; }
+      }
+    });
+
+    // 2. Submit HPP
+    document.getElementById('hpp-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('hpp-submit-btn');
+      const gid = Number(document.getElementById('hpp-modal-group-select').value);
+      const pid = document.getElementById('hpp-modal-product-select').value;
+      const costInput = Number(document.getElementById('hpp-modal-cost-input').value);
+      const effDate = document.getElementById('hpp-modal-date').value;
+      const notes = document.getElementById('hpp-modal-notes').value.trim();
+
+      if (isNaN(costInput) || costInput < 0) {
+        showToast('HPP satuan harus berupa angka valid (minimal 0).', 'error');
+        return;
+      }
+
+      try {
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Menyimpan...'; }
+
+        const payload = {
+          group_id: gid,
+          product_id: pid,
+          cost_per_unit: costInput,
+          effective_date: effDate,
+          notes: notes,
+          updated_at: new Date().toISOString()
+        };
+
+        // Upsert to bzooginer_product_costs
+        const res = await sbRequest('bzooginer_product_costs', 'POST', payload, '?on_conflict=group_id,product_id');
+
+        // Audit row in bzooginer_product_cost_history
+        try {
+          await sbRequest('bzooginer_product_cost_history', 'POST', {
+            group_id: gid,
+            product_id: pid,
+            cost_per_unit: costInput,
+            effective_date: effDate,
+            created_by_name: currentUser ? currentUser.username : 'Admin',
+            notes: notes
+          });
+        } catch (auditErr) {
+          console.warn('Cost history audit notice:', auditErr);
+        }
+
+        // Update local memory
+        const existingIdx = productCosts.findIndex(c => c.group_id === gid && c.product_id === pid);
+        if (existingIdx >= 0) {
+          productCosts[existingIdx] = { ...productCosts[existingIdx], ...payload };
+        } else {
+          productCosts.push(payload);
+        }
+
+        saveAllData();
+        refreshAllSections();
+        closeModal('hpp-modal');
+        showToast(`HPP produk berhasil disimpan: ${formatRupiah(costInput)} per satuan.`);
+
+        broadcastFinanceChange('product_cost', { group_id: gid, product_id: pid, cost: costInput });
+      } catch (err) {
+        showToast(`Gagal menyimpan HPP: ${err.message}`, 'error');
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Simpan HPP'; }
+      }
+    });
+
+    // 3. Submit Expense
+    document.getElementById('add-expense-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('add-expense-submit-btn');
+      const gid = Number(document.getElementById('expense-modal-group').value);
+      const cat = document.getElementById('expense-modal-category').value;
+      const amount = Number(document.getElementById('expense-modal-amount').value);
+      const date = document.getElementById('expense-modal-date').value;
+      const desc = document.getElementById('expense-modal-desc').value.trim();
+
+      if (!amount || amount <= 0) {
+        showToast('Nominal pengeluaran harus lebih besar dari 0.', 'error');
+        return;
+      }
+
+      try {
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Menyimpan...'; }
+
+        const payload = {
+          group_id: gid,
+          type: 'expense',
+          category_name: cat,
+          amount: amount,
+          transaction_date: new Date(date).toISOString(),
+          payment_method: 'cash',
+          description: desc,
+          recorded_by_name: currentUser ? currentUser.username : 'Admin',
+          is_reversed: false
+        };
+
+        const [inserted] = await sbRequest('bzooginer_finance_transactions', 'POST', payload);
+        if (inserted) financeTransactions.push(inserted);
+        else financeTransactions.push({ ...payload, id: `local_${Date.now()}` });
+
+        saveAllData();
+        refreshAllSections();
+        closeModal('add-expense-modal');
+        showToast(`Pengeluaran ${formatRupiah(amount)} (${cat}) berhasil dicatat.`);
+
+        broadcastFinanceChange('transaction', payload);
+      } catch (err) {
+        showToast(`Gagal menyimpan pengeluaran: ${err.message}`, 'error');
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Simpan Pengeluaran'; }
+      }
+    });
+
+    // 4. Submit Capital
+    document.getElementById('add-capital-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('add-capital-submit-btn');
+      const gid = Number(document.getElementById('capital-modal-group').value);
+      const cat = document.getElementById('capital-modal-category').value;
+      const amount = Number(document.getElementById('capital-modal-amount').value);
+      const date = document.getElementById('capital-modal-date').value;
+      const desc = document.getElementById('capital-modal-desc').value.trim();
+
+      if (!amount || amount <= 0) {
+        showToast('Nominal modal harus lebih besar dari 0.', 'error');
+        return;
+      }
+
+      try {
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Menyimpan...'; }
+
+        const payload = {
+          group_id: gid,
+          type: 'capital',
+          category_name: cat,
+          amount: amount,
+          transaction_date: new Date(date).toISOString(),
+          payment_method: 'cash',
+          description: desc,
+          recorded_by_name: currentUser ? currentUser.username : 'Admin',
+          is_reversed: false
+        };
+
+        const [inserted] = await sbRequest('bzooginer_finance_transactions', 'POST', payload);
+        if (inserted) financeTransactions.push(inserted);
+        else financeTransactions.push({ ...payload, id: `local_${Date.now()}` });
+
+        saveAllData();
+        refreshAllSections();
+        closeModal('add-capital-modal');
+        showToast(`Setoran modal ${formatRupiah(amount)} Kelompok ${gid} berhasil dicatat.`);
+
+        broadcastFinanceChange('transaction', payload);
+      } catch (err) {
+        showToast(`Gagal menyimpan modal: ${err.message}`, 'error');
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Simpan Modal'; }
+      }
+    });
+
+    // 5. Submit Manual Revenue
+    document.getElementById('add-manual-revenue-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('add-manual-rev-submit-btn');
+      const gid = Number(document.getElementById('manual-rev-modal-group').value);
+      const cat = document.getElementById('manual-rev-modal-category').value;
+      const amount = Number(document.getElementById('manual-rev-modal-amount').value);
+      const date = document.getElementById('manual-rev-modal-date').value;
+      const desc = document.getElementById('manual-rev-modal-desc').value.trim();
+
+      if (!amount || amount <= 0) {
+        showToast('Nominal pendapatan harus lebih besar dari 0.', 'error');
+        return;
+      }
+
+      try {
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Menyimpan...'; }
+
+        const payload = {
+          group_id: gid,
+          type: 'revenue',
+          category_name: cat,
+          amount: amount,
+          transaction_date: new Date(date).toISOString(),
+          payment_method: 'cash',
+          description: desc,
+          recorded_by_name: currentUser ? currentUser.username : 'Admin',
+          is_reversed: false
+        };
+
+        const [inserted] = await sbRequest('bzooginer_finance_transactions', 'POST', payload);
+        if (inserted) financeTransactions.push(inserted);
+        else financeTransactions.push({ ...payload, id: `local_${Date.now()}` });
+
+        saveAllData();
+        refreshAllSections();
+        closeModal('add-manual-revenue-modal');
+        showToast(`Pendapatan manual ${formatRupiah(amount)} Kelompok ${gid} berhasil dicatat.`);
+
+        broadcastFinanceChange('transaction', payload);
+      } catch (err) {
+        showToast(`Gagal menyimpan pendapatan: ${err.message}`, 'error');
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Simpan Pendapatan'; }
+      }
+    });
+
+    // 6. Submit Reversal
+    document.getElementById('reverse-transaction-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('reverse-transaction-submit-btn');
+      const reason = document.getElementById('reverse-transaction-reason').value.trim();
+      if (!pendingReverseTx || !reason) {
+        showToast('Alasan pembatalan wajib diisi.', 'error');
+        return;
+      }
+
+      try {
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Membatalkan...'; }
+
+        const patchPayload = {
+          is_reversed: true,
+          reversal_reason: reason,
+          reversed_at: new Date().toISOString()
+        };
+
+        await sbRequest('bzooginer_finance_transactions', 'PATCH', patchPayload, `?id=eq.${pendingReverseTx.id}`);
+
+        // Update local object
+        pendingReverseTx.is_reversed = true;
+        pendingReverseTx.reversal_reason = reason;
+        pendingReverseTx.reversed_at = patchPayload.reversed_at;
+
+        saveAllData();
+        refreshAllSections();
+        closeModal('reverse-transaction-modal');
+        showToast('Transaksi berhasil dibatalkan dari laporan aktif.');
+
+        broadcastFinanceChange('transaction_reversed', { id: pendingReverseTx.id });
+      } catch (err) {
+        showToast(`Gagal membatalkan transaksi: ${err.message}`, 'error');
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Konfirmasi Pembatalan'; }
+        pendingReverseTx = null;
+      }
+    });
+
+    // Realtime broadcast helper
+    function broadcastFinanceChange(type, payload) {
+      if (_realtimeChannel) {
+        try {
+          _realtimeChannel.send({
+            type: 'broadcast',
+            event: 'finance_event',
+            payload: { type, data: payload, sender: getOrCreateDeviceId() }
+          });
+        } catch (e) {
+          console.warn('Finance broadcast notice:', e);
+        }
+      }
+    }
+
+    function handleRealtimeFinanceEvent(eventType, payload) {
+      console.log('[Realtime Finance Event]', eventType, payload);
+      // Resync data or update in-memory
+      syncFromSupabase();
+    }
+
+    // ==========================================
     // 5. AUTHENTICATION & ACCOUNT MANAGEMENT
     // ==========================================
     document.getElementById('toggle-pw-btn').addEventListener('click', () => {
@@ -7163,7 +9734,7 @@
         };
       }
 
-      ['po-modal', 'poster-modal', 'product-modal', 'account-modal', 'summary-modal', 'group-modal', 'archive-modal', 'add-account-modal', 'confirm-account-action-modal', 'delete-order-modal', 'order-detail-modal', 'edit-order-modal', 'confirm-nominal-change-modal', 'order-audit-modal'].forEach(id => {
+      ['po-modal', 'poster-modal', 'product-modal', 'account-modal', 'summary-modal', 'group-modal', 'archive-modal', 'add-account-modal', 'confirm-account-action-modal', 'delete-order-modal', 'order-detail-modal', 'edit-order-modal', 'confirm-nominal-change-modal', 'order-audit-modal', 'record-payment-modal', 'hpp-modal', 'add-expense-modal', 'add-capital-modal', 'add-manual-revenue-modal', 'hpp-history-modal', 'reverse-transaction-modal'].forEach(id => {
         const m = document.getElementById(id); if (m && !m.classList.contains('hidden')) closeModal(id);
       });
       await cleanupRealtime();
@@ -7205,6 +9776,8 @@
       if (btnMonNav) btnMonNav.classList.toggle('hidden', !isSuper);
       const btnOrderMonNav = document.getElementById('btn-order-monitoring-nav-superadmin');
       if (btnOrderMonNav) btnOrderMonNav.classList.toggle('hidden', !isSuper);
+      const btnFinNav = document.getElementById('btn-finance-nav-superadmin');
+      if (btnFinNav) btnFinNav.classList.toggle('hidden', !isSuper);
 
       // Mobile Nav Drawer User Sync
       const mName = document.getElementById('mobile-nav-user-name');
@@ -7244,6 +9817,8 @@
         if (archiveBanner) archiveBanner.classList.toggle('hidden', !isArchived);
       }
 
+      initOrderMonitoringCollapseState();
+      initFinanceSectionUI();
       renderSwitcher();
       populateSelectFilters();
       refreshAllSections();
@@ -7286,6 +9861,8 @@
       renderCatalogManager();
       renderDeviceMonitoring();
       renderAllOrderMonitoring();
+      updateCollapsedMonitoringSummary();
+      renderAllFinance();
     }
 
     function updateMetrics() {
@@ -8014,6 +10591,7 @@
             <td data-label="Status"><button type="button" class="pill ${paid ? 'ok' : 'warn'}" title="Ketuk untuk memvalidasi perubahan status" onclick="requestTogglePaymentStatus('${o.id}')">${paid ? 'Lunas (Cash)' : 'Belum Lunas'}</button></td>
             <td class="no-print full" style="text-align:right">
               <div class="flex items-center justify-end gap-1.5 flex-nowrap">
+                <button type="button" class="btn btn-sm" style="color:var(--emerald-d);font-weight:700" onclick="openRecordPaymentModal('${o.id}')" title="Catat pembayaran cash">Bayar</button>
                 ${canEditOrder(o) ? `<button type="button" class="btn btn-sm" style="color:var(--brand-d);font-weight:700" onclick="openEditOrderModal('${o.id}')" title="Edit pesanan">Edit</button>` : ''}
                 <button type="button" class="btn btn-sm" style="color:var(--chili-d)" onclick="openDeleteOrderModal('${o.id}')" title="Hapus pesanan">Hapus</button>
               </div>
