@@ -1,190 +1,124 @@
-# Panduan Manajemen Keuangan & Akuntansi B-Zooginer
-### Sistem Pengelolaan Keuangan, Kas Terverifikasi, Monitoring Pesanan, dan Rekonsiliasi
+# Panduan Penggunaan & Keuangan B-Zooginer
+### Panduan Sederhana Pencatatan PO, Cicilan, Keuangan Kelompok, dan Pemantauan
 
-Dokumen ini merupakan panduan resmi penggunaan sistem Manajemen Keuangan & Akuntansi serta Pusat Monitoring untuk aplikasi **B-Zooginer** (Zoo Market 2026).
+Dokumen ini berisi cara penggunaan aplikasi **B-Zooginer** (Zoo Market 2026) dengan bahasa yang sederhana untuk pengelola dan kasir kelompok.
 
 ---
 
 ## DAFTAR ISI
 
-1. [A. Gambaran Umum & Prinsip Akuntansi](#a-gambaran-umum--prinsip-akuntansi)
-2. [B. Rumus Keuangan & Perbedaan Kas Riil vs Omzet vs Modal](#b-rumus-keuangan--perbedaan-kas-riil-vs-omzet-vs-modal)
-3. [C. Alur Operasional Manajemen Keuangan](#c-alur-operasional-manajemen-keuangan)
-   - [1. Pengaturan HPP (Harga Pokok Penjualan) Produk](#1-pengaturan-hpp-harga-pokok-penjualan-produk)
-   - [2. Kas Masuk Pembayaran PO (Lunas, DP, Pelunasan)](#2-kas-masuk-pembayaran-po-lunas-dp-pelunasan)
-   - [3. Pendapatan Penjualan Manual (Luar Sistem PO)](#3-pendapatan-penjualan-manual-luar-sistem-po)
-   - [4. Pencatatan Beban / Pengeluaran Operasional](#4-pencatatan-beban--pengeluaran-operasional)
-   - [5. Setoran Modal Mandiri Kelompok](#5-setoran-modal-mandiri-kelompok)
-4. [D. Audit & Rekonsiliasi Kas Historis (102 Pesanan Phase 1–4)](#d-audit--rekonsiliasi-kas-historis-102-pesanan-phase-14)
-5. [E. Fitur Pusat Monitoring Kelengkapan & Pembayaran](#e-fitur-pusat-monitoring-kelengkapan--pembayaran)
-6. [F. Fitur Minimalkan Panel (Hide/Show Monitoring & Keuangan)](#f-fitur-minimalkan-panel-hideshow-monitoring--keuangan)
-7. [G. Pembagian Peran & Hak Akses (Superadmin vs Admin Kelompok)](#g-pembagian-peran--hak-akses-superadmin-vs-admin-kelompok)
-8. [H. Panduan Ekspor & Cetak Laporan (Laba Rugi & Arus Kas)](#h-panduan-ekspor--cetak-laporan-laba-rugi--arus-kas)
-9. [I. Tips Operasional & Troubleshooting](#i-tips-operasional--troubleshooting)
+1. [A. Gambaran Umum & Aturan Keuangan](#a-gambaran-umum--aturan-keuangan)
+2. [B. Arti Angka Keuangan Kelompok](#b-arti-angka-keuangan-kelompok)
+3. [C. Cara Input PO Baru & Status Pembayaran (Belum Dibayar, Cicil, Lunas)](#c-cara-input-po-baru--status-pembayaran-belum-dibayar-cicil-lunas)
+4. [D. Cara Mencatat Pembayaran Lanjutan & Otomatis Lunas](#d-cara-mencatat-pembayaran-lanjutan--otomatis-lunas)
+5. [E. Pengelolaan Keuangan (HPP, Pemasukan Langsung, Pengeluaran, Modal)](#e-pengelolaan-keuangan-hpp-pemasukan-langsung-pengeluaran-modal)
+6. [F. Pencocokan Pembayaran Lama (102 Pesanan Lama)](#f-pencocokan-pembayaran-lama-102-pesanan-lama)
+7. [G. Pemantauan Pesanan, Perangkat Aktif (Hide/Show), & Halaman di HP](#g-pemantauan-pesanan-perangkat-aktif-hideshow--halaman-di-hp)
+8. [H. Peran Akun (Superadmin vs Admin Kelompok) & Ganti Akun](#h-peran-akun-superadmin-vs-admin-kelompok--ganti-akun)
+9. [I. Cara Cetak Laporan PDF & Tanya Jawab](#i-cara-cetak-laporan-pdf--tanya-jawab)
 
 ---
 
-## A. GAMBARAN UMUM & PRINSIP AKUNTANSI
+## A. GAMBARAN UMUM & ATURAN KEUANGAN
 
-Aplikasi B-Zooginer dikembangkan untuk mendukung kegiatan bazar/pasar sekolah (Zoo Market) yang melibatkan 6 kelompok usaha. Sistem pencatatan keuangan pada Phase 5 dirancang dengan prinsip:
+Aplikasi B-Zooginer membantu seluruh kelompok usaha di bazar sekolah:
 
-1. **Double-Entry & Auditable Ledger:** Setiap mutasi kas (masuk/keluar/modal/koreksi) memiliki jejak waktu, nominal, identitas pencatat, dan nomor id unik (*idempotency key*).
-2. **Strict Cash Basis for Real Cash:** Saldo kas fisik riil hanya bertambah jika ada kas nyata yang diverifikasi masuk ke tangan kasir atau rekening kelompok.
-3. **Pemisahan Tegas Antara Modal dan Pendapatan:** Uang modal awal kelompok bukan merupakan omzet penjualan dan tidak boleh dimasukkan ke dalam perhitungan laba rugi.
-4. **Isolasi Multi-Kelompok (Multi-Tenancy):** Admin Kelompok 1 sampai 6 hanya memiliki akses ke pembukuan kelompoknya masing-masing melalui *Row-Level Security* (RLS). Superadmin memegang peran audit konsolidasi global.
-
----
-
-## B. RUMUS KEUANGAN & PERBEDAAN KAS RIIL VS OMZET VS MODAL
-
-Penting bagi seluruh pengelola untuk membedakan tiga konsep utama berikut:
-
-| Konsep | Definisi | Rumus Perhitungan | Pengaruh ke Saldo Kas |
-| :--- | :--- | :--- | :--- |
-| **Omzet Penjualan (Total Sales)** | Nilai total transaksi kotor dari pesanan PO ditambah penjualan langsung di stan. | $\text{Omzet} = \text{Total PO} + \text{Pendapatan Manual}$ | **Tidak Langsung.** Omzet adalah nilai transaksi, bisa berwujud kas atau piutang. |
-| **Modal Kelompok (Capital)** | Dana awal atau patungan anggota kelompok untuk modal kerja. | $\sum \text{Setoran Modal}$ | **Menambah Saldo Kas**, tetapi **TIDAK** menambah omzet maupun laba. |
-| **Saldo Kas Riil (Ending Cash)** | Uang fisik tunai / saldo rekening yang nyata dipegang bendahara saat ini. | $\text{Saldo Kas} = \text{Modal} + \text{Kas Masuk Terverifikasi} - \text{Pengeluaran}$ | **Tolok ukur fisik utama.** Harus cocok dengan uang fisik di dompet/kasir. |
-
-### 10 Indikator Utama (KPI Cards):
-1. **Total Penjualan (Omzet):** Nilai bruto seluruh PO + manual revenue.
-2. **Uang Diterima (Terverifikasi):** Hanya uang yang sudah tercatat masuk ke buku kas.
-3. **Total Piutang:** Tagihan pesanan yang belum lunas (`Total PO - Pembayaran Terverifikasi`).
-4. **Pendapatan Manual:** Kas masuk dari penjualan langsung di stan (luar nomor PO).
-5. **Modal Kelompok:** Total dana investasi mandiri anggota.
-6. **Total Beban/Pengeluaran:** Total belanja bahan baku, operasional, kemasan, sewa stan, dll.
-7. **Total HPP Terjual:** Beban pokok penjualan dihitung dari `Qty Terjual × HPP per Unit`.
-8. **Laba Kotor (Gross Profit):** $\text{Omzet Penjualan} - \text{Total HPP}$.
-9. **Laba Bersih (Net Profit):** $\text{Laba Kotor} - \text{Total Beban Pengeluaran}$.
-10. **Saldo Kas Riil (Real Cash Balance):** $\text{Modal} + \text{Kas Terverifikasi} - \text{Total Pengeluaran}$.
+1. **Sistem Tunai (Cash Only):** Seluruh pembayaran dicatat berdasarkan uang tunai yang benar-benar diterima oleh kasir kelompok.
+2. **Pemisahan Modal dan Penjualan:** Uang modal awal / patungan anggota hanya menambah **Saldo Kas** dan tidak dihitung sebagai pemasukan penjualan atau keuntungan.
+3. **Setiap Kelompok Terpisah:** Admin Kelompok hanya dapat melihat dan mengelola data pesanan serta keuangan kelompoknya sendiri. Superadmin dapat melihat semua kelompok.
 
 ---
 
-## C. ALUR OPERASIONAL MANAJEMEN KEUANGAN
+## B. ARTI ANGKA KEUANGAN KELOMPOK
 
-### 1. Pengaturan HPP (Harga Pokok Penjualan) Produk
-- Buka tab **🏷️ HPP Produk**.
-- Masukkan estimasi modal produksi per porsi untuk setiap menu makanan/minuman/bundling.
-- Bila ada kenaikan atau penurunan harga bahan baku di pasar, ubah HPP. Sistem otomatis mencatat log riwayat perubahan (*HPP History*) untuk audit.
-- **Peringatan HPP:** Jika ada pesanan yang menu-nya belum diisi HPP, sistem menampilkan banner peringatan agar laba kotor tidak terdistorsi.
-
-### 2. Kas Masuk Pembayaran PO (Lunas, DP, Pelunasan)
-- Setiap kali pembeli membayar PO, admin dapat mengklik tombol **💰 Bayar** pada tabel pesanan atau tombol **+ Catat Kas PO** pada tab Kas Masuk.
-- Pilih jenis pembayaran:
-  - **Full (Lunas Sekaligus):** Pembeli membayar lunas 100%. Status pesanan otomatis menjadi `Lunas`.
-  - **DP (Uang Muka):** Pembeli membayar sebagian. Pesanan berstatus `DP` dan sisanya masuk ke piutang.
-  - **Repayment (Pelunasan):** Pembeli melunasi sisa DP.
-- Setiap pembayaran tersimpan di tabel `bzooginer_order_payments` dengan *idempotency key* unik dan nama user pencatat.
-
-### 3. Pendapatan Penjualan Manual (Luar Sistem PO)
-- Digunakan saat bazar berlangsung ketika ada pembeli datang langsung ke stan tanpa memesan lewat PO website.
-- Buka tab **📥 Kas Masuk & PO** &rarr; klik **+ Pendapatan Manual**.
-- Masukkan kategori (Penjualan Langsung Stan, Tip, atau Lainnya), nominal uang, dan keterangan.
-
-### 4. Pencatatan Beban / Pengeluaran Operasional
-- Buka tab **📤 Pengeluaran** &rarr; klik **+ Catat Pengeluaran**.
-- Pilih kategori pengeluaran:
-  - Belanja Bahan Baku
-  - Operasional & Transportasi
-  - Kemasan & Packaging
-  - Sewa Stan / Tempat
-  - Konsumsi & Lain-lain
-- Masukkan nominal, tanggal, dan deskripsi nota. Pengeluaran otomatis mengurangi Saldo Kas Riil dan Laba Bersih.
-
-### 5. Setoran Modal Mandiri Kelompok
-- Buka tab **💼 Modal** &rarr; klik **+ Setor Modal**.
-- Masukkan nama penyetor (misal: "Iuran Anggota Kelompok 3"), nominal, dan tanggal.
-- Saldo Kas Riil langsung bertambah, tetapi Omzet dan Laba Bersih tetap bersih dan tidak tercampur.
+1. **Total Penjualan:** Nilai total seluruh pesanan PO ditambah pemasukan penjualan langsung di stan.
+2. **Uang Masuk Tercatat:** Uang tunai yang benar-benar sudah dibayarkan pembeli dan tercatat di sistem.
+3. **Uang yang Belum Dibayar:** Sisa tagihan pesanan PO yang masih harus dibayar pembeli (`Total Pesanan - Total Sudah Dibayar`).
+4. **Pemasukan Langsung:** Uang hasil penjualan langsung di stan tanpa melalui formulir PO.
+5. **Modal Kelompok:** Uang patungan atau modal awal anggota.
+6. **Pengeluaran:** Biaya belanja bahan baku, kemasan, peralatan, transportasi, sewa, dan lain-lain.
+7. **HPP (Biaya Modal Produk):** Biaya bahan dan kemasan per 1 porsi menu untuk menghitung laba.
+8. **Laba Kotor:** `Total Penjualan - Total HPP`.
+9. **Laba Bersih:** `Laba Kotor - Total Pengeluaran`.
+10. **Saldo Kas:** `Modal + Uang Masuk Tercatat - Pengeluaran`. Angka ini harus cocok dengan uang fisik tunai di kotak kasir.
 
 ---
 
-## D. AUDIT & REKONSILIASI KAS HISTORIS (102 PESANAN PHASE 1–4)
+## C. CARA INPUT PO BARU & STATUS PEMBAYARAN (BELUM DIBAYAR, CICIL, LUNAS)
 
-### Latar Belakang Masalah
-Pada Phase 1 sampai 4, pesanan dapat ditandai 'Lunas' melalui tombol toggle sederhana sebelum buku kas (*ledger*) diimplementasikan. Terdapat **102 pesanan bernilai Rp 1.014.000** yang berstatus Lunas di data pesanan lama namun belum tercatat di tabel `bzooginer_order_payments`.
+Saat mengisi formulir **Input PO**, pilih **Status Pembayaran (Tunai)**:
 
-### Mengapa Perlu Rekonsiliasi?
-Jika sistem otomatis menganggap Rp 1.014.000 sebagai kas nyata tanpa verifikasi, saldo kas aplikasi akan langsung melonjak padahal bendahara belum tentu memegang uang fisiknya.
+1. **Belum Dibayar:**
+   - Pembayaran awal otomatis **Rp 0**.
+   - Seluruh nilai pesanan dicatat sebagai uang yang belum dibayar.
+2. **Cicil:**
+   - Muncul kolom **Jumlah Uang yang Sudah Dibayar**.
+   - Isi nominal uang tunai yang sudah diterima (harus lebih dari Rp 0 dan kurang dari total pesanan).
+   - Sisa pembayaran dihitung otomatis dan pembayaran awal langsung masuk ke catatan keuangan.
+3. **Lunas:**
+   - Pembayaran awal otomatis sama dengan total pesanan.
+   - Uang masuk langsung tercatat penuh dan status menjadi **Lunas**.
 
-### Alur Rekonsiliasi yang Aman:
-1. Pada tab **📊 Dashboard**, jika terdapat pesanan historis yang belum direkonsiliasi, muncul banner audit:
-   > ⚠️ **Audit Kas: Terdapat 102 pesanan (Rp 1.014.000) berstatus Lunas sebelum Phase 5 belum tercatat di buku kas riil.**
-2. Klik tombol **📋 Buka Rekonsiliasi Kas Historis**.
-3. Cocokkan catatan pesanan dengan uang fisik yang diserahkan kasir kelompok.
-4. **Verifikasi Satuan:** Klik `✓ Verifikasi Kas` pada baris pesanan terkait.
-5. **Verifikasi Sekaligus (Batch):** Klik `⚡ Rekonsiliasi Seluruh Pesanan di Filter Ini` untuk memverifikasi seluruh pesanan kelompok tersebut sekaligus.
-6. Sistem membuat entri kas resmi dengan flag `is_historical_reconciliation = true` dan `idempotency_key = recon_{order.id}`.
-7. Dana otomatis berpindah dari status *'Belum Rekonsiliasi'* ke **Saldo Kas Riil**.
-
----
-
-## E. FITUR PUSAT MONITORING KELENGKAPAN & PEMBAYARAN
-
-Pusat Monitoring (Phase 4) bertugas menjaga kualitas data transaksi sebelum bazar dimulai:
-
-1. **Tab Kelengkapan Data:**
-   - Memeriksa nama pembeli, nomor telepon/WhatsApp, kelas/kategori (Guru, Staf, Kelas X/XI/XII, Umum), dan rincian variasi produk.
-   - Status: **Lengkap** (hijau) atau **Perlu Dilengkapi** (merah).
-2. **Tab Status Pembayaran:**
-   - Menyajikan rekapitulasi pembayaran tunai (Cash Only).
-   - Memisahkan status **Lunas**, **DP**, dan **Belum Lunas**.
-3. **Tab Kinerja Kelompok:**
-   - Menampilkan total omzet, total pesanan, dan persentase kelengkapan data per kelompok untuk memicu transparansi kerja sama tim.
+Sebelum menyimpan, periksa kotak **Ringkasan Pesanan & Pembayaran** yang menampilkan Total Pesanan, Sudah Dibayar, Sisa Bayar, dan Status.
 
 ---
 
-## F. FITUR MINIMALKAN PANEL (HIDE/SHOW MONITORING & KEUANGAN)
+## D. CARA MENCATAT PEMBAYARAN LANJUTAN & OTOMATIS LUNAS
 
-Agar tampilan dashboard tetap rapi dan tidak terlalu panjang di layar ponsel (*mobile-friendly*), baik Pusat Monitoring maupun Manajemen Keuangan dilengkapi tombol **Sembunyikan / Tampilkan (Hide/Show)**:
+Aturan status pembayaran dihitung dari total uang yang sudah tercatat masuk:
 
-- **Letak Tombol:** Terletak di sebelah tab switcher menu masing-masing modul.
-- **Kondisi Diminimalkan (Collapsed):**
-  - Konten tabel dan grafik disembunyikan.
-  - Tampil banner ringkasan (*summary bar*) yang tetap menampilkan angka-angka kunci (Total Omzet, Kas Terverifikasi, Saldo Kas Riil).
-  - Terdapat tombol `Buka Modul ▾` untuk membuka kembali dengan sekali klik.
-- **Penyimpanan State:** Status buka/tutup disimpan di `localStorage` per peramban (`bzooginer_monitoring_collapsed` dan `bzooginer_finance_collapsed`).
+- Total bayar = **Rp 0** &rarr; **Belum Dibayar**
+- Total bayar **> Rp 0** dan **< Total Pesanan** &rarr; **Cicil**
+- Total bayar **>= Total Pesanan** &rarr; otomatis berubah menjadi **Lunas**
 
----
+### Contoh Perhitungan Cicilan:
+- Total pesanan: **Rp 100.000**
+- Pembayaran pertama saat input PO: **Rp 30.000** &rarr; Status **Cicil**, sisa **Rp 70.000**.
+- Pembayaran kedua lewat tombol **Bayar**: **Rp 40.000** &rarr; Status tetap **Cicil**, sisa **Rp 30.000**.
+- Pembayaran ketiga lewat tombol **Bayar**: **Rp 30.000** &rarr; Total tercatat **Rp 100.000**, sisa **Rp 0**, status **otomatis menjadi Lunas**.
 
-## G. PEMBAGIAN PERAN & HAK AKSES (SUPERADMIN VS ADMIN KELOMPOK)
-
-| Hak Akses / Kemampuan | Superadmin 👑 | Admin Kelompok (1–6) 👤 |
-| :--- | :---: | :---: |
-| **Melihat Laporan Seluruh Kelompok (Konsolidasi)** | ✅ Ya | ❌ Tidak (hanya kelompoknya) |
-| **Filter Periode & Kustom Tanggal** | ✅ Ya | ✅ Ya |
-| **Input & Koreksi HPP Produk** | ✅ Ya | ✅ Ya (kelompoknya) |
-| **Catat Kas Masuk PO & Manual** | ✅ Ya | ✅ Ya (kelompoknya) |
-| **Catat Beban Pengeluaran** | ✅ Ya | ✅ Ya (kelompoknya) |
-| **Setor Modal Kelompok** | ✅ Ya | ✅ Ya (kelompoknya) |
-| **Rekonsiliasi Kas Historis** | ✅ Ya (semua kelompok) | ✅ Ya (kelompoknya) |
-| **Koreksi / Batalkan Transaksi Kas (Reversal)** | ✅ Ya | ❌ Tidak |
-| **Fitur Impersonasi (Login Sebagai Kelompok)** | ✅ Ya | ❌ Tidak |
-| **Kelola Akun & Reset Password** | ✅ Ya | ❌ Tidak |
+Untuk melihat rincian total, sudah dibayar, sisa pembayaran, dan daftar tanggal pembayarannya, tekan tombol **Detail** pada pesanan.
 
 ---
 
-## H. PANDUAN EKSPOR & CETAK LAPORAN (LABA RUGI & ARUS KAS)
+## E. PENGELOLAAN KEUANGAN (HPP, PEMASUKAN LANGSUNG, PENGELUARAN, MODAL)
 
-1. Buka tab **📑 Laba Rugi & Arus Kas**.
-2. Pilih filter periode yang ingin dicetak:
-   - *Hari Ini* (untuk setoran kas harian saat bazar)
-   - *Minggu Ini* (rekap mingguan persiapan bazar)
-   - *Semua Waktu* (laporan pertanggungjawaban akhir kegiatan)
-   - *Kustom Tanggal...* (rentang hari tertentu)
-3. Klik tombol **🖨️ Cetak / Simpan PDF**.
-4. Sistem otomatis memicu dialog cetak peramban (*Print Dialog*):
-   - Elemen antarmuka seperti tombol, navigasi, dan header menu otomatis disembunyikan via CSS `@media print`.
-   - Layout dokumen rapi dengan format kertas A4, font tajam, dan tabel bergaris bersih.
-   - Pilih *'Save as PDF'* untuk menyimpan laporan dalam bentuk berkas PDF resmi.
+- **HPP Produk:** Buka tab **HPP Produk** untuk mengisi biaya modal 1 porsi menu. Contoh: harga jual Rp 15.000 dan biaya modal Rp 8.000, maka laba kotor per porsi adalah Rp 7.000.
+- **Kas Masuk:** Menampilkan semua pembayaran PO dan pemasukan langsung dari stan.
+- **Pengeluaran:** Buka tab **Pengeluaran** &rarr; klik **+ Catat Pengeluaran** untuk mencatat belanja bahan atau keperluan stan.
+- **Modal:** Buka tab **Modal** &rarr; klik **+ Tambah Modal** untuk mencatat modal awal atau tambahan modal anggota.
 
 ---
 
-## I. TIPS OPERASIONAL & TROUBLESHOOTING
+## F. PENCOCOKAN PEMBAYARAN LAMA (102 PESANAN LAMA)
 
-1. **Berpindah Tab Browser:**
-   - Anda dapat berpindah tab peramban dengan bebas. Sistem telah diamankan sehingga proses penyegaran token di latar belakang (*background token refresh*) tidak akan me-refresh halaman atau mengeluarkan Anda dari sesi admin.
-2. **Koreksi Salah Input Nominal:**
-   - Jika admin salah memasukkan angka pengeluaran atau pendapatan, hubungi Superadmin. Superadmin dapat menekan tombol **Batalkan** pada riwayat transaksi untuk melakukan *reversal* akuntansi yang aman tanpa menghapus jejak audit.
-3. **Memantau Rekan yang Sedang Membuka Web:**
-   - Klik menu **Perangkat Aktif** di navigasi atas. Fitur Presence & Live Sync memungkinkan Anda melihat berapa banyak perangkat yang sedang membuka sistem secara bersamaan.
-4. **Pembaruan Data Otomatis (Realtime):**
-   - Transaksi kas, HPP, atau pembayaran yang diinput oleh rekan di stan lain akan langsung ter-update di layar Anda secara instan tanpa perlu menekan tombol refresh browser.
+Terdapat **102 pesanan lama (Rp 1.014.000)** yang berstatus Lunas sebelum sistem catatan pembayaran ini aktif. Pesanan lama tersebut **tidak otomatis** dimasukkan ke Saldo Kas sebelum uang fisiknya diperiksa.
+
+1. Klik **Buka Pencocokan Pembayaran Lama** di banner kuning bagian Keuangan.
+2. Cocokkan catatan pesanan dengan uang tunai yang diserahkan bendahara kelompok.
+3. Klik **Cocokkan Uang** (satu per satu) atau **Cocokkan Semua di Filter Ini**.
+4. Setelah dicocokkan, uang baru resmi masuk ke **Uang Masuk Tercatat** dan **Saldo Kas**.
+
+---
+
+## G. PEMANTAUAN PESANAN, PERANGKAT AKTIF (HIDE/SHOW), & HALAMAN DI HP
+
+- **Pemantauan Pesanan & Pembayaran:** Memeriksa kelengkapan data pembeli, status pembayaran (Belum Dibayar, Cicil, Lunas), dan kinerja tiap kelompok.
+- **Sembunyikan / Tampilkan (Hide/Show):** Bagian Pemantauan Pesanan, Pengelolaan Keuangan, dan Pemantauan Perangkat Aktif masing-masing memiliki tombol **Sembunyikan** untuk meringkas layar. Status buka/tutup tersimpan otomatis di browser perangkat Anda.
+- **Tampilan 5 Data per Halaman di HP:** Agar daftar tidak terlalu panjang di HP, daftar pesanan, daftar pembeli, transaksi keuangan, daftar perangkat, dan daftar akun dibatasi **5 data per halaman**. Gunakan tombol **Sebelumnya** dan **Berikutnya** untuk berpindah halaman.
+
+---
+
+## H. PERAN AKUN (SUPERADMIN VS ADMIN KELOMPOK) & GANTI AKUN
+
+- **Superadmin:** Bisa melihat dan mengelola seluruh kelompok, mengatur akun pengguna, serta memakai fitur **Ganti Akun** untuk masuk ke tampilan kelompok tertentu sementara.
+- **Admin Kelompok:** Hanya melihat dan mengelola pesanan serta keuangan milik kelompoknya sendiri.
+
+---
+
+## I. CARA CETAK LAPORAN PDF & TANYA JAWAB
+
+1. Buka menu **Keuangan &rarr; Laporan**.
+2. Pilih periode yang diinginkan (Semua Waktu, Hari Ini, Minggu Ini, Bulan Ini, atau Pilih Tanggal).
+3. Klik **Cetak Laporan (PDF)** lalu pilih *Save as PDF*.
+4. **Pembaruan Data Otomatis:** Pesanan dan pembayaran baru dari perangkat lain tetap otomatis tersinkronkan secara langsung.
