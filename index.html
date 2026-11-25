@@ -2699,6 +2699,9 @@
           </button>
           <button id="btn-manage-accounts" type="button" class="btn btn-sm hidden" onclick="openAccountModal()">Kelola
             Akun</button>
+          <button id="btn-user-guide" type="button" class="btn btn-sm flex items-center gap-1.5" onclick="openUserGuideModal()" title="Panduan penggunaan sistem, alur keuangan & rekonsiliasi">
+            <span>❓ Panduan Web</span>
+          </button>
           <span class="who"><b id="nav-user-name">-</b> · <span id="nav-user-role">-</span></span>
         </div>
       </div>
@@ -2905,7 +2908,7 @@
               </div>
 
               <!-- Top Sub-Tabs Switcher & Toggle -->
-              <div class="flex items-center gap-2 flex-wrap">
+              <div class="flex items-center gap-2 flex-wrap" id="order-monitoring-menu-area">
                 <div class="seg" id="order-monitoring-tab-switcher">
                   <button type="button" id="tab-mon-completeness" class="on" onclick="switchMonitoringTab('completeness')">
                     📋 Kelengkapan Data
@@ -3127,7 +3130,7 @@
               </div>
 
               <!-- Top Controls: Filter Periode & Switcher -->
-              <div class="flex flex-wrap items-center gap-2">
+              <div class="flex flex-wrap items-center gap-2" id="finance-menu-area">
                 <!-- Group filter for superadmin -->
                 <div id="filter-finance-group-wrap" class="hidden">
                   <select id="filter-finance-group" class="inp text-xs py-1.5 px-3" onchange="onFinanceGroupChange()">
@@ -3178,11 +3181,49 @@
                     📑 Laba Rugi &amp; Arus Kas
                   </button>
                 </div>
+
+                <!-- Toggle Button for Finance Section -->
+                <button type="button" id="btn-toggle-finance" class="btn btn-sm btn-sub flex items-center gap-1.5" onclick="toggleFinanceCollapse()" title="Sembunyikan / Tampilkan isi Manajemen Keuangan">
+                  <span id="btn-toggle-fin-icon">👁️</span>
+                  <span id="btn-toggle-fin-text">Sembunyikan</span>
+                </button>
               </div>
             </div>
 
-            <!-- VIEW 1: DASHBOARD & 10 METRIK KPI -->
-            <div id="fin-view-overview" class="space-y-0">
+            <!-- COLLAPSED SUMMARY BANNER (Shown when collapsed) -->
+            <div id="finance-collapsed-bar" class="hidden p-4 bg-emerald-50/70 border-t border-emerald-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div class="flex items-center gap-3 flex-wrap">
+                <span class="font-bold text-emerald-950 flex items-center gap-1.5">
+                  <span>💼</span> Modul Keuangan Diminimalkan
+                </span>
+                <span id="fin-collapsed-summary-pill" class="px-2.5 py-1 rounded-full bg-white text-slate-700 border border-emerald-200 shadow-xs font-semibold">
+                  Memuat ringkasan...
+                </span>
+              </div>
+              <button type="button" class="btn btn-xs btn-emerald flex items-center gap-1 cursor-pointer font-bold" onclick="toggleFinanceCollapse(false)">
+                <span>Buka Modul Keuangan</span> ▾
+              </button>
+            </div>
+
+            <div id="finance-content-wrap">
+              <!-- Historical Reconciliation Audit Banner -->
+              <div id="fin-legacy-reconcile-banner" class="hidden p-4 bg-amber-50 border-b border-amber-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex items-center gap-2.5 text-amber-950">
+                  <span class="text-xl">⚠️</span>
+                  <div>
+                    <b class="block font-bold text-amber-900">Audit Kas: Terdapat <span id="fin-unrecon-count">102</span> pesanan (<span id="fin-unrecon-total">Rp 1.014.000</span>) berstatus Lunas sebelum Phase 5 belum tercatat di buku kas riil.</b>
+                    <span class="text-amber-800/90 block mt-0.5 text-[11px]">
+                      Status 'Lunas' historis ini belum dimasukkan ke Saldo Kas Riil untuk menghindari penggelembungan dana kas fisik. Silakan verifikasi rekonsiliasi kas.
+                    </span>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-xs btn-amber flex items-center gap-1.5 font-bold shadow-xs cursor-pointer" onclick="openLegacyReconciliationModal()">
+                  <span>📋 Buka Rekonsiliasi Kas Historis</span> &rarr;
+                </button>
+              </div>
+
+              <!-- VIEW 1: DASHBOARD & 10 METRIK KPI -->
+              <div id="fin-view-overview" class="space-y-0">
               <!-- Missing HPP Warning Banner (shown when hasMissingHpp) -->
               <div id="fin-missing-hpp-banner" class="hidden p-4 bg-amber-50 border-b border-amber-200 flex flex-wrap items-center justify-between gap-3 text-xs">
                 <div class="flex items-center gap-2.5 text-amber-900">
@@ -3691,6 +3732,7 @@
                 </div>
               </div>
             </div>
+            </div><!-- /#finance-content-wrap -->
           </section>
 
           <section id="section-catalog" class="panel no-print">
@@ -4400,6 +4442,14 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Manajemen Keuangan
+          </a>
+          <a href="javascript:void(0)"
+            class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer"
+            onclick="closeMobileNav(); openUserGuideModal();">
+            <svg class="w-4 h-4 text-cyan-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Panduan Web &amp; Keuangan
           </a>
           <a href="#section-catalog"
             class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer"
@@ -5362,6 +5412,306 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  
+  <!-- MODAL: REKONSILIASI KAS PESANAN HISTORIS (PHASE 5 AUDIT) -->
+  <div id="legacy-reconcile-modal" onclick="if(event.target===this) closeModal('legacy-reconcile-modal')"
+    class="modal fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden">
+    <div id="legacy-reconcile-modal-box" class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+      <!-- Modal Header -->
+      <div class="p-5 sm:p-6 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-b border-amber-200 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-700 flex items-center justify-center text-xl shrink-0">
+            📋
+          </div>
+          <div>
+            <h3 class="font-black text-slate-900 text-base sm:text-lg">Rekonsiliasi Kas Pesanan Historis</h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Verifikasi 102 pesanan berstatus Lunas sebelum Phase 5 ke dalam buku kas fisik riil (<code class="bg-amber-100 text-amber-800 px-1 py-0.5 rounded font-mono">bzooginer_order_payments</code>).
+            </p>
+          </div>
+        </div>
+        <button type="button" onclick="closeModal('legacy-reconcile-modal')" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Controls & Filter Bar -->
+      <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2 flex-wrap">
+          <label class="font-bold text-slate-700">Filter Kelompok:</label>
+          <select id="recon-group-filter" class="inp text-xs py-1.5 px-3" onchange="renderLegacyReconciliationTable()">
+            <option value="all">Semua Kelompok</option>
+            <option value="1">Kelompok 1</option>
+            <option value="2">Kelompok 2</option>
+            <option value="3">Kelompok 3</option>
+            <option value="4">Kelompok 4</option>
+            <option value="5">Kelompok 5</option>
+            <option value="6">Kelompok 6</option>
+          </select>
+          <span id="recon-stats-pill" class="px-2.5 py-1 rounded-full bg-white text-slate-700 border border-slate-200 shadow-xs font-semibold">
+            Memuat data...
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" id="btn-batch-reconcile" class="btn btn-xs btn-amber flex items-center gap-1.5 font-bold shadow-xs cursor-pointer" onclick="confirmBatchReconciliation()">
+            <span>⚡ Rekonsiliasi Seluruh Pesanan di Filter Ini</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Table Body -->
+      <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
+        <div class="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-200 text-xs text-blue-900 flex items-start gap-2.5">
+          <span class="text-base shrink-0">ℹ️</span>
+          <div>
+            <b>Informasi Audit:</b> Pesanan di bawah ini berstatus <i>'Lunas'</i> pada sistem pemesanan sebelumnya (Phase 1–4), namun belum memiliki catatan di ledger kas.
+            Ketika Anda menekan <b>Verifikasi Kas Masuk</b>, sistem akan mencatat penerimaan kas secara resmi dengan nomor id unik (idempotent), sehingga dana otomatis masuk ke <b>Saldo Kas Riil</b>.
+          </div>
+        </div>
+
+        <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+          <table class="tbl w-full text-left text-xs">
+            <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[10px]">
+              <tr>
+                <th class="p-2.5">ID / Tanggal</th>
+                <th class="p-2.5">Pembeli &amp; Kelas</th>
+                <th class="p-2.5">Kelompok</th>
+                <th class="p-2.5" style="text-align:right">Total PO</th>
+                <th class="p-2.5" style="text-align:center">Status Kas</th>
+                <th class="p-2.5" style="text-align:center">Tindakan</th>
+              </tr>
+            </thead>
+            <tbody id="recon-orders-tbody" class="divide-y divide-slate-100">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs">
+        <span class="text-slate-500 text-[11px]">Audit Ledger B-Zooginer Phase 5 · Aman &amp; Bebas Duplikasi</span>
+        <button type="button" onclick="closeModal('legacy-reconcile-modal')" class="btn btn-sm btn-sub">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KONFIRMASI REKONSILIASI KAS -->
+  <div id="confirm-reconcile-modal" onclick="if(event.target===this) closeModal('confirm-reconcile-modal')"
+    class="modal fixed inset-0 z-55 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div id="confirm-reconcile-modal-box" class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">⚡</span>
+          <h4 class="font-bold text-slate-900 text-sm" id="confirm-reconcile-title">Konfirmasi Rekonsiliasi Kas</h4>
+        </div>
+        <button type="button" onclick="closeModal('confirm-reconcile-modal')" class="text-slate-400 hover:text-slate-700 cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-5 text-xs text-slate-600 space-y-3">
+        <p id="confirm-reconcile-desc">
+          Apakah Anda yakin ingin memverifikasi pesanan ini ke dalam kas fisik riil?
+        </p>
+        <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-[11px] font-medium" id="confirm-reconcile-highlight">
+          Tindakan ini akan membuat entri kas resmi dan menambah Saldo Kas Riil.
+        </div>
+      </div>
+      <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2 text-xs">
+        <button type="button" onclick="closeModal('confirm-reconcile-modal')" class="btn btn-sm btn-sub">Batal</button>
+        <button type="button" id="confirm-reconcile-btn" class="btn btn-sm btn-amber font-bold flex items-center gap-1.5 cursor-pointer">
+          <span>Konfirmasi Verifikasi</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PANDUAN PENGGUNAAN WEB B-ZOOGINER -->
+  <div id="user-guide-modal" onclick="if(event.target===this) closeModal('user-guide-modal')"
+    class="modal fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden">
+    <div id="user-guide-modal-box" class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+      <!-- Header -->
+      <div class="p-5 sm:p-6 bg-gradient-to-r from-emerald-500/10 via-cyan-500/5 to-transparent border-b border-slate-200 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-600/10 text-emerald-700 flex items-center justify-center text-xl shrink-0">
+            📖
+          </div>
+          <div>
+            <h3 class="font-black text-slate-900 text-base sm:text-lg">Panduan Penggunaan Web B-Zooginer</h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Tata cara alur operasional, manajemen keuangan &amp; akuntansi, monitoring pesanan, dan rekonsiliasi kas.
+            </p>
+          </div>
+        </div>
+        <button type="button" onclick="closeModal('user-guide-modal')" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Navigation Tabs inside Guide -->
+      <div class="px-5 pt-3 bg-slate-50 border-b border-slate-200 overflow-x-auto">
+        <div class="flex items-center gap-2 text-xs whitespace-nowrap" id="guide-tabs">
+          <button type="button" id="tab-guide-fin" class="px-3 py-2 rounded-t-xl font-bold border-b-2 border-emerald-600 text-emerald-800 bg-white shadow-xs cursor-pointer" onclick="switchGuideTab('fin')">💼 Alur Keuangan</button>
+          <button type="button" id="tab-guide-formula" class="px-3 py-2 rounded-t-xl font-semibold text-slate-600 hover:text-slate-900 cursor-pointer" onclick="switchGuideTab('formula')">⚖️ Kas vs Omzet vs Modal</button>
+          <button type="button" id="tab-guide-recon" class="px-3 py-2 rounded-t-xl font-semibold text-slate-600 hover:text-slate-900 cursor-pointer" onclick="switchGuideTab('recon')">🔄 Rekonsiliasi 102 Pesanan</button>
+          <button type="button" id="tab-guide-mon" class="px-3 py-2 rounded-t-xl font-semibold text-slate-600 hover:text-slate-900 cursor-pointer" onclick="switchGuideTab('mon')">📋 Pusat Monitoring</button>
+          <button type="button" id="tab-guide-roles" class="px-3 py-2 rounded-t-xl font-semibold text-slate-600 hover:text-slate-900 cursor-pointer" onclick="switchGuideTab('roles')">👥 Hak Akses &amp; Peran</button>
+          <button type="button" id="tab-guide-tips" class="px-3 py-2 rounded-t-xl font-semibold text-slate-600 hover:text-slate-900 cursor-pointer" onclick="switchGuideTab('tips')">💡 Tips &amp; Cetak Laporan</button>
+        </div>
+      </div>
+
+      <!-- Guide Content (Tabbed) -->
+      <div class="p-5 sm:p-6 overflow-y-auto flex-1 text-xs text-slate-700 leading-relaxed space-y-4" id="guide-content-body">
+        <!-- Tab 1: Alur Keuangan -->
+        <div id="guide-view-fin" class="space-y-4">
+          <div class="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-1.5 flex items-center gap-2">
+              <span>💼</span> Alur Manajemen Keuangan &amp; Akuntansi (Phase 5)
+            </h4>
+            <p>
+              Modul Keuangan B-Zooginer mencatat seluruh arus kas secara <b>double-entry cash basis</b> dengan buku kas terverifikasi. Alur operasional terdiri dari:
+            </p>
+            <ol class="list-decimal ml-5 mt-2 space-y-1.5 font-medium text-slate-800">
+              <li><b>Penetapan HPP Produk:</b> Admin memasukkan estimasi / modal pokok per porsi makanan/minuman agar laba kotor terhitung akurat.</li>
+              <li><b>Penerimaan Kas PO:</b> Saat pembeli membayar pesanan, admin menekan tombol <i>'Catat Pembayaran'</i> di tabel pesanan atau tab Kas Masuk. Mendukung Pembayaran Lunas, DP, maupun Pelunasan bertahap.</li>
+              <li><b>Pendapatan Manual (Luar PO):</b> Penjualan langsung on-the-spot di bazar/stan dicatat melalui formulir <i>'Catat Pendapatan Manual'</i>.</li>
+              <li><b>Pencatatan Beban/Pengeluaran:</b> Seluruh belanja bahan baku, operasional, sewa stan, dan kemasan dicatat di tab <i>'Pengeluaran'</i> dengan kategori yang jelas.</li>
+              <li><b>Setoran Modal:</b> Uang patungan atau modal awal kelompok dicatat di tab <i>'Modal'</i> (terpisah dari omzet!).</li>
+              <li><b>Laporan Keuangan:</b> Sistem secara otomatis menyusun Laporan Laba Rugi dan Arus Kas yang siap diexport atau dicetak.</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Tab 2: Formula Kas vs Omzet vs Modal -->
+        <div id="guide-view-formula" class="hidden space-y-4">
+          <div class="p-4 bg-cyan-50/60 rounded-2xl border border-cyan-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-1.5 flex items-center gap-2">
+              <span>⚖️</span> Perbedaan Saldo Kas Riil, Omzet Penjualan, dan Modal
+            </h4>
+            <p class="text-slate-700">
+              Sistem B-Zooginer menerapkan aturan akuntansi ketat agar uang fisik yang ada di tangan kasir selalu cocok dengan laporan di layar:
+            </p>
+            <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="p-3 bg-white rounded-xl border border-slate-200">
+                <b class="text-purple-700 block">💼 1. Modal Kelompok</b>
+                <span class="text-[11px] text-slate-600 block mt-1">Uang modal awal/tambahan dari anggota. <b>Bukan omzet dan bukan laba!</b> Modal menambah kas fisik tetapi tidak menambah performa penjualan.</span>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-slate-200">
+                <b class="text-slate-900 block">🛒 2. Total Penjualan (Omzet)</b>
+                <span class="text-[11px] text-slate-600 block mt-1">Nilai total seluruh pesanan PO ditambah penjualan manual. Omzet mencerminkan volume transaksi, belum tentu seluruhnya sudah berwujud uang tunai jika ada piutang.</span>
+              </div>
+              <div class="p-3 bg-white rounded-xl border border-slate-200">
+                <b class="text-emerald-700 block">💵 3. Saldo Kas Riil</b>
+                <span class="text-[11px] text-slate-600 block mt-1">Uang tunai fisik nyata di tangan bendahara: <code>Modal + Kas Masuk Terverifikasi - Total Pengeluaran</code>. Piutang dan pesanan lunas lama yang belum direkonsiliasi tidak dihitung.</span>
+              </div>
+            </div>
+            <div class="mt-3 p-3 bg-white rounded-xl border border-cyan-200 text-cyan-900 font-mono text-[11px]">
+              <b>Rumus Baku:</b> Saldo Kas Riil = Modal Disetor + Uang PO Diterima + Pendapatan Langsung - Beban Pengeluaran
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Rekonsiliasi 102 Pesanan -->
+        <div id="guide-view-recon" class="hidden space-y-4">
+          <div class="p-4 bg-amber-50/60 rounded-2xl border border-amber-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-1.5 flex items-center gap-2">
+              <span>🔄</span> Mengapa Ada 102 Pesanan Belum Tercatat di Buku Kas?
+            </h4>
+            <p class="text-slate-700">
+              Pada Phase 1 sampai 4, pesanan dapat ditandai 'Lunas' melalui tombol centang sederhana tanpa adanya buku kas keuangan terperinci. Total terdapat 102 pesanan bernilai Rp 1.014.000 dengan status ini.
+            </p>
+            <div class="mt-3 space-y-2 text-slate-800">
+              <p>
+                <b>Mengapa tidak langsung dimasukkan ke Saldo Kas Riil?</b><br>
+                Jika sistem otomatis memasukkan Rp 1.014.000 ke saldo kas tanpa verifikasi fisik, saldo kas di aplikasi akan langsung membengkak padahal kasir/bendahara kelompok belum tentu memegang uang fisik tersebut.
+              </p>
+              <p>
+                <b>Langkah Rekonsiliasi:</b><br>
+                1. Buka modal <i>'Rekonsiliasi Kas Historis'</i> melalui banner audit di Dashboard Keuangan.<br>
+                2. Cocokkan uang tunai yang dipegang kasir kelompok dengan pesanan yang tertera.<br>
+                3. Klik <b>'Verifikasi Kas Masuk'</b> untuk pesanan yang uangnya sudah ada.<br>
+                4. Sistem akan membuat entri resmi di buku kas dengan id unik, dan dana otomatis masuk ke <b>Saldo Kas Riil</b>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Pusat Monitoring -->
+        <div id="guide-view-mon" class="hidden space-y-4">
+          <div class="p-4 bg-amber-50/40 rounded-2xl border border-amber-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-1.5 flex items-center gap-2">
+              <span>📋</span> Fitur Pusat Monitoring (Phase 4)
+            </h4>
+            <p class="text-slate-700">
+              Pusat Monitoring berfungsi untuk memantau integritas data dan kepatuhan pembayaran pesanan:
+            </p>
+            <ul class="list-disc ml-5 mt-2 space-y-1.5 text-slate-800">
+              <li><b>Audit Kelengkapan Data:</b> Memeriksa nama pemesan, nomor kontak, kelas/kategori pembeli, dan rincian item pesanan. Jika ada field yang kosong, sistem memberi tanda 'Perlu Dilengkapi'.</li>
+              <li><b>Monitoring Status Pembayaran:</b> Memisahkan pesanan lunas, DP (uang muka), dan belum bayar.</li>
+              <li><b>Kinerja Kelompok:</b> Menampilkan perbandingan performa antar kelompok 1 hingga 6 secara real-time.</li>
+              <li><b>Fitur Minimalkan (Hide/Show):</b> Anda dapat menyembunyikan panel monitoring dengan tombol di menu monitoring agar layar tetap lega. Pilihan Anda akan diingat di browser.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tab 5: Hak Akses & Peran -->
+        <div id="guide-view-roles" class="hidden space-y-4">
+          <div class="p-4 bg-purple-50/60 rounded-2xl border border-purple-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-1.5 flex items-center gap-2">
+              <span>👥</span> Perbedaan Hak Akses: Superadmin vs Admin Kelompok
+            </h4>
+            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="p-3.5 bg-white rounded-xl border border-purple-200">
+                <b class="text-purple-800 text-xs block mb-1">👑 Superadmin</b>
+                <ul class="list-disc ml-4 space-y-1 text-[11px] text-slate-600">
+                  <li>Dapat melihat seluruh kelompok sekaligus (Konsolidasi Global).</li>
+                  <li>Dapat berpindah filter kelompok mana pun.</li>
+                  <li>Memiliki fitur <i>'Login Sebagai Admin Kelompok'</i> (Impersonation).</li>
+                  <li>Dapat menambah, mengedit, atau mengarsipkan kelompok dan akun.</li>
+                  <li>Dapat membatalkan / mengoreksi transaksi kas bila terjadi kesalahan.</li>
+                </ul>
+              </div>
+              <div class="p-3.5 bg-white rounded-xl border border-slate-200">
+                <b class="text-slate-800 text-xs block mb-1">👤 Admin Kelompok (Kelompok 1–6)</b>
+                <ul class="list-disc ml-4 space-y-1 text-[11px] text-slate-600">
+                  <li>Hanya dapat melihat dan mengelola keuangan kelompoknya sendiri (Terisolasi via RLS).</li>
+                  <li>Dapat mengatur HPP menu kelompok.</li>
+                  <li>Dapat mencatat kas masuk PO, pengeluaran belanja, dan modal sendiri.</li>
+                  <li>Dapat mencetak laporan laba rugi dan arus kas kelompoknya.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 6: Tips & Cetak Laporan -->
+        <div id="guide-view-tips" class="hidden space-y-4">
+          <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-1.5 flex items-center gap-2">
+              <span>💡</span> Tips Operasional &amp; Panduan Cetak Laporan
+            </h4>
+            <ul class="list-disc ml-5 mt-2 space-y-1.5 text-slate-800">
+              <li><b>Cetak Laporan:</b> Buka tab <i>'Laba Rugi &amp; Arus Kas'</i>, pilih periode yang diinginkan (Hari Ini / Minggu Ini / Semua Waktu), lalu tekan tombol <b>🖨️ Cetak / Simpan PDF</b>. Halaman cetak otomatis menghilangkan menu navigasi dan tombol.</li>
+              <li><b>Kustom Tanggal:</b> Pilih periode <i>'Kustom Tanggal...'</i> di menu atas untuk menyaring transaksi pada rentang hari tertentu.</li>
+              <li><b>Perpindahan Tab Browser:</b> Sesi login Anda aman dan tidak akan logout atau me-refresh otomatis saat Anda membuka aplikasi lain atau tab baru.</li>
+              <li><b>Satu Perangkat Satu Sesi:</b> Gunakan fitur Perangkat Aktif untuk memantau rekan kelompok yang sedang membuka web secara bersamaan.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs">
+        <span class="text-slate-400 text-[11px]">B-Zooginer 2026 · Dokumentasi Lengkap di <code class="bg-slate-200 px-1 py-0.5 rounded text-slate-700">docs/PANDUAN-MANAJEMEN-KEUANGAN.md</code></span>
+        <button type="button" onclick="closeModal('user-guide-modal')" class="btn btn-sm btn-ink cursor-pointer font-bold">
+          Mengerti &amp; Tutup
+        </button>
+      </div>
     </div>
   </div>
 
@@ -11873,6 +12223,7 @@
           if (event === 'SIGNED_OUT') {
             handleSignedOutUI();
           } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            if (originUser) return; // FIX: If superadmin is impersonating, do not let background TOKEN_REFRESHED reload superadmin profile!
             if (newSession && (!currentUser || currentUser.id !== newSession.user.id)) {
               setTimeout(async () => {
                 const refreshed = await loadUserProfile(newSession.user.id, newSession.access_token);
@@ -12381,6 +12732,256 @@
           topIcon && scroll && scroll(animate(topIcon, { rotate: [0, 360] }, { ease: 'linear' }));
         }
       }
+
+
+    // ==========================================
+    // REKONSILIASI KAS HISTORIS (PHASE 5 AUDIT)
+    // ==========================================
+    let _activeReconcileTarget = null;
+
+    function openLegacyReconciliationModal() {
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const sel = document.getElementById('recon-group-filter');
+      if (sel) {
+        if (!isSuper) {
+          sel.value = String(currentUser.groupId);
+          sel.disabled = true;
+        } else {
+          sel.value = (typeof financeGroupFilter !== 'undefined' ? financeGroupFilter : 'all');
+          sel.disabled = false;
+        }
+      }
+      renderLegacyReconciliationTable();
+      openModal('legacy-reconcile-modal');
+    }
+
+    function renderLegacyReconciliationTable() {
+      const tbody = document.getElementById('recon-orders-tbody');
+      const statsPill = document.getElementById('recon-stats-pill');
+      const batchBtn = document.getElementById('btn-batch-reconcile');
+      if (!tbody) return;
+
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const groupFilter = isSuper ? (document.getElementById('recon-group-filter')?.value || 'all') : String(currentUser.groupId);
+
+      let list = getAccessibleOrders().filter(o => isOrderLegacyUnreconciled(o));
+      if (groupFilter !== 'all') {
+        list = list.filter(o => String(o.groupId) === groupFilter);
+      }
+
+      const totalUnrecon = list.length;
+      const totalAmount = list.reduce((sum, o) => sum + Number(o.total || 0), 0);
+
+      if (statsPill) {
+        statsPill.innerHTML = `<span>Belum Rekonsiliasi: <b>${totalUnrecon}</b> pesanan</span> · <span>Total: <b class="text-amber-800">${formatRupiah(totalAmount)}</b></span>`;
+      }
+
+      if (batchBtn) {
+        batchBtn.disabled = totalUnrecon === 0;
+        batchBtn.classList.toggle('opacity-50', totalUnrecon === 0);
+      }
+
+      if (totalUnrecon === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="p-8 text-center text-slate-500 bg-slate-50/50">
+              <div class="text-2xl mb-1.5">🎉</div>
+              <b class="text-emerald-800 block text-xs">Seluruh pesanan lunas pada kelompok ini sudah terekonsiliasi ke buku kas!</b>
+              <span class="text-[11px] text-slate-400 mt-0.5 block">Tidak ada selisih antara catatan pemesanan dan kas fisik riil.</span>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = list.map(o => {
+        const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+        return `
+          <tr class="hover:bg-amber-50/40 transition-colors">
+            <td class="p-2.5">
+              <div class="font-mono font-bold text-slate-800">${esc(o.id)}</div>
+              <div class="text-[10px] text-slate-400">${dateStr}</div>
+            </td>
+            <td class="p-2.5">
+              <div class="font-bold text-slate-900">${esc(o.buyerName || '-')}</div>
+              <div class="text-[10px] text-slate-500">${esc(o.buyerClass || '-')} · ${esc(o.buyerPhone || '-')}</div>
+            </td>
+            <td class="p-2.5">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                Kelompok ${o.groupId}
+              </span>
+            </td>
+            <td class="p-2.5" style="text-align:right">
+              <b class="text-slate-900 font-bold">${formatRupiah(o.total || 0)}</b>
+            </td>
+            <td class="p-2.5" style="text-align:center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                Belum di Kas Riil
+              </span>
+            </td>
+            <td class="p-2.5" style="text-align:center">
+              <button type="button" class="btn btn-xs btn-amber font-bold cursor-pointer shadow-2xs flex items-center gap-1 mx-auto" onclick="confirmSingleReconciliation('${esc(o.id)}')">
+                <span>✓ Verifikasi Kas</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function confirmSingleReconciliation(orderId) {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+      _activeReconcileTarget = orderId;
+      document.getElementById('confirm-reconcile-title').textContent = 'Verifikasi Kas Masuk Pesanan';
+      document.getElementById('confirm-reconcile-desc').innerHTML = `Verifikasi kas masuk sebesar <b>${formatRupiah(order.total)}</b> dari <b>${esc(order.buyerName)}</b> (Kelompok ${order.groupId}, ID: ${order.id}) ke dalam buku kas fisik riil.`;
+      document.getElementById('confirm-reconcile-highlight').textContent = 'Tindakan ini akan membuat entri kas resmi di bzooginer_order_payments dan menambah Saldo Kas Riil.';
+      document.getElementById('confirm-reconcile-btn').onclick = () => executeReconcileSingleOrder(orderId);
+      openModal('confirm-reconcile-modal');
+    }
+
+    function confirmBatchReconciliation() {
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const groupFilter = isSuper ? (document.getElementById('recon-group-filter')?.value || 'all') : String(currentUser.groupId);
+      let list = getAccessibleOrders().filter(o => isOrderLegacyUnreconciled(o));
+      if (groupFilter !== 'all') {
+        list = list.filter(o => String(o.groupId) === groupFilter);
+      }
+      if (list.length === 0) {
+        showToast('Tidak ada pesanan yang perlu direkonsiliasi pada filter ini.');
+        return;
+      }
+      const totalAmount = list.reduce((sum, o) => sum + Number(o.total || 0), 0);
+      _activeReconcileTarget = 'batch';
+      document.getElementById('confirm-reconcile-title').textContent = 'Verifikasi Kas Masuk Sekaligus';
+      document.getElementById('confirm-reconcile-desc').innerHTML = `Apakah Anda yakin ingin memverifikasi <b>${list.length} pesanan</b> (Total: <b>${formatRupiah(totalAmount)}</b>) pada <b>${groupFilter === 'all' ? 'Semua Kelompok' : 'Kelompok ' + groupFilter}</b> ke buku kas fisik riil?`;
+      document.getElementById('confirm-reconcile-highlight').textContent = `Seluruh ${list.length} pesanan akan dicatat di bzooginer_order_payments dan Saldo Kas Riil akan bertambah ${formatRupiah(totalAmount)}.`;
+      document.getElementById('confirm-reconcile-btn').onclick = () => executeReconcileBatch(groupFilter);
+      openModal('confirm-reconcile-modal');
+    }
+
+    async function executeReconcileSingleOrder(orderId) {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+      const btn = document.getElementById('confirm-reconcile-btn');
+      try {
+        if (btn) { btn.disabled = true; btn.textContent = 'Memproses...'; }
+        const idempotencyKey = 'recon_' + order.id;
+        const payload = {
+          id: idempotencyKey,
+          order_id: order.id,
+          group_id: order.groupId,
+          amount: Number(order.total || 0),
+          payment_type: 'full',
+          payment_date: order.createdAt || new Date().toISOString(),
+          payment_method: 'cash',
+          notes: 'Rekonsiliasi Kas Historis Phase 1-4',
+          idempotency_key: idempotencyKey,
+          is_historical_reconciliation: true,
+          recorded_by_user_id: currentUser ? currentUser.id : null,
+          recorded_by_username: currentUser ? (currentUser.username || currentUser.name || 'Admin') : 'Admin',
+          recorded_by_name: currentUser ? (currentUser.username || currentUser.name || 'Admin') : 'Admin',
+          created_at: new Date().toISOString()
+        };
+
+        const [inserted] = await sbRequest('bzooginer_order_payments', 'POST', payload);
+        const record = inserted || { ...payload, id: idempotencyKey };
+        
+        orderPayments = orderPayments.filter(p => p.order_id !== order.id && p.idempotency_key !== idempotencyKey);
+        orderPayments.push(record);
+
+        saveAllData();
+        closeModal('confirm-reconcile-modal');
+        renderLegacyReconciliationTable();
+        refreshAllSections();
+        showToast(`Pesanan ${order.buyerName} (${formatRupiah(order.total)}) berhasil direkonsiliasi ke kas riil!`);
+        broadcastFinanceChange('payment', { order_id: order.id, amount: order.total });
+      } catch (err) {
+        showToast(`Gagal rekonsiliasi pesanan: ${err.message}`, 'error');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Konfirmasi Verifikasi'; }
+      }
+    }
+
+    async function executeReconcileBatch(targetGroupId) {
+      const btn = document.getElementById('confirm-reconcile-btn');
+      try {
+        if (btn) { btn.disabled = true; btn.textContent = 'Memproses batch...'; }
+        let list = getAccessibleOrders().filter(o => isOrderLegacyUnreconciled(o));
+        if (targetGroupId !== 'all') {
+          list = list.filter(o => String(o.groupId) === targetGroupId);
+        }
+
+        let successCount = 0;
+        let totalReconciled = 0;
+
+        for (const order of list) {
+          const idempotencyKey = 'recon_' + order.id;
+          const payload = {
+            id: idempotencyKey,
+            order_id: order.id,
+            group_id: order.groupId,
+            amount: Number(order.total || 0),
+            payment_type: 'full',
+            payment_date: order.createdAt || new Date().toISOString(),
+            payment_method: 'cash',
+            notes: 'Rekonsiliasi Kas Historis Phase 1-4',
+            idempotency_key: idempotencyKey,
+            is_historical_reconciliation: true,
+            recorded_by_user_id: currentUser ? currentUser.id : null,
+            recorded_by_username: currentUser ? (currentUser.username || currentUser.name || 'Admin') : 'Admin',
+            recorded_by_name: currentUser ? (currentUser.username || currentUser.name || 'Admin') : 'Admin',
+            created_at: new Date().toISOString()
+          };
+
+          try {
+            await sbRequest('bzooginer_order_payments', 'POST', payload);
+          } catch (e) {
+            console.warn('Batch reconcile item note:', e);
+          }
+          orderPayments = orderPayments.filter(p => p.order_id !== order.id && p.idempotency_key !== idempotencyKey);
+          orderPayments.push(payload);
+          successCount++;
+          totalReconciled += Number(order.total || 0);
+        }
+
+        saveAllData();
+        closeModal('confirm-reconcile-modal');
+        renderLegacyReconciliationTable();
+        refreshAllSections();
+        showToast(`Berhasil merekonsiliasi ${successCount} pesanan (${formatRupiah(totalReconciled)}) ke buku kas riil!`);
+        broadcastFinanceChange('payment', { batch: true, count: successCount, amount: totalReconciled });
+      } catch (err) {
+        showToast(`Gagal rekonsiliasi batch: ${err.message}`, 'error');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Konfirmasi Verifikasi'; }
+      }
+    }
+
+    // ==========================================
+    // PANDUAN PENGGUNAAN WEB B-ZOOGINER
+    // ==========================================
+    function openUserGuideModal(initialTab = 'fin') {
+      switchGuideTab(initialTab);
+      openModal('user-guide-modal');
+    }
+
+    function switchGuideTab(tabId) {
+      const tabs = ['fin', 'formula', 'recon', 'mon', 'roles', 'tips'];
+      tabs.forEach(t => {
+        const btn = document.getElementById('tab-guide-' + t);
+        const view = document.getElementById('guide-view-' + t);
+        if (btn) {
+          const isActive = t === tabId;
+          btn.className = isActive
+            ? 'px-3 py-2 rounded-t-xl font-bold border-b-2 border-emerald-600 text-emerald-800 bg-white shadow-xs cursor-pointer'
+            : 'px-3 py-2 rounded-t-xl font-semibold text-slate-600 hover:text-slate-900 cursor-pointer';
+        }
+        if (view) {
+          view.classList.toggle('hidden', t !== tabId);
+        }
+      });
+    }
 
       if (document.readyState === 'loading') addEventListener('DOMContentLoaded', boot); else boot();
     })();
