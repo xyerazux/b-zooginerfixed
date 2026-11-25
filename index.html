@@ -2289,7 +2289,18 @@
         top: 12px
       }
 
-      /* Navigasi Header HP vs Desktop */
+      .foot {
+        margin-top: 40px
+      }
+    }
+
+    /* Mobile Only Live Sync Pill */
+    .mobile-only-sync {
+      display: none;
+    }
+
+    /* Responsive Header & Navigation breakpoints (< 768px Mobile vs >= 768px Desktop/Tablet) */
+    @media (max-width: 767px) {
       .desktop-nav-items {
         display: none !important;
       }
@@ -2298,22 +2309,49 @@
         display: inline-flex !important;
       }
 
+      .mobile-only-sync {
+        display: flex !important;
+      }
+
       .subbar {
         display: none !important;
       }
-
-      .foot {
-        margin-top: 40px
-      }
     }
 
-    @media(min-width:641px) {
+    @media (min-width: 768px) {
       .mobile-nav-toggle-btn {
+        display: none !important;
+      }
+
+      .mobile-only-sync {
         display: none !important;
       }
 
       .desktop-nav-items {
         display: flex !important;
+      }
+
+      .subbar {
+        display: block !important;
+      }
+    }
+
+    /* Tablet styling (768px - 1024px): graceful wrapping and touch spacing */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      .navrow {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        padding-block: 6px !important;
+      }
+
+      .hdr-in {
+        flex-wrap: wrap !important;
+        padding-block: 6px !important;
+        min-height: auto !important;
+      }
+
+      #nav-user-badge {
+        max-width: 180px !important;
       }
     }
 
@@ -2643,11 +2681,25 @@
         <a href="#top" class="brand"><span class="brand-mark"><img class="zi" src="assets/icons/lion.svg" alt=""
               width="64" height="64" decoding="async" draggable="false"></span><span><b
               class="disp">B-zooginer</b><small class="hide-sm">Sistem PO · Cash Only</small></span></a>
+
+        <!-- Center Live Sync Indicator on Mobile (< 768px) -->
+        <div id="mobile-live-sync-indicator" class="mobile-only-sync flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-xs cursor-pointer transition hover:bg-emerald-100" title="Status Realtime Live Sync" onclick="openMobileNav()">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-[11px] font-bold">Live</span>
+        </div>
+
         <div class="desktop-nav-items items-center gap-2">
           <div id="live-sync-pill" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-xs cursor-pointer transition hover:bg-emerald-100" title="Status Realtime Live Sync &amp; Device Presence (Ketuk untuk monitor perangkat)" onclick="scrollToMonitoringSection()">
             <span id="live-sync-indicator-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span id="live-sync-status-text" class="hide-sm">Live Sync</span>
           </div>
+
+          <!-- User Identity Card in Top Header (Cleanly separated from subbar to avoid text cutoff) -->
+          <div id="nav-user-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-800 shrink-0 max-w-[220px]" title="Pengguna yang sedang aktif">
+            <span class="w-2 h-2 rounded-full bg-brand-500 shrink-0"></span>
+            <span class="truncate"><b id="nav-user-name">-</b> · <span id="nav-user-role" class="text-slate-500 font-normal">-</span></span>
+          </div>
+
           <div id="account-switcher" class="switcher hidden">
             <button type="button" id="switcher-btn" class="btn btn-sm btn-ink" aria-haspopup="menu"
               aria-expanded="false" onclick="toggleSwitcher()">
@@ -2672,21 +2724,15 @@
       </div>
       <div class="subbar">
         <div class="wrap navrow">
+          <!-- Page Switcher (Superadmin) -->
           <div id="superadmin-page-switcher" class="seg hidden">
             <button type="button" id="tab-btn-etalase" class="on" onclick="switchSuperadminPage('etalase')">Etalase
               Promosi</button>
             <button type="button" id="tab-btn-dashboard" onclick="switchSuperadminPage('dashboard')">Dashboard
               Master</button>
           </div>
-          <button id="btn-fullscreen" type="button" class="btn btn-sm hidden" onclick="enterFullscreen()"><svg
-              width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" />
-            </svg>Layar penuh</button>
-          <nav id="group-admin-nav" class="seg hidden">
-            <a href="#section-admin-groups">Kelompok</a><a href="#section-orders">Pesanan</a><a href="#section-order-monitoring" onclick="scrollToOrderMonitoringSection()">Monitoring</a><a href="#section-finance" onclick="scrollToFinanceSection()">Keuangan</a><a
-              href="#section-catalog">Menu &amp; Paket</a><a href="#section-device-monitoring" class="flex items-center gap-1.5" onclick="scrollToMonitoringSection()">Perangkat Aktif <span id="group-nav-online-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span></a>
-          </nav>
+
+          <!-- Section Switchers (Superadmin) -->
           <button id="btn-order-monitoring-nav-superadmin" type="button" class="btn btn-sm hidden flex items-center gap-1.5" onclick="scrollToOrderMonitoringSection()" title="Buka pusat monitoring pesanan dan pembayaran">
             <span>📊 Monitoring Pesanan</span>
           </button>
@@ -2697,12 +2743,27 @@
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>Perangkat (<span id="superadmin-online-badge">0</span>)</span>
           </button>
-          <button id="btn-manage-accounts" type="button" class="btn btn-sm hidden" onclick="openAccountModal()">Kelola
-            Akun</button>
+
+          <!-- Group Admin Navigation -->
+          <nav id="group-admin-nav" class="seg hidden">
+            <a href="#section-admin-groups">Kelompok</a>
+            <a href="#section-orders">Pesanan</a>
+            <a href="#section-order-monitoring" onclick="scrollToOrderMonitoringSection()">Monitoring</a>
+            <a href="#section-finance" onclick="scrollToFinanceSection()">Keuangan</a>
+            <a href="#section-catalog">Menu &amp; Paket</a>
+            <a href="#section-device-monitoring" class="flex items-center gap-1.5" onclick="scrollToMonitoringSection()">Perangkat Aktif <span id="group-nav-online-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span></a>
+          </nav>
+
+          <!-- Tools -->
+          <button id="btn-manage-accounts" type="button" class="btn btn-sm hidden" onclick="openAccountModal()">Kelola Akun</button>
           <button id="btn-user-guide" type="button" class="btn btn-sm flex items-center gap-1.5" onclick="openUserGuideModal()" title="Panduan penggunaan sistem, alur keuangan & rekonsiliasi">
             <span>❓ Panduan Web</span>
           </button>
-          <span class="who"><b id="nav-user-name">-</b> · <span id="nav-user-role">-</span></span>
+          <button id="btn-fullscreen" type="button" class="btn btn-sm hidden sm:inline-flex" onclick="enterFullscreen()"><svg
+              width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" />
+            </svg>Layar penuh</button>
         </div>
       </div>
       <div id="impersonate-bar" class="imp hidden">
@@ -4403,6 +4464,32 @@
             </svg>
             Kelola Akun &amp; Hak Akses
           </button>
+
+          <!-- Mobile Account Switcher Accordion (Superadmin only) -->
+          <div id="mobile-account-switcher-wrap" class="hidden pt-1">
+            <button type="button" onclick="toggleMobileAccountSwitcher()"
+              class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between hover:bg-slate-100 text-slate-700 cursor-pointer">
+              <div class="flex items-center gap-2.5">
+                <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+                <span>Ganti Akun (Kelompok 1–6)</span>
+              </div>
+              <span id="mobile-switch-arrow" class="text-xs text-slate-500 font-bold">▾</span>
+            </button>
+            <div id="mobile-account-switcher-list" class="hidden pl-2 pr-1 py-1.5 space-y-1 bg-slate-50 rounded-xl mt-1 border border-slate-200">
+              <!-- Rendered dynamically by renderSwitcher -->
+            </div>
+          </div>
+
+          <button type="button"
+            class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer"
+            onclick="closeMobileNav(); openUserGuideModal();">
+            <svg class="w-4 h-4 text-cyan-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Panduan Web &amp; Keuangan
+          </button>
         </div>
 
         <div id="mobile-nav-groupadmin-links" class="space-y-1.5 hidden">
@@ -5531,184 +5618,433 @@
     </div>
   </div>
 
-  <!-- MODAL: PANDUAN PENGGUNAAN WEB B-ZOOGINER -->
+  <!-- MODAL: PANDUAN PENGGUNAAN WEB B-ZOOGINER (8 BAB LENGKAP) -->
   <div id="user-guide-modal" onclick="if(event.target===this) closeModal('user-guide-modal')"
     class="modal fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden">
     <div id="user-guide-modal-box" class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
-      <!-- Header -->
-      <div class="p-5 sm:p-6 bg-gradient-to-r from-emerald-500/10 via-cyan-500/5 to-transparent border-b border-slate-200 flex items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-emerald-600/10 text-emerald-700 flex items-center justify-center text-xl shrink-0">
+      
+      <!-- Modal Header -->
+      <div class="p-5 sm:p-6 bg-gradient-to-r from-emerald-500/10 via-amber-500/5 to-transparent border-b border-slate-200 flex items-center justify-between gap-4 shrink-0">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-2xl bg-emerald-600/10 text-emerald-700 flex items-center justify-center text-2xl shrink-0 shadow-xs border border-emerald-200/60">
             📖
           </div>
           <div>
-            <h3 class="font-black text-slate-900 text-base sm:text-lg">Panduan Penggunaan Web B-Zooginer</h3>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="font-black text-slate-900 text-base sm:text-lg">Panduan Penggunaan Web B-Zooginer</h3>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Resmi · Zoo Market 2026</span>
+            </div>
             <p class="text-xs text-slate-500 mt-0.5">
-              Tata cara alur operasional, manajemen keuangan &amp; akuntansi, monitoring pesanan, dan rekonsiliasi kas.
+              Tata cara alur operasional, etalase promosi, monitoring pesanan, manajemen keuangan, hingga solusi kendala.
             </p>
           </div>
         </div>
-        <button type="button" onclick="closeModal('user-guide-modal')" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
+        <button type="button" onclick="closeModal('user-guide-modal')" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer shrink-0" aria-label="Tutup Panduan">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
-      <!-- Navigation Tabs inside Guide -->
-      <div class="px-5 pt-3 bg-slate-50 border-b border-slate-200 overflow-x-auto">
-        <div class="flex items-center gap-2 text-xs whitespace-nowrap" id="guide-tabs">
-          <button type="button" id="tab-guide-fin" class="px-3 py-2 rounded-t-xl font-bold border-b-2 border-emerald-600 text-emerald-800 bg-white shadow-xs cursor-pointer" onclick="switchGuideTab('fin')">💼 Alur Keuangan</button>
-          <button type="button" id="tab-guide-formula" class="px-3 py-2 rounded-t-xl font-semibold text-slate-600 hover:text-slate-900 cursor-pointer" onclick="switchGuideTab('formula')">⚖️ Kas vs Omzet vs Modal</button>
-          <button type="button" id="tab-guide-recon" class="px-3 py-2 rounded-t-xl font-semibold text-slate-600 hover:text-slate-900 cursor-pointer" onclick="switchGuideTab('recon')">🔄 Rekonsiliasi 102 Pesanan</button>
-          <button type="button" id="tab-guide-mon" class="px-3 py-2 rounded-t-xl font-semibold text-slate-600 hover:text-slate-900 cursor-pointer" onclick="switchGuideTab('mon')">📋 Pusat Monitoring</button>
-          <button type="button" id="tab-guide-roles" class="px-3 py-2 rounded-t-xl font-semibold text-slate-600 hover:text-slate-900 cursor-pointer" onclick="switchGuideTab('roles')">👥 Hak Akses &amp; Peran</button>
-          <button type="button" id="tab-guide-tips" class="px-3 py-2 rounded-t-xl font-semibold text-slate-600 hover:text-slate-900 cursor-pointer" onclick="switchGuideTab('tips')">💡 Tips &amp; Cetak Laporan</button>
+      <!-- Navigation Tabs inside Guide (8 Kategori, Horizontal Scroll di HP) -->
+      <div class="px-4 sm:px-6 pt-3 bg-slate-50 border-b border-slate-200 overflow-x-auto shrink-0 scrollbar-none">
+        <div class="flex items-center gap-1.5 text-xs whitespace-nowrap min-w-max pb-2" id="guide-tabs">
+          <button type="button" id="tab-guide-mengenal" class="px-3 py-2 rounded-xl font-bold bg-white text-emerald-800 border border-emerald-200 shadow-xs cursor-pointer flex items-center gap-1.5 transition" onclick="switchGuideTab('mengenal')">
+            <span>🦁 1. Mengenal Web</span>
+          </button>
+          <button type="button" id="tab-guide-etalase" class="px-3 py-2 rounded-xl font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/80 cursor-pointer flex items-center gap-1.5 transition" onclick="switchGuideTab('etalase')">
+            <span>🛒 2. Etalase &amp; PO</span>
+          </button>
+          <button type="button" id="tab-guide-dashboard" class="px-3 py-2 rounded-xl font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/80 cursor-pointer flex items-center gap-1.5 transition" onclick="switchGuideTab('dashboard')">
+            <span>📊 3. Dashboard Master</span>
+          </button>
+          <button type="button" id="tab-guide-monitoring" class="px-3 py-2 rounded-xl font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/80 cursor-pointer flex items-center gap-1.5 transition" onclick="switchGuideTab('monitoring')">
+            <span>📋 4. Monitoring Pesanan</span>
+          </button>
+          <button type="button" id="tab-guide-keuangan" class="px-3 py-2 rounded-xl font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/80 cursor-pointer flex items-center gap-1.5 transition" onclick="switchGuideTab('keuangan')">
+            <span>💼 5. Manajemen Keuangan</span>
+          </button>
+          <button type="button" id="tab-guide-perangkat" class="px-3 py-2 rounded-xl font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/80 cursor-pointer flex items-center gap-1.5 transition" onclick="switchGuideTab('perangkat')">
+            <span>📱 6. Perangkat &amp; Live Sync</span>
+          </button>
+          <button type="button" id="tab-guide-akun" class="px-3 py-2 rounded-xl font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/80 cursor-pointer flex items-center gap-1.5 transition" onclick="switchGuideTab('akun')">
+            <span>👥 7. Kelola &amp; Ganti Akun</span>
+          </button>
+          <button type="button" id="tab-guide-faq" class="px-3 py-2 rounded-xl font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/80 cursor-pointer flex items-center gap-1.5 transition" onclick="switchGuideTab('faq')">
+            <span>❓ 8. FAQ &amp; Solusi Masalah</span>
+          </button>
         </div>
       </div>
 
-      <!-- Guide Content (Tabbed) -->
+      <!-- Guide Content Body (8 Tab Views) -->
       <div class="p-5 sm:p-6 overflow-y-auto flex-1 text-xs text-slate-700 leading-relaxed space-y-4" id="guide-content-body">
-        <!-- Tab 1: Alur Keuangan -->
-        <div id="guide-view-fin" class="space-y-4">
-          <div class="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-200">
-            <h4 class="font-bold text-slate-900 text-sm mb-1.5 flex items-center gap-2">
-              <span>💼</span> Alur Manajemen Keuangan &amp; Akuntansi (Phase 5)
+        
+        <!-- BAB 1: MENGENAL B-ZOOGINER -->
+        <div id="guide-view-mengenal" class="space-y-4">
+          <div class="p-4 bg-emerald-50/70 rounded-2xl border border-emerald-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
+              <span class="text-base">🦁</span> Mengenal B-Zooginer
             </h4>
             <p>
-              Modul Keuangan B-Zooginer mencatat seluruh arus kas secara <b>double-entry cash basis</b> dengan buku kas terverifikasi. Alur operasional terdiri dari:
+              <b>B-Zooginer</b> adalah sistem aplikasi berbasis web terintegrasi untuk mendukung kegiatan bazar kewirausahaan sekolah bertema satwa (Zoo Market). Website ini berfungsi sebagai pusat promosi produk, pencatatan pesanan pre-order (PO), pemantauan pembayaran tunai, serta pembukuan keuangan akuntansi secara real-time.
             </p>
-            <ol class="list-decimal ml-5 mt-2 space-y-1.5 font-medium text-slate-800">
-              <li><b>Penetapan HPP Produk:</b> Admin memasukkan estimasi / modal pokok per porsi makanan/minuman agar laba kotor terhitung akurat.</li>
-              <li><b>Penerimaan Kas PO:</b> Saat pembeli membayar pesanan, admin menekan tombol <i>'Catat Pembayaran'</i> di tabel pesanan atau tab Kas Masuk. Mendukung Pembayaran Lunas, DP, maupun Pelunasan bertahap.</li>
-              <li><b>Pendapatan Manual (Luar PO):</b> Penjualan langsung on-the-spot di bazar/stan dicatat melalui formulir <i>'Catat Pendapatan Manual'</i>.</li>
-              <li><b>Pencatatan Beban/Pengeluaran:</b> Seluruh belanja bahan baku, operasional, sewa stan, dan kemasan dicatat di tab <i>'Pengeluaran'</i> dengan kategori yang jelas.</li>
-              <li><b>Setoran Modal:</b> Uang patungan atau modal awal kelompok dicatat di tab <i>'Modal'</i> (terpisah dari omzet!).</li>
-              <li><b>Laporan Keuangan:</b> Sistem secara otomatis menyusun Laporan Laba Rugi dan Arus Kas yang siap diexport atau dicetak.</li>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-1.5">
+              <b class="text-slate-900 block text-xs">📝 Sistem Pre-Order (PO)</b>
+              <p class="text-slate-600 text-[11px]">
+                Pembeli (siswa, guru, staf, maupun umum) dapat memesan menu makanan dan minuman kelompok usaha sebelum maupun selama hari pelaksanaan bazar. Pesanan yang masuk langsung tercatat di database cloud tanpa risiko nota hilang.
+              </p>
+            </div>
+            <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-1.5">
+              <b class="text-amber-800 block text-xs">💵 Pembayaran Tunai (Cash Only)</b>
+              <p class="text-slate-600 text-[11px]">
+                Seluruh transaksi pada Zoo Market menggunakan mekanisme pembayaran tunai langsung di tempat kepada kasir kelompok masing-masing. Sistem bertindak sebagai validator dan buku kas pencatat apakah pesanan sudah lunas dibayar tunai atau masih berupa piutang.
+              </p>
+            </div>
+          </div>
+
+          <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-2">
+            <b class="text-slate-900 block text-xs">👥 Perbedaan Hak Akses Pengguna</b>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
+              <div class="p-3 bg-purple-50/60 rounded-xl border border-purple-200">
+                <b class="text-purple-800 block mb-1">👑 Superadmin (Master Promotor)</b>
+                <span class="text-slate-600 block">Memegang kendali seluruh 6 kelompok usaha, dapat melihat laporan konsolidasi global, mengelola master akun, mengganti peran ke akun kelompok (impersonasi), serta membatalkan transaksi yang salah input.</span>
+              </div>
+              <div class="p-3 bg-blue-50/60 rounded-xl border border-blue-200">
+                <b class="text-blue-800 block mb-1">👤 Admin Kelompok (Kelompok 1 s/d 6)</b>
+                <span class="text-slate-600 block">Fokus mengelola dagangan kelompoknya sendiri: mengatur HPP produk kelompok, mencatat kas masuk PO dan penjualan langsung stan, mencatat beban pengeluaran, menyetor modal, dan mencetak laporan keuangan mandiri. Data terlindungi via Row-Level Security.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BAB 2: ETALASE PROMOSI -->
+        <div id="guide-view-etalase" class="hidden space-y-4">
+          <div class="p-4 bg-amber-50/70 rounded-2xl border border-amber-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
+              <span class="text-base">🛒</span> Panduan Etalase Promosi &amp; Input PO
+            </h4>
+            <p>
+              Etalase Promosi adalah halaman depan interaktif tempat pengunjung melihat poster kuliner setiap kelompok dan melakukan pemesanan makanan/minuman.
+            </p>
+          </div>
+
+          <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-3">
+            <b class="text-slate-900 block text-xs">Langkah-Langkah Pemesanan PO:</b>
+            <ol class="list-decimal ml-5 space-y-2 text-[11px] text-slate-700">
+              <li>
+                <b>Melihat Poster Kelompok:</b> Di bagian atas etalase, geser kartu poster kelompok 1 sampai 6. Klik pada poster untuk membukanya dalam tampilan layar penuh (Lightbox) agar rincian gambar terlihat jelas.
+              </li>
+              <li>
+                <b>Memilih Kelompok Usaha:</b> Klik tombol kelompok (misal: <i>Kelompok 1 - Panda Food</i>) pada daftar kelompok untuk menampilkan menu spesifik kelompok tersebut.
+              </li>
+              <li>
+                <b>Melakukan Input Pesanan:</b> Tekan tombol <b>+ Pesan / PO Sekarang</b> berwarna oranye. Jendela formulir PO akan terbuka.
+              </li>
+              <li>
+                <b>Mengisi Data Pemesan:</b> Masukkan Nama Pembeli, Nomor WhatsApp aktif (untuk konfirmasi pengambilan), dan pilih <b>Kelas / Kategori Pembeli</b> (tersedia dropdown master kelas X, XI, XII RPL/AK/DKV, Guru/Staf, atau Umum).
+              </li>
+              <li>
+                <b>Memilih Menu Satuan &amp; Paket Bundling:</b> Tentukan jumlah porsi (qty) yang ingin dipesan. Paket bundling hemat otomatis menghitung total diskon paket.
+              </li>
+              <li>
+                <b>Memastikan Pesanan Tersimpan:</b> Klik tombol <b>Simpan Pesanan PO</b>. Muncul notifikasi hijau <i>"Pesanan berhasil dicatat!"</i> dan pesanan otomatis masuk ke daftar pesanan kasir secara real-time.
+              </li>
             </ol>
           </div>
         </div>
 
-        <!-- Tab 2: Formula Kas vs Omzet vs Modal -->
-        <div id="guide-view-formula" class="hidden space-y-4">
-          <div class="p-4 bg-cyan-50/60 rounded-2xl border border-cyan-200">
-            <h4 class="font-bold text-slate-900 text-sm mb-1.5 flex items-center gap-2">
-              <span>⚖️</span> Perbedaan Saldo Kas Riil, Omzet Penjualan, dan Modal
-            </h4>
-            <p class="text-slate-700">
-              Sistem B-Zooginer menerapkan aturan akuntansi ketat agar uang fisik yang ada di tangan kasir selalu cocok dengan laporan di layar:
-            </p>
-            <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div class="p-3 bg-white rounded-xl border border-slate-200">
-                <b class="text-purple-700 block">💼 1. Modal Kelompok</b>
-                <span class="text-[11px] text-slate-600 block mt-1">Uang modal awal/tambahan dari anggota. <b>Bukan omzet dan bukan laba!</b> Modal menambah kas fisik tetapi tidak menambah performa penjualan.</span>
-              </div>
-              <div class="p-3 bg-white rounded-xl border border-slate-200">
-                <b class="text-slate-900 block">🛒 2. Total Penjualan (Omzet)</b>
-                <span class="text-[11px] text-slate-600 block mt-1">Nilai total seluruh pesanan PO ditambah penjualan manual. Omzet mencerminkan volume transaksi, belum tentu seluruhnya sudah berwujud uang tunai jika ada piutang.</span>
-              </div>
-              <div class="p-3 bg-white rounded-xl border border-slate-200">
-                <b class="text-emerald-700 block">💵 3. Saldo Kas Riil</b>
-                <span class="text-[11px] text-slate-600 block mt-1">Uang tunai fisik nyata di tangan bendahara: <code>Modal + Kas Masuk Terverifikasi - Total Pengeluaran</code>. Piutang dan pesanan lunas lama yang belum direkonsiliasi tidak dihitung.</span>
-              </div>
-            </div>
-            <div class="mt-3 p-3 bg-white rounded-xl border border-cyan-200 text-cyan-900 font-mono text-[11px]">
-              <b>Rumus Baku:</b> Saldo Kas Riil = Modal Disetor + Uang PO Diterima + Pendapatan Langsung - Beban Pengeluaran
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 3: Rekonsiliasi 102 Pesanan -->
-        <div id="guide-view-recon" class="hidden space-y-4">
-          <div class="p-4 bg-amber-50/60 rounded-2xl border border-amber-200">
-            <h4 class="font-bold text-slate-900 text-sm mb-1.5 flex items-center gap-2">
-              <span>🔄</span> Mengapa Ada 102 Pesanan Belum Tercatat di Buku Kas?
-            </h4>
-            <p class="text-slate-700">
-              Pada Phase 1 sampai 4, pesanan dapat ditandai 'Lunas' melalui tombol centang sederhana tanpa adanya buku kas keuangan terperinci. Total terdapat 102 pesanan bernilai Rp 1.014.000 dengan status ini.
-            </p>
-            <div class="mt-3 space-y-2 text-slate-800">
-              <p>
-                <b>Mengapa tidak langsung dimasukkan ke Saldo Kas Riil?</b><br>
-                Jika sistem otomatis memasukkan Rp 1.014.000 ke saldo kas tanpa verifikasi fisik, saldo kas di aplikasi akan langsung membengkak padahal kasir/bendahara kelompok belum tentu memegang uang fisik tersebut.
-              </p>
-              <p>
-                <b>Langkah Rekonsiliasi:</b><br>
-                1. Buka modal <i>'Rekonsiliasi Kas Historis'</i> melalui banner audit di Dashboard Keuangan.<br>
-                2. Cocokkan uang tunai yang dipegang kasir kelompok dengan pesanan yang tertera.<br>
-                3. Klik <b>'Verifikasi Kas Masuk'</b> untuk pesanan yang uangnya sudah ada.<br>
-                4. Sistem akan membuat entri resmi di buku kas dengan id unik, dan dana otomatis masuk ke <b>Saldo Kas Riil</b>.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 4: Pusat Monitoring -->
-        <div id="guide-view-mon" class="hidden space-y-4">
-          <div class="p-4 bg-amber-50/40 rounded-2xl border border-amber-200">
-            <h4 class="font-bold text-slate-900 text-sm mb-1.5 flex items-center gap-2">
-              <span>📋</span> Fitur Pusat Monitoring (Phase 4)
-            </h4>
-            <p class="text-slate-700">
-              Pusat Monitoring berfungsi untuk memantau integritas data dan kepatuhan pembayaran pesanan:
-            </p>
-            <ul class="list-disc ml-5 mt-2 space-y-1.5 text-slate-800">
-              <li><b>Audit Kelengkapan Data:</b> Memeriksa nama pemesan, nomor kontak, kelas/kategori pembeli, dan rincian item pesanan. Jika ada field yang kosong, sistem memberi tanda 'Perlu Dilengkapi'.</li>
-              <li><b>Monitoring Status Pembayaran:</b> Memisahkan pesanan lunas, DP (uang muka), dan belum bayar.</li>
-              <li><b>Kinerja Kelompok:</b> Menampilkan perbandingan performa antar kelompok 1 hingga 6 secara real-time.</li>
-              <li><b>Fitur Minimalkan (Hide/Show):</b> Anda dapat menyembunyikan panel monitoring dengan tombol di menu monitoring agar layar tetap lega. Pilihan Anda akan diingat di browser.</li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Tab 5: Hak Akses & Peran -->
-        <div id="guide-view-roles" class="hidden space-y-4">
-          <div class="p-4 bg-purple-50/60 rounded-2xl border border-purple-200">
-            <h4 class="font-bold text-slate-900 text-sm mb-1.5 flex items-center gap-2">
-              <span>👥</span> Perbedaan Hak Akses: Superadmin vs Admin Kelompok
-            </h4>
-            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div class="p-3.5 bg-white rounded-xl border border-purple-200">
-                <b class="text-purple-800 text-xs block mb-1">👑 Superadmin</b>
-                <ul class="list-disc ml-4 space-y-1 text-[11px] text-slate-600">
-                  <li>Dapat melihat seluruh kelompok sekaligus (Konsolidasi Global).</li>
-                  <li>Dapat berpindah filter kelompok mana pun.</li>
-                  <li>Memiliki fitur <i>'Login Sebagai Admin Kelompok'</i> (Impersonation).</li>
-                  <li>Dapat menambah, mengedit, atau mengarsipkan kelompok dan akun.</li>
-                  <li>Dapat membatalkan / mengoreksi transaksi kas bila terjadi kesalahan.</li>
-                </ul>
-              </div>
-              <div class="p-3.5 bg-white rounded-xl border border-slate-200">
-                <b class="text-slate-800 text-xs block mb-1">👤 Admin Kelompok (Kelompok 1–6)</b>
-                <ul class="list-disc ml-4 space-y-1 text-[11px] text-slate-600">
-                  <li>Hanya dapat melihat dan mengelola keuangan kelompoknya sendiri (Terisolasi via RLS).</li>
-                  <li>Dapat mengatur HPP menu kelompok.</li>
-                  <li>Dapat mencatat kas masuk PO, pengeluaran belanja, dan modal sendiri.</li>
-                  <li>Dapat mencetak laporan laba rugi dan arus kas kelompoknya.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 6: Tips & Cetak Laporan -->
-        <div id="guide-view-tips" class="hidden space-y-4">
+        <!-- BAB 3: DASHBOARD MASTER -->
+        <div id="guide-view-dashboard" class="hidden space-y-4">
           <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-            <h4 class="font-bold text-slate-900 text-sm mb-1.5 flex items-center gap-2">
-              <span>💡</span> Tips Operasional &amp; Panduan Cetak Laporan
+            <h4 class="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
+              <span class="text-base">📊</span> Fungsi Dashboard Master (Superadmin &amp; Kelompok)
             </h4>
-            <ul class="list-disc ml-5 mt-2 space-y-1.5 text-slate-800">
-              <li><b>Cetak Laporan:</b> Buka tab <i>'Laba Rugi &amp; Arus Kas'</i>, pilih periode yang diinginkan (Hari Ini / Minggu Ini / Semua Waktu), lalu tekan tombol <b>🖨️ Cetak / Simpan PDF</b>. Halaman cetak otomatis menghilangkan menu navigasi dan tombol.</li>
-              <li><b>Kustom Tanggal:</b> Pilih periode <i>'Kustom Tanggal...'</i> di menu atas untuk menyaring transaksi pada rentang hari tertentu.</li>
-              <li><b>Perpindahan Tab Browser:</b> Sesi login Anda aman dan tidak akan logout atau me-refresh otomatis saat Anda membuka aplikasi lain atau tab baru.</li>
-              <li><b>Satu Perangkat Satu Sesi:</b> Gunakan fitur Perangkat Aktif untuk memantau rekan kelompok yang sedang membuka web secara bersamaan.</li>
-            </ul>
+            <p>
+              Dashboard Master adalah pusat komando operasional yang menyajikan rangkuman cepat seluruh metrik penjualan bazar tanpa perlu menghitung manual.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-[11px]">
+            <div class="p-3 bg-white rounded-xl border border-slate-200">
+              <b class="text-slate-900 block mb-1">📦 Ringkasan Pesanan</b>
+              <span class="text-slate-600">Menampilkan jumlah total pesanan yang masuk, jumlah item porsi yang dipesan, dan perbandingan status pesanan.</span>
+            </div>
+            <div class="p-3 bg-white rounded-xl border border-slate-200">
+              <b class="text-emerald-800 block mb-1">💰 Rangkuman Omzet Global</b>
+              <span class="text-slate-600">Total nilai penjualan dari seluruh pesanan kelompok. Superadmin dapat melihat konsolidasi, sedangkan admin kelompok melihat omzet unitnya.</span>
+            </div>
+            <div class="p-3 bg-white rounded-xl border border-slate-200">
+              <b class="text-amber-800 block mb-1">🏢 Manajemen Unit Kelompok</b>
+              <span class="text-slate-600">Superadmin dapat menambah kelompok baru, mengedit poster, mengatur status aktif/arsip kelompok, dan mengunduh rekap Excel.</span>
+            </div>
           </div>
         </div>
+
+        <!-- BAB 4: PUSAT MONITORING -->
+        <div id="guide-view-monitoring" class="hidden space-y-4">
+          <div class="p-4 bg-amber-50/70 rounded-2xl border border-amber-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
+              <span class="text-base">📋</span> Panduan Pusat Monitoring (Phase 4)
+            </h4>
+            <p>
+              Pusat Monitoring bertugas mengaudit integritas data pesanan sebelum bazar dan memantau realisasi pembayaran tunai kasir.
+            </p>
+          </div>
+
+          <div class="space-y-3 text-[11px]">
+            <div class="p-3.5 bg-white rounded-xl border border-slate-200 space-y-1">
+              <b class="text-slate-900 block text-xs">1. Tab Kelengkapan Data</b>
+              <p class="text-slate-600">
+                Sistem memeriksa 4 unsur wajib data pesanan: Nama Pembeli, Nomor Kontak WhatsApp, Kelas/Kategori Pembeli, dan Rincian Menu Pesanan.
+              </p>
+              <ul class="list-disc ml-5 mt-1 space-y-0.5 text-slate-700">
+                <li><b class="text-emerald-700">Status Lengkap (Hijau):</b> Seluruh field terisi dengan format valid. Pesanan siap diproduksi dan diantar.</li>
+                <li><b class="text-rose-700">Status Perlu Dilengkapi (Merah):</b> Terdapat data kosong (misal: nomor telepon belum dicatat). Klik <i>Edit Pesanan</i> untuk melengkapi.</li>
+              </ul>
+            </div>
+
+            <div class="p-3.5 bg-white rounded-xl border border-slate-200 space-y-1">
+              <b class="text-slate-900 block text-xs">2. Tab Status Pembayaran</b>
+              <p class="text-slate-600">
+                Memvalidasi kepatuhan transaksi kasir tunai (Cash Only). Memisahkan pesanan yang sudah <b>Lunas</b>, membayar <b>DP (Uang Muka)</b>, dan yang masih <b>Belum Lunas (Piutang)</b>.
+              </p>
+            </div>
+
+            <div class="p-3.5 bg-white rounded-xl border border-slate-200 space-y-1">
+              <b class="text-slate-900 block text-xs">3. Menggunakan Pencarian &amp; Filter</b>
+              <p class="text-slate-600">
+                Gunakan kolom pencarian untuk mencari nama siswa/guru secara instan. Gunakan dropdown filter kelas untuk menyaring pesanan per ruang kelas saat distribusi makanan.
+              </p>
+            </div>
+
+            <div class="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-amber-950">
+              <b class="block text-xs font-bold mb-0.5">👁️ Fitur Sembunyikan / Tampilkan (Hide/Show Monitoring)</b>
+              <span>Klik tombol <b>Sembunyikan</b> di samping tab switcher monitoring untuk menciutkan panel agar layar tetap lega. Banner ringkasan akan muncul dan pilihan Anda tersimpan di browser.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- BAB 5: MANAJEMEN KEUANGAN (LENGKAP A-G) -->
+        <div id="guide-view-keuangan" class="hidden space-y-4">
+          <div class="p-4 bg-emerald-50/70 rounded-2xl border border-emerald-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-1.5 flex items-center gap-2">
+              <span class="text-base">💼</span> Panduan Manajemen Keuangan &amp; Akuntansi (Phase 5)
+            </h4>
+            <p class="text-[11px]">
+              Sistem keuangan B-Zooginer menerapkan pencatatan kas fisik terverifikasi (*double-entry cash basis*). Ikuti panduan bagian A sampai G di bawah ini:
+            </p>
+          </div>
+
+          <!-- Bagian A: 10 KPI Dashboard Keuangan -->
+          <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-2">
+            <b class="text-slate-900 block text-xs font-black">A. Arti 10 Metrik Utama (KPI Dashboard Keuangan)</b>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+              <div class="p-2.5 bg-slate-50 rounded-xl"><b>1. Total Penjualan (Omzet):</b> Nilai transaksi kotor seluruh pesanan PO ditambah penjualan langsung di stan.</div>
+              <div class="p-2.5 bg-emerald-50 rounded-xl text-emerald-900"><b>2. Kas Masuk Terverifikasi:</b> Uang fisik nyata yang sudah diterima kasir dari PO dan penjualan stan.</div>
+              <div class="p-2.5 bg-amber-50 rounded-xl text-amber-900"><b>3. Total Piutang:</b> Nilai pesanan yang belum dibayar pembeli. Harus ditagih saat penyerahan makanan.</div>
+              <div class="p-2.5 bg-blue-50 rounded-xl text-blue-900"><b>4. Pendapatan Manual:</b> Penjualan langsung on-the-spot di stan bazar tanpa melalui nomor PO.</div>
+              <div class="p-2.5 bg-purple-50 rounded-xl text-purple-900"><b>5. Modal Kelompok:</b> Dana awal/tambahan iuran anggota. <b>Bukan omzet dan bukan laba!</b></div>
+              <div class="p-2.5 bg-rose-50 rounded-xl text-rose-900"><b>6. Total Pengeluaran:</b> Biaya belanja bahan baku, kemasan, sewa stan, dan operasional.</div>
+              <div class="p-2.5 bg-slate-50 rounded-xl"><b>7. Total HPP Terjual:</b> Biaya pokok menu terjual dihitung dari <code>Qty Terjual × HPP per Unit</code>.</div>
+              <div class="p-2.5 bg-brand-50 rounded-xl text-brand-900"><b>8. Laba Kotor:</b> <code>Omzet Penjualan - Total HPP</code>. Mengukur efisiensi penetapan harga.</div>
+              <div class="p-2.5 bg-emerald-50 rounded-xl text-emerald-900"><b>9. Laba Bersih:</b> <code>Laba Kotor - Total Pengeluaran</code>. Keuntungan riil bersih usaha.</div>
+              <div class="p-2.5 bg-cyan-50 rounded-xl text-cyan-950 font-bold border border-cyan-200"><b>10. Saldo Kas Riil:</b> <code>Modal + Kas Terverifikasi - Total Pengeluaran</code>. Wajib cocok dengan uang fisik di dompet kasir!</div>
+            </div>
+          </div>
+
+          <!-- Bagian B: HPP Produk -->
+          <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-2 text-[11px]">
+            <b class="text-slate-900 block text-xs font-black">B. Pengaturan HPP (Harga Pokok Penjualan) Produk</b>
+            <p class="text-slate-600">
+              HPP adalah modal yang dikeluarkan untuk memproduksi 1 porsi menu (bahan baku + kemasan dasar).
+            </p>
+            <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900">
+              <b>Contoh Perhitungan:</b><br>
+              Kelompok menjual <i>Burger Safari</i> seharga <b>Rp 15.000</b>. Biaya roti, daging, saus, dan bungkus per porsi adalah <b>Rp 8.000</b> (HPP).<br>
+              Maka laba kotor per burger adalah <code>Rp 15.000 - Rp 8.000 = Rp 7.000</code>.<br>
+              Jika terjual 50 porsi, laba kotor yang dihasilkan adalah <code>50 × Rp 7.000 = Rp 350.000</code>.
+            </div>
+            <p class="text-slate-600">
+              <b>PENTING:</b> Seluruh menu wajib diisi HPP pada tab <b>🏷️ HPP Produk</b>. Jika ada menu terjual yang belum memiliki HPP, sistem akan menampilkan peringatan kuning karena perhitungan laba kotor menjadi tidak akurat.
+            </p>
+          </div>
+
+          <!-- Bagian C: Kas Masuk PO -->
+          <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-2 text-[11px]">
+            <b class="text-slate-900 block text-xs font-black">C. Kas Masuk &amp; Pencatatan Pembayaran PO</b>
+            <ol class="list-decimal ml-5 space-y-1.5 text-slate-700">
+              <li>Buka tab <b>📥 Kas Masuk &amp; PO</b> atau klik tombol <b>Bayar</b> pada baris pesanan.</li>
+              <li>Pilih opsi pembayaran: <b>Full (Lunas)</b> jika pembeli langsung membayar 100%, atau <b>DP (Uang Muka)</b> jika membayar sebagian (misal: bayar Rp 10.000 dari total Rp 30.000).</li>
+              <li>Saat pembeli melunasi sisanya di stan, catat transaksi <b>Pelunasan (Repayment)</b>.</li>
+              <li>Setiap pembayaran tersimpan di tabel kas resmi dan langsung menambah saldo kas riil kelompok.</li>
+            </ol>
+          </div>
+
+          <!-- Bagian D: Rekonsiliasi Pesanan Historis -->
+          <div class="p-4 bg-amber-50/80 rounded-2xl border border-amber-300 shadow-xs space-y-2 text-[11px]">
+            <b class="text-amber-950 block text-xs font-black">D. Rekonsiliasi 102 Pesanan Historis (Phase 1–4)</b>
+            <p class="text-amber-900">
+              <b>Mengapa Ada Pesanan Belum Direkonsiliasi?</b> Pada Phase 1 sampai 4, pesanan dapat ditandai 'Lunas' melalui tombol toggle sederhana sebelum buku kas fisik dibuat. Terdapat 102 pesanan bernilai Rp 1.014.000 dengan status ini.
+            </p>
+            <div class="p-3 bg-white rounded-xl border border-amber-200 text-slate-800">
+              <b>Aturan Tegas Rekonsiliasi:</b><br>
+              1. Buka modal <i>'Rekonsiliasi Kas Historis'</i> melalui banner audit di Dashboard Keuangan.<br>
+              2. <b>Wajib periksa fisik uang:</b> Jangan menekan tombol verifikasi sebelum uang tunai dipastikan benar-benar ada di tangan kasir kelompok!<br>
+              3. Klik <b>✓ Verifikasi Kas</b> untuk memverifikasi satu pesanan, atau gunakan tombol batch untuk memverifikasi seluruh pesanan satu kelompok sekaligus jika uangnya sudah disetor.<br>
+              4. Sistem membuat entri kas resmi dengan id unik (idempotent), dan dana otomatis masuk ke <b>Saldo Kas Riil</b>.
+            </div>
+          </div>
+
+          <!-- Bagian E: Pengeluaran -->
+          <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-2 text-[11px]">
+            <b class="text-slate-900 block text-xs font-black">E. Pencatatan Pengeluaran / Beban Operasional</b>
+            <p class="text-slate-600">
+              Buka tab <b>📤 Pengeluaran</b> &rarr; klik <b>+ Catat Pengeluaran</b>. Pilih kategori yang tepat (Bahan Baku, Transportasi, Kemasan, Sewa Stan, atau Lain-lain). Masukkan nominal dan keterangan nota. Pengeluaran otomatis mengurangi kas fisik riil dan laba bersih. Jika terjadi salah input, Superadmin dapat menggunakan tombol <b>Batalkan</b> untuk reversal yang aman.
+            </p>
+          </div>
+
+          <!-- Bagian F: Modal -->
+          <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-2 text-[11px]">
+            <b class="text-slate-900 block text-xs font-black">F. Setoran Modal Kelompok</b>
+            <p class="text-slate-600">
+              Buka tab <b>💼 Modal</b> &rarr; klik <b>+ Setor Modal</b>. Masukkan nama penyetor (misal: "Patungan Anggota Kelompok 2") dan nominalnya. Modal akan menambah kas fisik tanpa merusak catatan omzet penjualan atau laporan laba bersih.
+            </p>
+          </div>
+
+          <!-- Bagian G: Laporan -->
+          <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-2 text-[11px]">
+            <b class="text-slate-900 block text-xs font-black">G. Laporan Laba Rugi, Arus Kas &amp; Cetak PDF</b>
+            <p class="text-slate-600">
+              Buka tab <b>📑 Laba Rugi &amp; Arus Kas</b>. Pilih filter periode (Hari Ini, Minggu Ini, Semua Waktu, atau Kustom Tanggal). Untuk mencetak atau menyimpan berkas PDF, klik tombol <b>🖨️ Cetak / Simpan PDF</b>. Seluruh tombol dan navigasi otomatis disembunyikan saat dicetak sehingga menghasilkan dokumen laporan yang rapi.
+            </p>
+          </div>
+        </div>
+
+        <!-- BAB 6: PERANGKAT & LIVE SYNC -->
+        <div id="guide-view-perangkat" class="hidden space-y-4">
+          <div class="p-4 bg-emerald-50/70 rounded-2xl border border-emerald-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
+              <span class="text-base">📱</span> Fitur Perangkat &amp; Live Sync Realtime
+            </h4>
+            <p>
+              Sistem B-Zooginer dilengkapi fitur <i>Supabase Realtime &amp; Presence</i> yang memungkinkan sinkronisasi data seketika antar perangkat tanpa perlu merefresh halaman.
+            </p>
+          </div>
+
+          <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-2.5 text-[11px]">
+            <b class="text-slate-900 block text-xs">Status Indikator Perangkat:</b>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div class="p-3 bg-slate-50 rounded-xl">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block mr-1"></span>
+                <b class="text-slate-900">Aktif / Online:</b>
+                <p class="text-slate-500 text-[10px] mt-0.5">Perangkat sedang membuka aplikasi dan terhubung ke server cloud.</p>
+              </div>
+              <div class="p-3 bg-slate-50 rounded-xl">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block mr-1"></span>
+                <b class="text-slate-900">Sedang Menginput:</b>
+                <p class="text-slate-500 text-[10px] mt-0.5">Pengguna sedang mengisi form pesanan atau transaksi kas.</p>
+              </div>
+              <div class="p-3 bg-slate-50 rounded-xl">
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-400 inline-block mr-1"></span>
+                <b class="text-slate-900">Idle / Tidak Aktif:</b>
+                <p class="text-slate-500 text-[10px] mt-0.5">Perangkat tidak melakukan aktivitas dalam 5 menit terakhir.</p>
+              </div>
+            </div>
+            <p class="text-slate-500 text-[10px] pt-1">
+              <i>Privasi &amp; Keamanan:</i> Sistem hanya mendeteksi jenis peramban (Chrome/Safari/Firefox) dan sistem operasi perangkat. Tidak ada data pribadi atau lokasi yang dilacak.
+            </p>
+          </div>
+        </div>
+
+        <!-- BAB 7: KELOLA AKUN & GANTI AKUN -->
+        <div id="guide-view-akun" class="hidden space-y-4">
+          <div class="p-4 bg-purple-50/70 rounded-2xl border border-purple-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
+              <span class="text-base">👥</span> Panduan Kelola Akun &amp; Fitur Ganti Akun
+            </h4>
+            <p>
+              Panduan manajemen pengguna dan mekanisme beralih akun kelompok untuk Superadmin.
+            </p>
+          </div>
+
+          <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-3 text-[11px]">
+            <div>
+              <b class="text-purple-900 block text-xs">Cara Superadmin Beralih Akun (Impersonation):</b>
+              <p class="text-slate-600 mt-0.5">
+                Superadmin dapat bertindak sebagai Admin Kelompok tertentu untuk membantu input pesanan atau memeriksa pembukuan:
+              </p>
+              <ul class="list-disc ml-5 mt-1 space-y-1 text-slate-700">
+                <li><b>Di Komputer / Laptop:</b> Klik tombol <b>Ganti Akun ▾</b> di header navigasi atas &rarr; pilih kelompok tujuan (Kelompok 1 sampai 6).</li>
+                <li><b>Di Ponsel / HP:</b> Buka menu hamburger di kanan atas &rarr; tekan menu <b>Ganti Akun (Kelompok 1–6)</b> &rarr; ketuk nama kelompok yang diinginkan.</li>
+              </ul>
+            </div>
+
+            <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900">
+              <b>Cara Kembali ke Akun Superadmin:</b><br>
+              Saat impersonasi aktif, muncul bar informasi berwarna oranye di atas halaman atau tombol merah <b>'Kembali ke Superadmin'</b> di menu mobile. Klik tombol tersebut untuk kembali ke dashboard master seketika.
+            </div>
+
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-700">
+              <b>Peringatan Keamanan Akun:</b><br>
+              Jangan pernah membagikan username dan kata sandi akun kelompok kepada pihak luar. Jika ada anggota yang lupa kata sandi, Superadmin dapat meresetnya melalui modal <b>Kelola Akun</b>.
+            </div>
+          </div>
+        </div>
+
+        <!-- BAB 8: FAQ & SOLUSI MASALAH -->
+        <div id="guide-view-faq" class="hidden space-y-4">
+          <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+            <h4 class="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
+              <span class="text-base">❓</span> Tanya Jawab (FAQ) &amp; Solusi Kendala
+            </h4>
+            <p>
+              Berikut adalah solusi untuk pertanyaan dan kendala teknis yang kerap ditemui saat pengoperasian bazar:
+            </p>
+          </div>
+
+          <div class="space-y-2.5 text-[11px]">
+            <div class="p-3 bg-white rounded-xl border border-slate-200">
+              <b class="text-slate-900 block">Q: Mengapa tombol simpan atau tombol bayar tidak merespons saat diklik?</b>
+              <p class="text-slate-600 mt-0.5">
+                <b>A:</b> Pastikan seluruh kolom bertanda bintang (*) sudah terisi dan nominal yang dimasukkan lebih besar dari 0. Periksa koneksi internet ponsel/laptop Anda. Jika koneksi sempat terputus, refresh halaman browser sekali.
+              </p>
+            </div>
+
+            <div class="p-3 bg-white rounded-xl border border-slate-200">
+              <b class="text-slate-900 block">Q: Mengapa pesanan yang baru diinput rekan di stan lain belum muncul di layar saya?</b>
+              <p class="text-slate-600 mt-0.5">
+                <b>A:</b> Periksa indikator <i>Live Sync</i> di header atas. Jika berwarna hijau berkedip, sistem terhubung normal. Pastikan dropdown filter kelompok pada tabel pesanan Anda tidak sedang menyaring kelompok lain atau filter kelas tertentu.
+              </p>
+            </div>
+
+            <div class="p-3 bg-white rounded-xl border border-slate-200">
+              <b class="text-slate-900 block">Q: Saldo kas riil di aplikasi berbeda dengan uang fisik di kotak uang kasir. Mengapa?</b>
+              <p class="text-slate-600 mt-0.5">
+                <b>A:</b> Periksa dua hal: (1) Apakah ada belanja/pengeluaran bahan yang belum dicatat di tab Pengeluaran? (2) Apakah ada pesanan lunas lama yang belum diverifikasi di modal Rekonsiliasi Kas Historis? Segera selesaikan rekonsiliasi agar saldo kas akurat.
+              </p>
+            </div>
+
+            <div class="p-3 bg-white rounded-xl border border-slate-200">
+              <b class="text-slate-900 block">Q: Mengapa saat saya berganti tab browser ke aplikasi lain, sesi saya tidak keluar?</b>
+              <p class="text-slate-600 mt-0.5">
+                <b>A:</b> Sistem B-Zooginer telah dilengkapi proteksi auto-refresh sehingga token login diperbarui secara senyap di latar belakang tanpa me-reload halaman atau membatalkan sesi kerja Anda.
+              </p>
+            </div>
+
+            <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-950">
+              <b class="block mb-0.5">Bantuan Teknis Lebih Lanjut:</b>
+              <span>Jika mengalami kendala yang tidak tercantum di atas, hubungi Superadmin atau Koordinator Teknis Bazar Zoo Market 2026.</span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Footer -->
-      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs">
-        <span class="text-slate-400 text-[11px]">B-Zooginer 2026 · Dokumentasi Lengkap di <code class="bg-slate-200 px-1 py-0.5 rounded text-slate-700">docs/PANDUAN-MANAJEMEN-KEUANGAN.md</code></span>
-        <button type="button" onclick="closeModal('user-guide-modal')" class="btn btn-sm btn-ink cursor-pointer font-bold">
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs shrink-0">
+        <span class="text-slate-400 text-[11px] truncate mr-2">B-Zooginer 2026 · Dokumentasi Lengkap di <code class="bg-slate-200 px-1 py-0.5 rounded text-slate-700">docs/PANDUAN-MANAJEMEN-KEUANGAN.md</code></span>
+        <button type="button" onclick="closeModal('user-guide-modal')" class="btn btn-sm btn-ink cursor-pointer font-bold shrink-0">
           Mengerti &amp; Tutup
         </button>
       </div>
@@ -7340,6 +7676,7 @@
 
     function switchMonitoringTab(tabName) {
       currentMonitoringTab = tabName;
+      toggleOrderMonitoringCollapse(false, true); // Auto expand when switching monitoring tab
       ['completeness', 'payments', 'groups'].forEach(t => {
         const btn = document.getElementById(`tab-mon-${t}`);
         const view = document.getElementById(`mon-view-${t}`);
@@ -7356,6 +7693,7 @@
       if (currentUser && currentUser.role === 'superadmin') {
         switchSuperadminPage('dashboard');
       }
+      toggleOrderMonitoringCollapse(false, true); // Auto expand when navigating to monitoring
       if (tab) switchMonitoringTab(tab);
       const sec = document.getElementById('section-order-monitoring');
       if (sec) {
@@ -7364,6 +7702,9 @@
         setTimeout(() => sec.classList.remove('ring-2', 'ring-amber-500'), 1500);
       }
     }
+
+    window.switchMonitoringTab = switchMonitoringTab;
+    window.scrollToOrderMonitoringSection = scrollToOrderMonitoringSection;
 
     function debouncedOrderCompleteness() {
       clearTimeout(_compSearchTimer);
@@ -7845,9 +8186,13 @@
 
     // --- UI Improvement: Hide/Show Pusat Monitoring ---
     function initOrderMonitoringCollapseState() {
-      const collapsed = localStorage.getItem('bzooginer_monitoring_collapsed') === 'true';
-      toggleOrderMonitoringCollapse(collapsed, false);
-      updateCollapsedMonitoringSummary();
+      try {
+        const collapsed = localStorage.getItem('bzooginer_monitoring_collapsed') === 'true';
+        toggleOrderMonitoringCollapse(collapsed, false);
+        updateCollapsedMonitoringSummary();
+      } catch (e) {
+        console.warn('Init monitoring collapse notice:', e);
+      }
     }
 
     function toggleOrderMonitoringCollapse(forceState = null, saveStorage = true) {
@@ -7865,14 +8210,18 @@
         if (banner) banner.classList.remove('hidden');
         if (icon) icon.textContent = '👁️‍🗨️';
         if (text) text.textContent = 'Tampilkan';
-        if (saveStorage) localStorage.setItem('bzooginer_monitoring_collapsed', 'true');
+        if (saveStorage) {
+          try { localStorage.setItem('bzooginer_monitoring_collapsed', 'true'); } catch (e) {}
+        }
         updateCollapsedMonitoringSummary();
       } else {
         content.classList.remove('hidden');
         if (banner) banner.classList.add('hidden');
         if (icon) icon.textContent = '👁️';
         if (text) text.textContent = 'Sembunyikan';
-        if (saveStorage) localStorage.setItem('bzooginer_monitoring_collapsed', 'false');
+        if (saveStorage) {
+          try { localStorage.setItem('bzooginer_monitoring_collapsed', 'false'); } catch (e) {}
+        }
       }
     }
 
@@ -7887,11 +8236,66 @@
       for (const ord of list) {
         const check = validateOrderCompleteness(ord);
         if (check.status === 'Lengkap') validCount++;
-        const paid = getOrderPaidAmount(ord);
-        if (paid >= ord.total) paidCount++;
+        const paid = getOrderVerifiedPaidAmount(ord);
+        if (paid >= ord.total || ord.status === 'Lunas') paidCount++;
         paidAmount += paid;
       }
       pill.textContent = `Total: ${total} Pesanan · ${validCount} Lengkap · ${paidCount} Lunas (${formatRupiah(paidAmount)})`;
+    }
+
+    // --- UI Improvement: Hide/Show Manajemen Keuangan ---
+    function initFinanceCollapseState() {
+      try {
+        const isCollapsed = localStorage.getItem('bzooginer_finance_collapsed') === 'true';
+        toggleFinanceCollapse(isCollapsed, false);
+        updateCollapsedFinanceSummary();
+      } catch (e) {
+        console.warn('Init finance collapse notice:', e);
+      }
+    }
+
+    function toggleFinanceCollapse(forceState = null, saveStorage = true) {
+      const content = document.getElementById('finance-content-wrap');
+      const banner = document.getElementById('finance-collapsed-bar');
+      const icon = document.getElementById('btn-toggle-fin-icon');
+      const text = document.getElementById('btn-toggle-fin-text');
+      if (!content) return;
+
+      const isCurrentlyCollapsed = content.classList.contains('hidden');
+      const shouldCollapse = forceState !== null ? forceState : !isCurrentlyCollapsed;
+
+      if (shouldCollapse) {
+        content.classList.add('hidden');
+        if (banner) banner.classList.remove('hidden');
+        if (icon) icon.textContent = '👁️‍🗨️';
+        if (text) text.textContent = 'Tampilkan';
+        if (saveStorage) {
+          try { localStorage.setItem('bzooginer_finance_collapsed', 'true'); } catch (e) {}
+        }
+        updateCollapsedFinanceSummary();
+      } else {
+        content.classList.remove('hidden');
+        if (banner) banner.classList.add('hidden');
+        if (icon) icon.textContent = '👁️';
+        if (text) text.textContent = 'Sembunyikan';
+        if (saveStorage) {
+          try { localStorage.setItem('bzooginer_finance_collapsed', 'false'); } catch (e) {}
+        }
+      }
+    }
+
+    function updateCollapsedFinanceSummary() {
+      const pill = document.getElementById('fin-collapsed-summary-pill');
+      if (!pill) return;
+      try {
+        const isSuper = currentUser && currentUser.role === 'superadmin';
+        const effectiveGroup = !isSuper ? (currentUser ? currentUser.groupId : 'all') : (typeof financeGroupFilter !== 'undefined' ? financeGroupFilter : 'all');
+        const period = typeof financePeriod !== 'undefined' ? financePeriod : 'all';
+        const m = computeFinancialMetrics(effectiveGroup, period);
+        pill.innerHTML = `<span>Total Omzet: <b>${formatRupiah(m.totalSales)}</b></span> · <span>Kas Terverifikasi: <b>${formatRupiah(m.totalVerifiedCashReceived)}</b></span> · <span>Saldo Kas Riil: <b class="${m.cashBalance < 0 ? 'text-rose-600' : 'text-emerald-700'}">${formatRupiah(m.cashBalance)}</b></span>`;
+      } catch (e) {
+        console.warn('Update finance summary notice:', e);
+      }
     }
 
     // --- Navigation & Section Init ---
@@ -7899,6 +8303,7 @@
       if (currentUser && currentUser.role === 'superadmin') {
         switchSuperadminPage('dashboard');
       }
+      toggleFinanceCollapse(false, true); // Auto expand when navigating to finance
       if (tab) switchFinanceTab(tab);
       const sec = document.getElementById('section-finance');
       if (sec) {
@@ -7910,6 +8315,7 @@
 
     function switchFinanceTab(tab) {
       currentFinanceTab = tab;
+      toggleFinanceCollapse(false, true); // Auto expand when switching finance tab
       const tabs = ['overview', 'hpp', 'revenue', 'expenses', 'capital', 'reports'];
       tabs.forEach(t => {
         const btn = document.getElementById('tab-fin-' + t);
@@ -7919,6 +8325,13 @@
       });
       renderAllFinance();
     }
+
+    // Expose toggle functions globally for HTML onclick reliability
+    window.toggleFinanceCollapse = toggleFinanceCollapse;
+    window.initFinanceCollapseState = initFinanceCollapseState;
+    window.updateCollapsedFinanceSummary = updateCollapsedFinanceSummary;
+    window.toggleOrderMonitoringCollapse = toggleOrderMonitoringCollapse;
+    window.scrollToFinanceSection = scrollToFinanceSection;
 
     function onFinancePeriodChange() {
       const select = document.getElementById('filter-finance-period');
@@ -8011,39 +8424,53 @@
       return true;
     }
 
-    // --- Baseline Historical Reconciliation & Order Payment Calculations ---
-    function getOrderPaidAmount(order) {
+    // --- Order Payment & Historical Reconciliation Engine ---
+    function getOrderVerifiedPaidAmount(order) {
       if (!order) return 0;
-      // 1. Look for ledger payments in orderPayments
-      const matchingPayments = orderPayments.filter(p => p.order_id === order.id);
-      if (matchingPayments.length > 0) {
-        return matchingPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-      }
-      // 2. Baseline Reconciliation for 102 historical orders:
-      // If order.status === 'Lunas' and no payment row recorded yet, count order total as paid
-      if (order.status === 'Lunas') {
-        return Number(order.total || 0);
-      }
-      return 0;
+      const matchingPayments = orderPayments.filter(p => p.order_id === order.id && !p.is_reversed);
+      return matchingPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    }
+
+    function isOrderLegacyUnreconciled(order) {
+      if (!order) return false;
+      const verified = getOrderVerifiedPaidAmount(order);
+      return order.status === 'Lunas' && verified < Number(order.total || 0);
+    }
+
+    function getOrderLegacyUnreconciledAmount(order) {
+      if (!isOrderLegacyUnreconciled(order)) return 0;
+      return Math.max(0, Number(order.total || 0) - getOrderVerifiedPaidAmount(order));
     }
 
     function getOrderUnpaidAmount(order) {
       if (!order) return 0;
-      const paid = getOrderPaidAmount(order);
-      return Math.max(0, Number(order.total || 0) - paid);
+      if (isOrderLegacyUnreconciled(order)) return 0; // Handled under legacy unreconciled
+      const verified = getOrderVerifiedPaidAmount(order);
+      return Math.max(0, Number(order.total || 0) - verified);
+    }
+
+    function getOrderPaidAmount(order) {
+      if (!order) return 0;
+      const verified = getOrderVerifiedPaidAmount(order);
+      if (verified > 0) return verified;
+      if (order.status === 'Lunas') return Number(order.total || 0);
+      return 0;
     }
 
     function getOrderPaymentStatusBadge(order) {
       if (!order) return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">Unknown</span>`;
-      const paid = getOrderPaidAmount(order);
+      const verified = getOrderVerifiedPaidAmount(order);
       const total = Number(order.total || 0);
-      if (paid >= total && total > 0) {
-        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Lunas</span>`;
+      if (verified >= total && total > 0) {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">✓ Lunas Terverifikasi</span>`;
       }
-      if (paid > 0 && paid < total) {
-        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">DP: ${formatRupiah(paid)}</span>`;
+      if (isOrderLegacyUnreconciled(order)) {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300" title="Status Lunas historis Phase 1-4 (belum masuk buku kas fisik)">Lunas (Belum Rekonsiliasi)</span>`;
       }
-      return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Belum Lunas</span>`;
+      if (verified > 0 && verified < total) {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">DP: ${formatRupiah(verified)}</span>`;
+      }
+      return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">Belum Lunas</span>`;
     }
 
     // --- Financial Metrics Computation ---
@@ -8063,11 +8490,16 @@
       // Filter orders by period (order date)
       const periodOrders = accessibleOrders.filter(o => isDateInPeriod(o.createdAt || o.updatedAt, period, startDate, endDate));
 
-      // 1. PO Sales & Receivables
+      // 1. PO Sales, Verified Cash, and Legacy Unreconciled
       const totalPoSales = periodOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
-      const totalPoCashReceived = periodOrders.reduce((sum, o) => sum + getOrderPaidAmount(o), 0);
+      const totalVerifiedPoCash = periodOrders.reduce((sum, o) => sum + getOrderVerifiedPaidAmount(o), 0);
+      const totalLegacyUnreconciledCash = periodOrders.reduce((sum, o) => sum + getOrderLegacyUnreconciledAmount(o), 0);
+      const legacyUnreconciledOrders = periodOrders.filter(o => isOrderLegacyUnreconciled(o));
+      const legacyUnreconciledCount = legacyUnreconciledOrders.length;
+
+      // Pure Receivables (excluding unreconciled legacy orders)
       const totalReceivables = periodOrders.reduce((sum, o) => sum + getOrderUnpaidAmount(o), 0);
-      const unpaidOrdersCount = periodOrders.filter(o => getOrderUnpaidAmount(o) > 0).length;
+      const unpaidOrdersCount = periodOrders.filter(o => !isOrderLegacyUnreconciled(o) && getOrderUnpaidAmount(o) > 0).length;
 
       // 2. Transactions
       let txs = financeTransactions.filter(t => !t.is_reversed);
@@ -8076,11 +8508,11 @@
       }
       const periodTxs = txs.filter(t => isDateInPeriod(t.transaction_date, period, startDate, endDate));
 
-      // Manual revenue
+      // Manual revenue (Direct sales on spot)
       const manualRevTxs = periodTxs.filter(t => t.type === 'revenue');
       const totalManualRevenue = manualRevTxs.reduce((sum, t) => sum + Number(t.amount || 0), 0);
 
-      // Capital (strictly isolated from revenue)
+      // Capital (strictly isolated from revenue/sales/profit)
       const capitalTxs = periodTxs.filter(t => t.type === 'capital');
       const totalCapital = capitalTxs.reduce((sum, t) => sum + Number(t.amount || 0), 0);
 
@@ -8116,21 +8548,26 @@
       const missingHppList = Array.from(missingHppMap.values());
       const hasMissingHpp = missingHppList.length > 0;
 
-      // Master totals
+      // Master totals & Strictly Audited Cash Formula
       const totalSales = totalPoSales + totalManualRevenue;
-      const totalCashReceived = totalPoCashReceived + totalManualRevenue;
+      const totalVerifiedCashReceived = totalVerifiedPoCash + totalManualRevenue;
       const grossProfit = totalSales - totalHpp;
       const netProfit = grossProfit - totalExpenses;
-      const cashBalance = totalCapital + totalCashReceived - totalExpenses;
+      // Saldo Kas Riil = Total Modal + Kas Masuk Terverifikasi - Total Pengeluaran
+      // (Legacy unreconciled cash is EXCLUDED until verified!)
+      const cashBalance = totalCapital + totalVerifiedCashReceived - totalExpenses;
 
       return {
         totalPoSales,
-        totalPoCashReceived,
+        totalVerifiedPoCash,
+        totalLegacyUnreconciledCash,
+        legacyUnreconciledOrders,
+        legacyUnreconciledCount,
         totalReceivables,
         unpaidOrdersCount,
         totalManualRevenue,
         totalSales,
-        totalCashReceived,
+        totalVerifiedCashReceived,
         totalCapital,
         totalExpenses,
         expensesByCategory,
@@ -8158,6 +8595,7 @@
       } else if (currentFinanceTab === 'reports') {
         renderFinanceReports();
       }
+      updateCollapsedFinanceSummary();
     }
 
     // --- View 1: Overview & KPI Dashboard ---
@@ -8174,7 +8612,32 @@
       if (elSalesSub) elSalesSub.textContent = `PO: ${formatRupiah(m.totalPoSales)} · Manual: ${formatRupiah(m.totalManualRevenue)}`;
 
       const elCashRec = document.getElementById('fin-kpi-cash-received');
-      if (elCashRec) elCashRec.textContent = formatRupiah(m.totalCashReceived);
+      if (elCashRec) elCashRec.textContent = formatRupiah(m.totalVerifiedCashReceived);
+
+      const elCashSub = document.getElementById('fin-kpi-cash-received-sub');
+      if (elCashSub) {
+        if (m.totalLegacyUnreconciledCash > 0) {
+          elCashSub.textContent = `+ ${formatRupiah(m.totalLegacyUnreconciledCash)} belum rekonsiliasi kas`;
+          elCashSub.className = 'text-[11px] text-amber-700 font-semibold block truncate';
+        } else {
+          elCashSub.textContent = 'Kas fisik terverifikasi PO & stan';
+          elCashSub.className = 'text-[11px] text-emerald-600/80 block truncate';
+        }
+      }
+
+      // Update Legacy Reconciliation Banner
+      const reconBanner = document.getElementById('fin-legacy-reconcile-banner');
+      const reconCountEl = document.getElementById('fin-unrecon-count');
+      const reconTotalEl = document.getElementById('fin-unrecon-total');
+      if (reconBanner) {
+        if (m.legacyUnreconciledCount > 0) {
+          reconBanner.classList.remove('hidden');
+          if (reconCountEl) reconCountEl.textContent = m.legacyUnreconciledCount;
+          if (reconTotalEl) reconTotalEl.textContent = formatRupiah(m.totalLegacyUnreconciledCash);
+        } else {
+          reconBanner.classList.add('hidden');
+        }
+      }
 
       const elRecv = document.getElementById('fin-kpi-receivables');
       if (elRecv) elRecv.textContent = formatRupiah(m.totalReceivables);
@@ -10021,28 +10484,57 @@
     function renderSwitcher() {
       const can = canSwitchAccounts();
       const imp = !!originUser && currentUser.role !== 'superadmin';
-      document.getElementById('account-switcher').classList.toggle('hidden', !can);
-      document.getElementById('impersonate-bar').classList.toggle('hidden', !imp);
+      document.getElementById('account-switcher')?.classList.toggle('hidden', !can);
+      document.getElementById('impersonate-bar')?.classList.toggle('hidden', !imp);
+      const mSwitchWrap = document.getElementById('mobile-account-switcher-wrap');
+      if (mSwitchWrap) mSwitchWrap.classList.toggle('hidden', !can);
+      const mImp = document.getElementById('mobile-impersonate-box');
+      if (mImp) mImp.classList.toggle('hidden', !imp);
       closeSwitcher();
       if (!can) return;
       const isSuper = currentUser.role === 'superadmin';
-      document.getElementById('switcher-label').textContent = isSuper ? 'Ganti akun' : `Kelompok ${currentUser.groupId}`;
-      document.getElementById('switcher-dot').style.background = isSuper ? 'var(--paper)' : accent(currentUser.groupId);
-      if (imp) document.getElementById('impersonate-text').innerHTML = `Sedang masuk sebagai <b>${esc(currentUser.label)}</b>`;
+      const switchLbl = document.getElementById('switcher-label');
+      if (switchLbl) switchLbl.textContent = isSuper ? 'Ganti akun' : `Kelompok ${currentUser.groupId}`;
+      const switchDot = document.getElementById('switcher-dot');
+      if (switchDot) switchDot.style.background = isSuper ? 'var(--paper)' : accent(currentUser.groupId);
+      if (imp) {
+        const impText = document.getElementById('impersonate-text');
+        if (impText) impText.innerHTML = `Sedang masuk sebagai <b>${esc(currentUser.label)}</b>`;
+      }
 
       const items = allProfiles.length > 0 ? allProfiles : [
         { id: 'superadmin', role: 'superadmin', groupId: null, label: 'Superadmin (Master Promotor)', username: 'superadmin' },
         ...groups.map(g => ({ id: `kel_${g.id}`, role: 'group_admin', groupId: g.id, label: `Admin Kelompok ${g.id}`, username: `admin_kel${g.id}` }))
       ];
 
-      document.getElementById('switcher-pop').innerHTML = '<div class="pop-h">Pindah ke akun</div>' + items.map(a => {
-        const sup = a.role === 'superadmin';
-        const cur = (sup && currentUser.role === 'superadmin') || (!sup && currentUser.groupId === a.groupId);
-        return `<button type="button" role="menuitem" class="pop-item" aria-current="${cur}" onclick="switchAccount('${a.id}')">
-          <span class="av" style="--c:${sup ? 'var(--ink)' : accent(a.groupId)}">${sup ? 'S' : a.groupId}</span>
-          <span style="flex:1;min-width:0"><b>${esc(a.label)}</b><small>@${esc(a.username)}</small></span>
-          ${cur ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : ''}</button>`;
-      }).join('');
+      // Desktop popover
+      const pop = document.getElementById('switcher-pop');
+      if (pop) {
+        pop.innerHTML = '<div class="pop-h">Pindah ke akun</div>' + items.map(a => {
+          const sup = a.role === 'superadmin';
+          const cur = (sup && currentUser.role === 'superadmin') || (!sup && currentUser.groupId === a.groupId);
+          return `<button type="button" role="menuitem" class="pop-item" aria-current="${cur}" onclick="switchAccount('${a.id}')">
+            <span class="av" style="--c:${sup ? 'var(--ink)' : accent(a.groupId)}">${sup ? 'S' : a.groupId}</span>
+            <span style="flex:1;min-width:0"><b>${esc(a.label)}</b><small>@${esc(a.username)}</small></span>
+            ${cur ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : ''}</button>`;
+        }).join('');
+      }
+
+      // Mobile drawer switcher list
+      const mList = document.getElementById('mobile-account-switcher-list');
+      if (mList) {
+        mList.innerHTML = items.map(a => {
+          const sup = a.role === 'superadmin';
+          const cur = (sup && currentUser.role === 'superadmin') || (!sup && currentUser.groupId === a.groupId);
+          return `<button type="button" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition ${cur ? 'bg-amber-100 text-amber-900 font-bold' : 'hover:bg-slate-100 text-slate-700'}" onclick="switchAccount('${a.id}'); closeMobileNav();">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white shrink-0" style="background:${sup ? 'var(--ink)' : accent(a.groupId)}">${sup ? 'S' : a.groupId}</span>
+              <span class="truncate">${esc(a.label)}</span>
+            </div>
+            ${cur ? '<span class="text-xs text-amber-700 shrink-0">✓ Aktif</span>' : ''}
+          </button>`;
+        }).join('');
+      }
     }
 
     function toggleSwitcher() {
@@ -10168,6 +10660,7 @@
       }
 
       initOrderMonitoringCollapseState();
+      initFinanceCollapseState();
       initFinanceSectionUI();
       renderSwitcher();
       populateSelectFilters();
@@ -12153,6 +12646,278 @@
       return wb.xlsx.writeBuffer();
     }
 
+    // ==========================================
+    // REKONSILIASI KAS HISTORIS (PHASE 5 AUDIT)
+    // ==========================================
+    let _activeReconcileTarget = null;
+
+    function openLegacyReconciliationModal() {
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const sel = document.getElementById('recon-group-filter');
+      if (sel) {
+        if (!isSuper) {
+          sel.value = String(currentUser.groupId);
+          sel.disabled = true;
+        } else {
+          sel.value = (typeof financeGroupFilter !== 'undefined' ? financeGroupFilter : 'all');
+          sel.disabled = false;
+        }
+      }
+      renderLegacyReconciliationTable();
+      openModal('legacy-reconcile-modal');
+    }
+
+    function renderLegacyReconciliationTable() {
+      const tbody = document.getElementById('recon-orders-tbody');
+      const statsPill = document.getElementById('recon-stats-pill');
+      const batchBtn = document.getElementById('btn-batch-reconcile');
+      if (!tbody) return;
+
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const groupFilter = isSuper ? (document.getElementById('recon-group-filter')?.value || 'all') : String(currentUser.groupId);
+
+      let list = getAccessibleOrders().filter(o => isOrderLegacyUnreconciled(o));
+      if (groupFilter !== 'all') {
+        list = list.filter(o => String(o.groupId) === groupFilter);
+      }
+
+      const totalUnrecon = list.length;
+      const totalAmount = list.reduce((sum, o) => sum + Number(o.total || 0), 0);
+
+      if (statsPill) {
+        statsPill.innerHTML = `<span>Belum Rekonsiliasi: <b>${totalUnrecon}</b> pesanan</span> · <span>Total: <b class="text-amber-800">${formatRupiah(totalAmount)}</b></span>`;
+      }
+
+      if (batchBtn) {
+        batchBtn.disabled = totalUnrecon === 0;
+        batchBtn.classList.toggle('opacity-50', totalUnrecon === 0);
+      }
+
+      if (totalUnrecon === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="p-8 text-center text-slate-500 bg-slate-50/50">
+              <div class="text-2xl mb-1.5">🎉</div>
+              <b class="text-emerald-800 block text-xs">Seluruh pesanan lunas pada kelompok ini sudah terekonsiliasi ke buku kas!</b>
+              <span class="text-[11px] text-slate-400 mt-0.5 block">Tidak ada selisih antara catatan pemesanan dan kas fisik riil.</span>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = list.map(o => {
+        const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+        return `
+          <tr class="hover:bg-amber-50/40 transition-colors">
+            <td class="p-2.5">
+              <div class="font-mono font-bold text-slate-800">${esc(o.id)}</div>
+              <div class="text-[10px] text-slate-400">${dateStr}</div>
+            </td>
+            <td class="p-2.5">
+              <div class="font-bold text-slate-900">${esc(o.buyerName || '-')}</div>
+              <div class="text-[10px] text-slate-500">${esc(o.buyerClass || '-')} · ${esc(o.buyerPhone || '-')}</div>
+            </td>
+            <td class="p-2.5">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                Kelompok ${o.groupId}
+              </span>
+            </td>
+            <td class="p-2.5" style="text-align:right">
+              <b class="text-slate-900 font-bold">${formatRupiah(o.total || 0)}</b>
+            </td>
+            <td class="p-2.5" style="text-align:center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                Belum di Kas Riil
+              </span>
+            </td>
+            <td class="p-2.5" style="text-align:center">
+              <button type="button" class="btn btn-xs btn-amber font-bold cursor-pointer shadow-2xs flex items-center gap-1 mx-auto" onclick="confirmSingleReconciliation('${esc(o.id)}')">
+                <span>✓ Verifikasi Kas</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function confirmSingleReconciliation(orderId) {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+      _activeReconcileTarget = orderId;
+      document.getElementById('confirm-reconcile-title').textContent = 'Verifikasi Kas Masuk Pesanan';
+      document.getElementById('confirm-reconcile-desc').innerHTML = `Verifikasi kas masuk sebesar <b>${formatRupiah(order.total)}</b> dari <b>${esc(order.buyerName)}</b> (Kelompok ${order.groupId}, ID: ${order.id}) ke dalam buku kas fisik riil.`;
+      document.getElementById('confirm-reconcile-highlight').textContent = 'Tindakan ini akan membuat entri kas resmi di bzooginer_order_payments dan menambah Saldo Kas Riil.';
+      document.getElementById('confirm-reconcile-btn').onclick = () => executeReconcileSingleOrder(orderId);
+      openModal('confirm-reconcile-modal');
+    }
+
+    function confirmBatchReconciliation() {
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const groupFilter = isSuper ? (document.getElementById('recon-group-filter')?.value || 'all') : String(currentUser.groupId);
+      let list = getAccessibleOrders().filter(o => isOrderLegacyUnreconciled(o));
+      if (groupFilter !== 'all') {
+        list = list.filter(o => String(o.groupId) === groupFilter);
+      }
+      if (list.length === 0) {
+        showToast('Tidak ada pesanan yang perlu direkonsiliasi pada filter ini.');
+        return;
+      }
+      const totalAmount = list.reduce((sum, o) => sum + Number(o.total || 0), 0);
+      _activeReconcileTarget = 'batch';
+      document.getElementById('confirm-reconcile-title').textContent = 'Verifikasi Kas Masuk Sekaligus';
+      document.getElementById('confirm-reconcile-desc').innerHTML = `Apakah Anda yakin ingin memverifikasi <b>${list.length} pesanan</b> (Total: <b>${formatRupiah(totalAmount)}</b>) pada <b>${groupFilter === 'all' ? 'Semua Kelompok' : 'Kelompok ' + groupFilter}</b> ke buku kas fisik riil?`;
+      document.getElementById('confirm-reconcile-highlight').textContent = `Seluruh ${list.length} pesanan akan dicatat di bzooginer_order_payments dan Saldo Kas Riil akan bertambah ${formatRupiah(totalAmount)}.`;
+      document.getElementById('confirm-reconcile-btn').onclick = () => executeReconcileBatch(groupFilter);
+      openModal('confirm-reconcile-modal');
+    }
+
+    async function executeReconcileSingleOrder(orderId) {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+      const btn = document.getElementById('confirm-reconcile-btn');
+      try {
+        if (btn) { btn.disabled = true; btn.textContent = 'Memproses...'; }
+        const idempotencyKey = 'recon_' + order.id;
+        const payload = {
+          id: idempotencyKey,
+          order_id: order.id,
+          group_id: order.groupId,
+          amount: Number(order.total || 0),
+          payment_type: 'full',
+          payment_date: order.createdAt || new Date().toISOString(),
+          payment_method: 'cash',
+          notes: 'Rekonsiliasi Kas Historis Phase 1-4',
+          idempotency_key: idempotencyKey,
+          is_historical_reconciliation: true,
+          recorded_by_user_id: currentUser ? currentUser.id : null,
+          recorded_by_username: currentUser ? (currentUser.username || currentUser.name || 'Admin') : 'Admin',
+          recorded_by_name: currentUser ? (currentUser.username || currentUser.name || 'Admin') : 'Admin',
+          created_at: new Date().toISOString()
+        };
+
+        const [inserted] = await sbRequest('bzooginer_order_payments', 'POST', payload);
+        const record = inserted || { ...payload, id: idempotencyKey };
+        
+        orderPayments = orderPayments.filter(p => p.order_id !== order.id && p.idempotency_key !== idempotencyKey);
+        orderPayments.push(record);
+
+        saveAllData();
+        closeModal('confirm-reconcile-modal');
+        renderLegacyReconciliationTable();
+        refreshAllSections();
+        showToast(`Pesanan ${order.buyerName} (${formatRupiah(order.total)}) berhasil direkonsiliasi ke kas riil!`);
+        broadcastFinanceChange('payment', { order_id: order.id, amount: order.total });
+      } catch (err) {
+        showToast(`Gagal rekonsiliasi pesanan: ${err.message}`, 'error');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Konfirmasi Verifikasi'; }
+      }
+    }
+
+    async function executeReconcileBatch(targetGroupId) {
+      const btn = document.getElementById('confirm-reconcile-btn');
+      try {
+        if (btn) { btn.disabled = true; btn.textContent = 'Memproses batch...'; }
+        let list = getAccessibleOrders().filter(o => isOrderLegacyUnreconciled(o));
+        if (targetGroupId !== 'all') {
+          list = list.filter(o => String(o.groupId) === targetGroupId);
+        }
+
+        let successCount = 0;
+        let totalReconciled = 0;
+
+        for (const order of list) {
+          const idempotencyKey = 'recon_' + order.id;
+          const payload = {
+            id: idempotencyKey,
+            order_id: order.id,
+            group_id: order.groupId,
+            amount: Number(order.total || 0),
+            payment_type: 'full',
+            payment_date: order.createdAt || new Date().toISOString(),
+            payment_method: 'cash',
+            notes: 'Rekonsiliasi Kas Historis Phase 1-4',
+            idempotency_key: idempotencyKey,
+            is_historical_reconciliation: true,
+            recorded_by_user_id: currentUser ? currentUser.id : null,
+            recorded_by_username: currentUser ? (currentUser.username || currentUser.name || 'Admin') : 'Admin',
+            recorded_by_name: currentUser ? (currentUser.username || currentUser.name || 'Admin') : 'Admin',
+            created_at: new Date().toISOString()
+          };
+
+          try {
+            await sbRequest('bzooginer_order_payments', 'POST', payload);
+          } catch (e) {
+            console.warn('Batch reconcile item note:', e);
+          }
+          orderPayments = orderPayments.filter(p => p.order_id !== order.id && p.idempotency_key !== idempotencyKey);
+          orderPayments.push(payload);
+          successCount++;
+          totalReconciled += Number(order.total || 0);
+        }
+
+        saveAllData();
+        closeModal('confirm-reconcile-modal');
+        renderLegacyReconciliationTable();
+        refreshAllSections();
+        showToast(`Berhasil merekonsiliasi ${successCount} pesanan (${formatRupiah(totalReconciled)}) ke buku kas riil!`);
+        broadcastFinanceChange('payment', { batch: true, count: successCount, amount: totalReconciled });
+      } catch (err) {
+        showToast(`Gagal rekonsiliasi batch: ${err.message}`, 'error');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Konfirmasi Verifikasi'; }
+      }
+    }
+
+    // ==========================================
+    // PANDUAN PENGGUNAAN WEB B-ZOOGINER (8 BAB)
+    // ==========================================
+    function openUserGuideModal(initialTab = 'mengenal') {
+      switchGuideTab(initialTab);
+      openModal('user-guide-modal');
+    }
+
+    function switchGuideTab(tabId) {
+      const tabs = ['mengenal', 'etalase', 'dashboard', 'monitoring', 'keuangan', 'perangkat', 'akun', 'faq'];
+      tabs.forEach(t => {
+        const btn = document.getElementById('tab-guide-' + t);
+        const view = document.getElementById('guide-view-' + t);
+        if (btn) {
+          const isActive = t === tabId;
+          btn.className = isActive
+            ? 'px-3 py-2 rounded-xl font-bold bg-white text-emerald-800 border border-emerald-200 shadow-xs cursor-pointer flex items-center gap-1.5 transition'
+            : 'px-3 py-2 rounded-xl font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/80 cursor-pointer flex items-center gap-1.5 transition';
+        }
+        if (view) {
+          view.classList.toggle('hidden', t !== tabId);
+        }
+      });
+    }
+
+    // Mobile Account Switcher Toggle
+    function toggleMobileAccountSwitcher() {
+      const list = document.getElementById('mobile-account-switcher-list');
+      const arrow = document.getElementById('mobile-switch-arrow');
+      if (!list) return;
+      const isClosed = list.classList.contains('hidden');
+      if (isClosed) {
+        list.classList.remove('hidden');
+        if (arrow) arrow.textContent = '▴';
+      } else {
+        list.classList.add('hidden');
+        if (arrow) arrow.textContent = '▾';
+      }
+    }
+
+    // Expose all modal and helper functions to window
+    window.openLegacyReconciliationModal = openLegacyReconciliationModal;
+    window.confirmSingleReconciliation = confirmSingleReconciliation;
+    window.confirmBatchReconciliation = confirmBatchReconciliation;
+    window.openUserGuideModal = openUserGuideModal;
+    window.switchGuideTab = switchGuideTab;
+    window.toggleMobileAccountSwitcher = toggleMobileAccountSwitcher;
+
     // Helper reset tampilan ke mode belum login
     function handleSignedOutUI() {
       currentUser = null;
@@ -12732,256 +13497,6 @@
           topIcon && scroll && scroll(animate(topIcon, { rotate: [0, 360] }, { ease: 'linear' }));
         }
       }
-
-
-    // ==========================================
-    // REKONSILIASI KAS HISTORIS (PHASE 5 AUDIT)
-    // ==========================================
-    let _activeReconcileTarget = null;
-
-    function openLegacyReconciliationModal() {
-      const isSuper = currentUser && currentUser.role === 'superadmin';
-      const sel = document.getElementById('recon-group-filter');
-      if (sel) {
-        if (!isSuper) {
-          sel.value = String(currentUser.groupId);
-          sel.disabled = true;
-        } else {
-          sel.value = (typeof financeGroupFilter !== 'undefined' ? financeGroupFilter : 'all');
-          sel.disabled = false;
-        }
-      }
-      renderLegacyReconciliationTable();
-      openModal('legacy-reconcile-modal');
-    }
-
-    function renderLegacyReconciliationTable() {
-      const tbody = document.getElementById('recon-orders-tbody');
-      const statsPill = document.getElementById('recon-stats-pill');
-      const batchBtn = document.getElementById('btn-batch-reconcile');
-      if (!tbody) return;
-
-      const isSuper = currentUser && currentUser.role === 'superadmin';
-      const groupFilter = isSuper ? (document.getElementById('recon-group-filter')?.value || 'all') : String(currentUser.groupId);
-
-      let list = getAccessibleOrders().filter(o => isOrderLegacyUnreconciled(o));
-      if (groupFilter !== 'all') {
-        list = list.filter(o => String(o.groupId) === groupFilter);
-      }
-
-      const totalUnrecon = list.length;
-      const totalAmount = list.reduce((sum, o) => sum + Number(o.total || 0), 0);
-
-      if (statsPill) {
-        statsPill.innerHTML = `<span>Belum Rekonsiliasi: <b>${totalUnrecon}</b> pesanan</span> · <span>Total: <b class="text-amber-800">${formatRupiah(totalAmount)}</b></span>`;
-      }
-
-      if (batchBtn) {
-        batchBtn.disabled = totalUnrecon === 0;
-        batchBtn.classList.toggle('opacity-50', totalUnrecon === 0);
-      }
-
-      if (totalUnrecon === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="6" class="p-8 text-center text-slate-500 bg-slate-50/50">
-              <div class="text-2xl mb-1.5">🎉</div>
-              <b class="text-emerald-800 block text-xs">Seluruh pesanan lunas pada kelompok ini sudah terekonsiliasi ke buku kas!</b>
-              <span class="text-[11px] text-slate-400 mt-0.5 block">Tidak ada selisih antara catatan pemesanan dan kas fisik riil.</span>
-            </td>
-          </tr>
-        `;
-        return;
-      }
-
-      tbody.innerHTML = list.map(o => {
-        const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
-        return `
-          <tr class="hover:bg-amber-50/40 transition-colors">
-            <td class="p-2.5">
-              <div class="font-mono font-bold text-slate-800">${esc(o.id)}</div>
-              <div class="text-[10px] text-slate-400">${dateStr}</div>
-            </td>
-            <td class="p-2.5">
-              <div class="font-bold text-slate-900">${esc(o.buyerName || '-')}</div>
-              <div class="text-[10px] text-slate-500">${esc(o.buyerClass || '-')} · ${esc(o.buyerPhone || '-')}</div>
-            </td>
-            <td class="p-2.5">
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
-                Kelompok ${o.groupId}
-              </span>
-            </td>
-            <td class="p-2.5" style="text-align:right">
-              <b class="text-slate-900 font-bold">${formatRupiah(o.total || 0)}</b>
-            </td>
-            <td class="p-2.5" style="text-align:center">
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                Belum di Kas Riil
-              </span>
-            </td>
-            <td class="p-2.5" style="text-align:center">
-              <button type="button" class="btn btn-xs btn-amber font-bold cursor-pointer shadow-2xs flex items-center gap-1 mx-auto" onclick="confirmSingleReconciliation('${esc(o.id)}')">
-                <span>✓ Verifikasi Kas</span>
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function confirmSingleReconciliation(orderId) {
-      const order = orders.find(o => o.id === orderId);
-      if (!order) return;
-      _activeReconcileTarget = orderId;
-      document.getElementById('confirm-reconcile-title').textContent = 'Verifikasi Kas Masuk Pesanan';
-      document.getElementById('confirm-reconcile-desc').innerHTML = `Verifikasi kas masuk sebesar <b>${formatRupiah(order.total)}</b> dari <b>${esc(order.buyerName)}</b> (Kelompok ${order.groupId}, ID: ${order.id}) ke dalam buku kas fisik riil.`;
-      document.getElementById('confirm-reconcile-highlight').textContent = 'Tindakan ini akan membuat entri kas resmi di bzooginer_order_payments dan menambah Saldo Kas Riil.';
-      document.getElementById('confirm-reconcile-btn').onclick = () => executeReconcileSingleOrder(orderId);
-      openModal('confirm-reconcile-modal');
-    }
-
-    function confirmBatchReconciliation() {
-      const isSuper = currentUser && currentUser.role === 'superadmin';
-      const groupFilter = isSuper ? (document.getElementById('recon-group-filter')?.value || 'all') : String(currentUser.groupId);
-      let list = getAccessibleOrders().filter(o => isOrderLegacyUnreconciled(o));
-      if (groupFilter !== 'all') {
-        list = list.filter(o => String(o.groupId) === groupFilter);
-      }
-      if (list.length === 0) {
-        showToast('Tidak ada pesanan yang perlu direkonsiliasi pada filter ini.');
-        return;
-      }
-      const totalAmount = list.reduce((sum, o) => sum + Number(o.total || 0), 0);
-      _activeReconcileTarget = 'batch';
-      document.getElementById('confirm-reconcile-title').textContent = 'Verifikasi Kas Masuk Sekaligus';
-      document.getElementById('confirm-reconcile-desc').innerHTML = `Apakah Anda yakin ingin memverifikasi <b>${list.length} pesanan</b> (Total: <b>${formatRupiah(totalAmount)}</b>) pada <b>${groupFilter === 'all' ? 'Semua Kelompok' : 'Kelompok ' + groupFilter}</b> ke buku kas fisik riil?`;
-      document.getElementById('confirm-reconcile-highlight').textContent = `Seluruh ${list.length} pesanan akan dicatat di bzooginer_order_payments dan Saldo Kas Riil akan bertambah ${formatRupiah(totalAmount)}.`;
-      document.getElementById('confirm-reconcile-btn').onclick = () => executeReconcileBatch(groupFilter);
-      openModal('confirm-reconcile-modal');
-    }
-
-    async function executeReconcileSingleOrder(orderId) {
-      const order = orders.find(o => o.id === orderId);
-      if (!order) return;
-      const btn = document.getElementById('confirm-reconcile-btn');
-      try {
-        if (btn) { btn.disabled = true; btn.textContent = 'Memproses...'; }
-        const idempotencyKey = 'recon_' + order.id;
-        const payload = {
-          id: idempotencyKey,
-          order_id: order.id,
-          group_id: order.groupId,
-          amount: Number(order.total || 0),
-          payment_type: 'full',
-          payment_date: order.createdAt || new Date().toISOString(),
-          payment_method: 'cash',
-          notes: 'Rekonsiliasi Kas Historis Phase 1-4',
-          idempotency_key: idempotencyKey,
-          is_historical_reconciliation: true,
-          recorded_by_user_id: currentUser ? currentUser.id : null,
-          recorded_by_username: currentUser ? (currentUser.username || currentUser.name || 'Admin') : 'Admin',
-          recorded_by_name: currentUser ? (currentUser.username || currentUser.name || 'Admin') : 'Admin',
-          created_at: new Date().toISOString()
-        };
-
-        const [inserted] = await sbRequest('bzooginer_order_payments', 'POST', payload);
-        const record = inserted || { ...payload, id: idempotencyKey };
-        
-        orderPayments = orderPayments.filter(p => p.order_id !== order.id && p.idempotency_key !== idempotencyKey);
-        orderPayments.push(record);
-
-        saveAllData();
-        closeModal('confirm-reconcile-modal');
-        renderLegacyReconciliationTable();
-        refreshAllSections();
-        showToast(`Pesanan ${order.buyerName} (${formatRupiah(order.total)}) berhasil direkonsiliasi ke kas riil!`);
-        broadcastFinanceChange('payment', { order_id: order.id, amount: order.total });
-      } catch (err) {
-        showToast(`Gagal rekonsiliasi pesanan: ${err.message}`, 'error');
-      } finally {
-        if (btn) { btn.disabled = false; btn.textContent = 'Konfirmasi Verifikasi'; }
-      }
-    }
-
-    async function executeReconcileBatch(targetGroupId) {
-      const btn = document.getElementById('confirm-reconcile-btn');
-      try {
-        if (btn) { btn.disabled = true; btn.textContent = 'Memproses batch...'; }
-        let list = getAccessibleOrders().filter(o => isOrderLegacyUnreconciled(o));
-        if (targetGroupId !== 'all') {
-          list = list.filter(o => String(o.groupId) === targetGroupId);
-        }
-
-        let successCount = 0;
-        let totalReconciled = 0;
-
-        for (const order of list) {
-          const idempotencyKey = 'recon_' + order.id;
-          const payload = {
-            id: idempotencyKey,
-            order_id: order.id,
-            group_id: order.groupId,
-            amount: Number(order.total || 0),
-            payment_type: 'full',
-            payment_date: order.createdAt || new Date().toISOString(),
-            payment_method: 'cash',
-            notes: 'Rekonsiliasi Kas Historis Phase 1-4',
-            idempotency_key: idempotencyKey,
-            is_historical_reconciliation: true,
-            recorded_by_user_id: currentUser ? currentUser.id : null,
-            recorded_by_username: currentUser ? (currentUser.username || currentUser.name || 'Admin') : 'Admin',
-            recorded_by_name: currentUser ? (currentUser.username || currentUser.name || 'Admin') : 'Admin',
-            created_at: new Date().toISOString()
-          };
-
-          try {
-            await sbRequest('bzooginer_order_payments', 'POST', payload);
-          } catch (e) {
-            console.warn('Batch reconcile item note:', e);
-          }
-          orderPayments = orderPayments.filter(p => p.order_id !== order.id && p.idempotency_key !== idempotencyKey);
-          orderPayments.push(payload);
-          successCount++;
-          totalReconciled += Number(order.total || 0);
-        }
-
-        saveAllData();
-        closeModal('confirm-reconcile-modal');
-        renderLegacyReconciliationTable();
-        refreshAllSections();
-        showToast(`Berhasil merekonsiliasi ${successCount} pesanan (${formatRupiah(totalReconciled)}) ke buku kas riil!`);
-        broadcastFinanceChange('payment', { batch: true, count: successCount, amount: totalReconciled });
-      } catch (err) {
-        showToast(`Gagal rekonsiliasi batch: ${err.message}`, 'error');
-      } finally {
-        if (btn) { btn.disabled = false; btn.textContent = 'Konfirmasi Verifikasi'; }
-      }
-    }
-
-    // ==========================================
-    // PANDUAN PENGGUNAAN WEB B-ZOOGINER
-    // ==========================================
-    function openUserGuideModal(initialTab = 'fin') {
-      switchGuideTab(initialTab);
-      openModal('user-guide-modal');
-    }
-
-    function switchGuideTab(tabId) {
-      const tabs = ['fin', 'formula', 'recon', 'mon', 'roles', 'tips'];
-      tabs.forEach(t => {
-        const btn = document.getElementById('tab-guide-' + t);
-        const view = document.getElementById('guide-view-' + t);
-        if (btn) {
-          const isActive = t === tabId;
-          btn.className = isActive
-            ? 'px-3 py-2 rounded-t-xl font-bold border-b-2 border-emerald-600 text-emerald-800 bg-white shadow-xs cursor-pointer'
-            : 'px-3 py-2 rounded-t-xl font-semibold text-slate-600 hover:text-slate-900 cursor-pointer';
-        }
-        if (view) {
-          view.classList.toggle('hidden', t !== tabId);
-        }
-      });
-    }
 
       if (document.readyState === 'loading') addEventListener('DOMContentLoaded', boot); else boot();
     })();
