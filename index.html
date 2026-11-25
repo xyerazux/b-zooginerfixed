@@ -2684,9 +2684,12 @@
               <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" />
             </svg>Layar penuh</button>
           <nav id="group-admin-nav" class="seg hidden">
-            <a href="#section-admin-groups">Kelompok</a><a href="#section-orders">Pesanan</a><a
+            <a href="#section-admin-groups">Kelompok</a><a href="#section-orders">Pesanan</a><a href="#section-order-monitoring" onclick="scrollToOrderMonitoringSection()">Monitoring</a><a
               href="#section-catalog">Menu &amp; Paket</a><a href="#section-device-monitoring" class="flex items-center gap-1.5" onclick="scrollToMonitoringSection()">Perangkat Aktif <span id="group-nav-online-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span></a>
           </nav>
+          <button id="btn-order-monitoring-nav-superadmin" type="button" class="btn btn-sm hidden flex items-center gap-1.5" onclick="scrollToOrderMonitoringSection()" title="Buka pusat monitoring pesanan dan pembayaran">
+            <span>📊 Monitoring Pesanan</span>
+          </button>
           <button id="btn-monitoring-nav-superadmin" type="button" class="btn btn-sm hidden flex items-center gap-1.5" onclick="scrollToMonitoringSection()" title="Buka panel monitoring perangkat">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>Perangkat (<span id="superadmin-online-badge">0</span>)</span>
@@ -2880,6 +2883,203 @@
             </table>
             <div id="orders-pagination"
               class="no-print flex flex-wrap items-center justify-between gap-3 p-4 border-t border-slate-200 bg-slate-50/60 text-xs">
+            </div>
+          </section>
+
+          <!-- SECTION: PUSAT MONITORING KELENGKAPAN & PEMBAYARAN PESANAN (PHASE 4) -->
+          <section id="section-order-monitoring" class="panel no-print" style="margin-top:24px">
+            <div class="panel-h" style="flex-wrap:wrap;gap:12px">
+              <div>
+                <div class="flex items-center gap-2.5 flex-wrap">
+                  <h3 class="disp h2">Pusat Monitoring Pesanan &amp; Pembayaran</h3>
+                  <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 shadow-xs">
+                    Phase 4
+                  </span>
+                </div>
+                <p class="mute" style="margin:4px 0 0;font-size:13px">
+                  Audit otomatis kelengkapan data pesanan, validasi pembayaran cash, dan rekapitulasi performa kelompok.
+                </p>
+              </div>
+
+              <!-- Top Sub-Tabs Switcher -->
+              <div class="seg" id="order-monitoring-tab-switcher">
+                <button type="button" id="tab-mon-completeness" class="on" onclick="switchMonitoringTab('completeness')">
+                  📋 Kelengkapan Data
+                </button>
+                <button type="button" id="tab-mon-payments" onclick="switchMonitoringTab('payments')">
+                  💰 Status Pembayaran
+                </button>
+                <button type="button" id="tab-mon-groups" onclick="switchMonitoringTab('groups')">
+                  📊 Kinerja Kelompok
+                </button>
+              </div>
+            </div>
+
+            <!-- VIEW 1: KELENGKAPAN DATA PESANAN -->
+            <div id="mon-view-completeness" class="space-y-0">
+              <!-- Summary KPI Metrics Cards -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-50/80 border-b border-slate-200 text-xs">
+                <div class="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
+                  <span class="text-slate-500 font-bold uppercase text-[10px] block">Total Diperiksa</span>
+                  <b id="mon-comp-stat-total" class="text-2xl font-black text-slate-900 block mt-0.5">0</b>
+                  <span class="text-[11px] text-slate-400 block">Seluruh pesanan aktif</span>
+                </div>
+                <div class="p-3 bg-white rounded-2xl border border-emerald-200 shadow-xs bg-emerald-50/20">
+                  <span class="text-emerald-700 font-bold uppercase text-[10px] block">Pesanan Lengkap</span>
+                  <b id="mon-comp-stat-valid" class="text-2xl font-black text-emerald-700 block mt-0.5">0</b>
+                  <span class="text-[11px] text-emerald-600/80 block">Atribut data valid</span>
+                </div>
+                <div class="p-3 bg-white rounded-2xl border border-amber-200 shadow-xs bg-amber-50/30">
+                  <span class="text-amber-700 font-bold uppercase text-[10px] block">Perlu Diperiksa</span>
+                  <b id="mon-comp-stat-invalid" class="text-2xl font-black text-amber-700 block mt-0.5">0</b>
+                  <span class="text-[11px] text-amber-600/80 block">Ada data rumpang / anomali</span>
+                </div>
+                <div class="p-3 bg-white rounded-2xl border border-brand-200 shadow-xs bg-brand-50/30">
+                  <span class="text-brand-800 font-bold uppercase text-[10px] block">% Kelengkapan</span>
+                  <b id="mon-comp-stat-pct" class="text-2xl font-black text-brand-800 block mt-0.5">100%</b>
+                  <span class="text-[11px] text-brand-600/80 block">Tingkat integritas data</span>
+                </div>
+              </div>
+
+              <!-- Filter Bar for Completeness -->
+              <div class="p-3.5 bg-white border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex flex-wrap items-center gap-2 flex-1 min-w-[240px]">
+                  <input id="filter-comp-search" class="inp" type="search" placeholder="Cari pembeli / kelas..." oninput="debouncedOrderCompleteness()" style="max-width:240px" />
+                  <select id="filter-comp-status" class="inp" onchange="currentCompletenessPage=1;renderOrderCompletenessMonitoring()">
+                    <option value="all">Semua Kondisi</option>
+                    <option value="Lengkap">Hanya Lengkap</option>
+                    <option value="Perlu Diperiksa">Perlu Diperiksa</option>
+                  </select>
+                  <div id="filter-comp-group-wrap">
+                    <select id="filter-comp-group" class="inp" onchange="currentCompletenessPage=1;renderOrderCompletenessMonitoring()">
+                      <option value="all">Semua Kelompok</option>
+                      <option value="1">Kelompok 1</option>
+                      <option value="2">Kelompok 2</option>
+                      <option value="3">Kelompok 3</option>
+                      <option value="4">Kelompok 4</option>
+                      <option value="5">Kelompok 5</option>
+                      <option value="6">Kelompok 6</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="text-[11px] text-slate-500 font-medium">
+                  Menampilkan <b id="mon-comp-showing-count">0</b> data
+                </div>
+              </div>
+
+              <!-- Table Completeness -->
+              <div class="overflow-x-auto">
+                <table class="otable">
+                  <thead>
+                    <tr>
+                      <th style="width:110px">Waktu</th>
+                      <th>Pembeli &amp; Kelas</th>
+                      <th>Kelompok</th>
+                      <th>Status Kelengkapan</th>
+                      <th>Hasil Analisis &amp; Keterangan</th>
+                      <th style="text-align:right">Total Nilai</th>
+                      <th class="no-print" style="text-align:right;width:90px">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="mon-comp-tbody">
+                    <!-- Injected by renderOrderCompletenessMonitoring() -->
+                  </tbody>
+                </table>
+              </div>
+              <div id="mon-comp-pagination" class="no-print flex flex-wrap items-center justify-between gap-3 p-4 border-t border-slate-200 bg-slate-50/60 text-xs"></div>
+            </div>
+
+            <!-- VIEW 2: MONITORING PEMBAYARAN -->
+            <div id="mon-view-payments" class="hidden space-y-0">
+              <!-- Summary KPI Metrics Cards -->
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 p-4 bg-slate-50/80 border-b border-slate-200 text-xs">
+                <div class="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
+                  <span class="text-slate-500 font-bold uppercase text-[10px] block">Total Transaksi</span>
+                  <b id="mon-pay-stat-total" class="text-xl font-black text-slate-900 block mt-0.5">0</b>
+                  <span class="text-[11px] text-slate-400 block">Pesanan</span>
+                </div>
+                <div class="p-3 bg-white rounded-2xl border border-emerald-200 shadow-xs bg-emerald-50/20">
+                  <span class="text-emerald-700 font-bold uppercase text-[10px] block">Lunas (Cash)</span>
+                  <b id="mon-pay-stat-paid-count" class="text-xl font-black text-emerald-700 block mt-0.5">0</b>
+                  <span class="text-[11px] text-emerald-600/80 block">Pesanan terbayar</span>
+                </div>
+                <div class="p-3 bg-white rounded-2xl border border-amber-200 shadow-xs bg-amber-50/30">
+                  <span class="text-amber-700 font-bold uppercase text-[10px] block">Belum Lunas</span>
+                  <b id="mon-pay-stat-unpaid-count" class="text-xl font-black text-amber-700 block mt-0.5">0</b>
+                  <span class="text-[11px] text-amber-600/80 block">Menunggu kasir</span>
+                </div>
+                <div class="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
+                  <span class="text-slate-500 font-bold uppercase text-[10px] block">Total Omzet</span>
+                  <b id="mon-pay-stat-total-amount" class="text-sm font-black text-slate-900 block mt-1 truncate">Rp 0</b>
+                  <span class="text-[11px] text-slate-400 block">Kotor</span>
+                </div>
+                <div class="p-3 bg-white rounded-2xl border border-emerald-200 shadow-xs bg-emerald-50/20">
+                  <span class="text-emerald-700 font-bold uppercase text-[10px] block">Uang Masuk</span>
+                  <b id="mon-pay-stat-received-amount" class="text-sm font-black text-emerald-700 block mt-1 truncate">Rp 0</b>
+                  <span class="text-[11px] text-emerald-600/80 block">Kas terverifikasi</span>
+                </div>
+                <div class="p-3 bg-white rounded-2xl border border-amber-200 shadow-xs bg-amber-50/30">
+                  <span class="text-amber-700 font-bold uppercase text-[10px] block">Sisa Tagihan</span>
+                  <b id="mon-pay-stat-remaining-amount" class="text-sm font-black text-amber-700 block mt-1 truncate">Rp 0</b>
+                  <span class="text-[11px] text-amber-600/80 block">Belum diterima</span>
+                </div>
+              </div>
+
+              <!-- Filter Bar for Payments -->
+              <div class="p-3.5 bg-white border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex flex-wrap items-center gap-2 flex-1 min-w-[240px]">
+                  <input id="filter-pay-search" class="inp" type="search" placeholder="Cari pembeli / kelas..." oninput="debouncedOrderPayment()" style="max-width:240px" />
+                  <select id="filter-pay-status" class="inp" onchange="currentPaymentPage=1;renderOrderPaymentMonitoring()">
+                    <option value="all">Semua Status</option>
+                    <option value="Lunas">Lunas</option>
+                    <option value="Belum Lunas">Belum Lunas</option>
+                    <option value="DP">DP</option>
+                  </select>
+                  <div id="filter-pay-group-wrap">
+                    <select id="filter-pay-group" class="inp" onchange="currentPaymentPage=1;renderOrderPaymentMonitoring()">
+                      <option value="all">Semua Kelompok</option>
+                      <option value="1">Kelompok 1</option>
+                      <option value="2">Kelompok 2</option>
+                      <option value="3">Kelompok 3</option>
+                      <option value="4">Kelompok 4</option>
+                      <option value="5">Kelompok 5</option>
+                      <option value="6">Kelompok 6</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="text-[11px] text-slate-500 font-medium">
+                  Menampilkan <b id="mon-pay-showing-count">0</b> transaksi
+                </div>
+              </div>
+
+              <!-- Table Payments -->
+              <div class="overflow-x-auto">
+                <table class="otable">
+                  <thead>
+                    <tr>
+                      <th style="width:110px">Waktu</th>
+                      <th>Pembeli &amp; Kelas</th>
+                      <th>Kelompok</th>
+                      <th style="text-align:right">Total Nilai</th>
+                      <th style="text-align:right">Uang Masuk</th>
+                      <th style="text-align:right">Sisa Tagihan</th>
+                      <th>Status Pembayaran</th>
+                      <th class="no-print" style="text-align:right;width:120px">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="mon-pay-tbody">
+                    <!-- Injected by renderOrderPaymentMonitoring() -->
+                  </tbody>
+                </table>
+              </div>
+              <div id="mon-pay-pagination" class="no-print flex flex-wrap items-center justify-between gap-3 p-4 border-t border-slate-200 bg-slate-50/60 text-xs"></div>
+            </div>
+
+            <!-- VIEW 3: KINERJA & KESEHATAN KELOMPOK -->
+            <div id="mon-view-groups" class="hidden p-4 sm:p-5">
+              <div id="mon-groups-performance-content">
+                <!-- Injected by renderGroupPerformanceMonitoring() -->
+              </div>
             </div>
           </section>
 
@@ -3512,6 +3712,17 @@
           </button>
           <button type="button"
             class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between hover:bg-slate-100 text-slate-700 cursor-pointer"
+            onclick="switchSuperadminPage('dashboard'); setTimeout(scrollToOrderMonitoringSection, 150); closeMobileNav();">
+            <div class="flex items-center gap-2.5">
+              <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+              <span>Monitoring Pesanan</span>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Phase 4</span>
+          </button>
+          <button type="button"
+            class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between hover:bg-slate-100 text-slate-700 cursor-pointer"
             onclick="switchSuperadminPage('dashboard'); setTimeout(scrollToMonitoringSection, 150); closeMobileNav();">
             <div class="flex items-center gap-2.5">
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -3552,6 +3763,14 @@
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             </svg>
             Daftar Pesanan
+          </a>
+          <a href="#section-order-monitoring"
+            class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer"
+            onclick="closeMobileNav()">
+            <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+            Monitoring Pesanan
           </a>
           <a href="#section-catalog"
             class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer"
@@ -5597,6 +5816,580 @@
     });
 
     // ==========================================
+    // 4C. ORDER COMPLETENESS & PAYMENT MONITORING (PHASE 4)
+    // ==========================================
+    let currentMonitoringTab = 'completeness'; // 'completeness' | 'payments' | 'groups'
+    let currentCompletenessPage = 1;
+    let currentPaymentPage = 1;
+    const MONITORING_PER_PAGE = 10;
+    let _compSearchTimer = null;
+    let _paySearchTimer = null;
+
+    function validateOrderCompleteness(order) {
+      if (!order) return { isComplete: false, status: 'Perlu Diperiksa', reasons: ['Data pesanan tidak ditemukan'], calculatedTotal: 0 };
+      const reasons = [];
+
+      // 1. Nama pembeli
+      if (!order.buyerName || typeof order.buyerName !== 'string' || !order.buyerName.trim()) {
+        reasons.push('Nama pembeli belum diisi');
+      }
+
+      // 2. Kelas pembeli (nilai historis, Guru/Staf, dll tetap valid selama tidak kosong)
+      if (!order.buyerClass || typeof order.buyerClass !== 'string' || !order.buyerClass.trim()) {
+        reasons.push('Kelas pembeli belum diisi');
+      }
+
+      // 3. Kelompok
+      const gId = Number(order.groupId);
+      if (!gId || isNaN(gId) || gId < 1) {
+        reasons.push('Unit kelompok tidak valid');
+      }
+
+      // 4. Item pesanan
+      let calculatedTotal = 0;
+      if (!Array.isArray(order.items) || order.items.length === 0) {
+        reasons.push('Daftar produk pesanan kosong');
+      } else {
+        order.items.forEach((it, idx) => {
+          const itemNum = idx + 1;
+          const itemName = it.name ? esc(it.name) : `Item #${itemNum}`;
+          if (!it.name || typeof it.name !== 'string' || !it.name.trim()) {
+            reasons.push(`Nama produk ke-${itemNum} belum diisi`);
+          }
+          if (typeof it.qty !== 'number' || it.qty <= 0) {
+            reasons.push(`Jumlah item '${itemName}' tidak valid (${it.qty})`);
+          }
+          if (typeof it.price !== 'number' || it.price < 0) {
+            reasons.push(`Harga item '${itemName}' tidak valid`);
+          }
+          const sub = (Number(it.qty) || 0) * (Number(it.price) || 0);
+          calculatedTotal += sub;
+        });
+      }
+
+      // 5. Total harga pesanan
+      const ordTotal = Number(order.total);
+      if (typeof ordTotal !== 'number' || isNaN(ordTotal) || ordTotal <= 0) {
+        reasons.push('Total harga pesanan tidak valid');
+      } else if (order.items && order.items.length > 0 && Math.abs(ordTotal - calculatedTotal) > 0) {
+        reasons.push(`Total pesanan (${formatRupiah(ordTotal)}) tidak cocok dengan total item (${formatRupiah(calculatedTotal)})`);
+      }
+
+      const isComplete = reasons.length === 0;
+      return {
+        isComplete,
+        status: isComplete ? 'Lengkap' : 'Perlu Diperiksa',
+        reasons,
+        calculatedTotal
+      };
+    }
+
+    function calculateOrderPayment(order) {
+      if (!order) return { status: 'Belum Lunas', totalAmount: 0, paidAmount: 0, remainingAmount: 0 };
+      const totalAmount = Number(order.total) || 0;
+      const statusRaw = (order.status || 'Belum Lunas').trim();
+
+      let status = 'Belum Lunas';
+      let paidAmount = 0;
+      let remainingAmount = totalAmount;
+
+      if (statusRaw.toLowerCase() === 'lunas') {
+        status = 'Lunas';
+        paidAmount = totalAmount;
+        remainingAmount = 0;
+      } else if (statusRaw.toUpperCase() === 'DP') {
+        status = 'DP';
+        paidAmount = typeof order.paidAmount === 'number' && order.paidAmount >= 0 ? order.paidAmount : 0;
+        remainingAmount = Math.max(0, totalAmount - paidAmount);
+      } else {
+        status = 'Belum Lunas';
+        paidAmount = 0;
+        remainingAmount = totalAmount;
+      }
+
+      return {
+        status,
+        totalAmount,
+        paidAmount,
+        remainingAmount
+      };
+    }
+
+    function switchMonitoringTab(tabName) {
+      currentMonitoringTab = tabName;
+      ['completeness', 'payments', 'groups'].forEach(t => {
+        const btn = document.getElementById(`tab-mon-${t}`);
+        const view = document.getElementById(`mon-view-${t}`);
+        if (btn) btn.classList.toggle('on', t === tabName);
+        if (view) view.classList.toggle('hidden', t !== tabName);
+      });
+
+      if (tabName === 'completeness') renderOrderCompletenessMonitoring();
+      else if (tabName === 'payments') renderOrderPaymentMonitoring();
+      else if (tabName === 'groups') renderGroupPerformanceMonitoring();
+    }
+
+    function scrollToOrderMonitoringSection(tab = null) {
+      if (currentUser && currentUser.role === 'superadmin') {
+        switchSuperadminPage('dashboard');
+      }
+      if (tab) switchMonitoringTab(tab);
+      const sec = document.getElementById('section-order-monitoring');
+      if (sec) {
+        sec.scrollIntoView({ behavior: 'smooth' });
+        sec.classList.add('ring-2', 'ring-amber-500');
+        setTimeout(() => sec.classList.remove('ring-2', 'ring-amber-500'), 1500);
+      }
+    }
+
+    function debouncedOrderCompleteness() {
+      clearTimeout(_compSearchTimer);
+      _compSearchTimer = setTimeout(() => {
+        currentCompletenessPage = 1;
+        renderOrderCompletenessMonitoring();
+      }, 250);
+    }
+
+    function debouncedOrderPayment() {
+      clearTimeout(_paySearchTimer);
+      _paySearchTimer = setTimeout(() => {
+        currentPaymentPage = 1;
+        renderOrderPaymentMonitoring();
+      }, 250);
+    }
+
+    function renderOrderCompletenessMonitoring() {
+      const tbody = document.getElementById('mon-comp-tbody');
+      const pagEl = document.getElementById('mon-comp-pagination');
+      const showingEl = document.getElementById('mon-comp-showing-count');
+      if (!tbody) return;
+
+      const accessibleOrders = getAccessibleOrders();
+      const analyzed = accessibleOrders.map(o => ({
+        order: o,
+        comp: validateOrderCompleteness(o)
+      }));
+
+      // Update KPI Statistics
+      const totalCount = analyzed.length;
+      const validCount = analyzed.filter(x => x.comp.isComplete).length;
+      const invalidCount = totalCount - validCount;
+      const pctStr = totalCount > 0 ? ((validCount / totalCount) * 100).toFixed(1) + '%' : '100%';
+
+      const statTotalEl = document.getElementById('mon-comp-stat-total');
+      const statValidEl = document.getElementById('mon-comp-stat-valid');
+      const statInvalidEl = document.getElementById('mon-comp-stat-invalid');
+      const statPctEl = document.getElementById('mon-comp-stat-pct');
+
+      if (statTotalEl) statTotalEl.textContent = totalCount;
+      if (statValidEl) statValidEl.textContent = validCount;
+      if (statInvalidEl) statInvalidEl.textContent = invalidCount;
+      if (statPctEl) statPctEl.textContent = pctStr;
+
+      // Filter Data
+      const searchInput = document.getElementById('filter-comp-search');
+      const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
+      const statusSelect = document.getElementById('filter-comp-status');
+      const statusFilter = statusSelect ? statusSelect.value : 'all';
+      const groupSelect = document.getElementById('filter-comp-group');
+      const groupFilter = (groupSelect && currentUser && currentUser.role === 'superadmin') ? groupSelect.value : 'all';
+
+      const filtered = analyzed.filter(({ order: o, comp }) => {
+        const matchSearch = !search ||
+          (o.buyerName && o.buyerName.toLowerCase().includes(search)) ||
+          (o.buyerClass && o.buyerClass.toLowerCase().includes(search)) ||
+          (o.id && o.id.toLowerCase().includes(search));
+        const matchStatus = statusFilter === 'all' || comp.status === statusFilter;
+        const matchGroup = groupFilter === 'all' || String(o.groupId) === groupFilter;
+        return matchSearch && matchStatus && matchGroup;
+      });
+
+      const totalFiltered = filtered.length;
+      if (showingEl) showingEl.textContent = totalFiltered;
+
+      const totalPages = Math.ceil(totalFiltered / MONITORING_PER_PAGE) || 1;
+      if (currentCompletenessPage > totalPages) currentCompletenessPage = totalPages;
+      if (currentCompletenessPage < 1) currentCompletenessPage = 1;
+
+      if (totalFiltered === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty full mute" style="padding:40px 16px;text-align:center">Tidak ada data kelengkapan pesanan yang sesuai filter.</td></tr>`;
+        if (pagEl) pagEl.innerHTML = '';
+        return;
+      }
+
+      const startIndex = (currentCompletenessPage - 1) * MONITORING_PER_PAGE;
+      const endIndex = Math.min(startIndex + MONITORING_PER_PAGE, totalFiltered);
+      const pageItems = filtered.slice(startIndex, endIndex);
+
+      tbody.innerHTML = pageItems.map(({ order: o, comp }) => {
+        const isComplete = comp.isComplete;
+        const statusBadge = isComplete
+          ? `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Lengkap</span>`
+          : `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 inline-flex items-center gap-1.5 animate-pulse"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Perlu Diperiksa</span>`;
+
+        const reasonsHtml = isComplete
+          ? `<span class="text-xs text-slate-500 flex items-center gap-1"><span class="text-emerald-600 font-bold">✓</span> Seluruh atribut data lengkap &amp; valid</span>`
+          : `<div class="flex flex-wrap gap-1.5">${comp.reasons.map(r => `<span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200 inline-flex items-center gap-1">⚠️ ${esc(r)}</span>`).join('')}</div>`;
+
+        return `
+          <tr>
+            <td data-label="Waktu" class="mute num text-xs" style="white-space:nowrap">${esc(o.createdAt || '-')}</td>
+            <td data-label="Pembeli" class="full first order-buyer-cell">
+              <div class="buyer-card-inner">
+                <div class="buyer-meta min-w-0 flex-1">
+                  <div class="buyer-name-line flex items-baseline gap-1.5 min-w-0">
+                    <b class="buyer-name text-slate-900 font-bold text-sm truncate" title="${esc(o.buyerName)}">${esc(o.buyerName)}</b>
+                    <span class="buyer-class-pill text-amber-700 font-bold text-xs shrink-0">(${esc(o.buyerClass)})</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td data-label="Kelompok" style="white-space:nowrap;font-weight:700">
+              <span class="gdot" style="background:${accent(o.groupId)}"></span>Kelompok ${o.groupId}
+            </td>
+            <td data-label="Status Kelengkapan">${statusBadge}</td>
+            <td data-label="Hasil Analisis" class="full">${reasonsHtml}</td>
+            <td data-label="Total Nilai" class="num font-bold text-slate-900" style="text-align:right;white-space:nowrap">${formatRupiah(o.total)}</td>
+            <td data-label="Aksi" class="no-print" style="text-align:right">
+              <button type="button" class="btn btn-sm" onclick="openOrderDetailModal('${o.id}')" title="Lihat detail lengkap pesanan">Detail</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Pagination Controls
+      if (pagEl) {
+        pagEl.innerHTML = `
+          <div class="text-slate-500 font-medium">
+            Halaman <b>${currentCompletenessPage}</b> dari <b>${totalPages}</b> (Total ${totalFiltered} data)
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button type="button" class="btn btn-sm" ${currentCompletenessPage <= 1 ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''} onclick="currentCompletenessPage--;renderOrderCompletenessMonitoring()">Sebelumnya</button>
+            <button type="button" class="btn btn-sm" ${currentCompletenessPage >= totalPages ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''} onclick="currentCompletenessPage++;renderOrderCompletenessMonitoring()">Selanjutnya</button>
+          </div>
+        `;
+      }
+    }
+
+    function renderOrderPaymentMonitoring() {
+      const tbody = document.getElementById('mon-pay-tbody');
+      const pagEl = document.getElementById('mon-pay-pagination');
+      const showingEl = document.getElementById('mon-pay-showing-count');
+      if (!tbody) return;
+
+      const accessibleOrders = getAccessibleOrders();
+      const analyzed = accessibleOrders.map(o => ({
+        order: o,
+        pay: calculateOrderPayment(o)
+      }));
+
+      // Update KPI Statistics
+      const totalCount = analyzed.length;
+      const paidCount = analyzed.filter(x => x.pay.status === 'Lunas').length;
+      const unpaidCount = analyzed.filter(x => x.pay.status === 'Belum Lunas').length;
+      const dpCount = analyzed.filter(x => x.pay.status === 'DP').length;
+      const totalAmount = analyzed.reduce((sum, x) => sum + x.pay.totalAmount, 0);
+      const receivedAmount = analyzed.reduce((sum, x) => sum + x.pay.paidAmount, 0);
+      const remainingAmount = analyzed.reduce((sum, x) => sum + x.pay.remainingAmount, 0);
+
+      const statTotalEl = document.getElementById('mon-pay-stat-total');
+      const statPaidEl = document.getElementById('mon-pay-stat-paid-count');
+      const statUnpaidEl = document.getElementById('mon-pay-stat-unpaid-count');
+      const statTotalAmtEl = document.getElementById('mon-pay-stat-total-amount');
+      const statRecAmtEl = document.getElementById('mon-pay-stat-received-amount');
+      const statRemAmtEl = document.getElementById('mon-pay-stat-remaining-amount');
+
+      if (statTotalEl) statTotalEl.textContent = totalCount;
+      if (statPaidEl) statPaidEl.textContent = paidCount;
+      if (statUnpaidEl) statUnpaidEl.textContent = unpaidCount;
+      if (statTotalAmtEl) statTotalAmtEl.textContent = formatRupiah(totalAmount);
+      if (statRecAmtEl) statRecAmtEl.textContent = formatRupiah(receivedAmount);
+      if (statRemAmtEl) statRemAmtEl.textContent = formatRupiah(remainingAmount);
+
+      // Filter Data
+      const searchInput = document.getElementById('filter-pay-search');
+      const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
+      const statusSelect = document.getElementById('filter-pay-status');
+      const statusFilter = statusSelect ? statusSelect.value : 'all';
+      const groupSelect = document.getElementById('filter-pay-group');
+      const groupFilter = (groupSelect && currentUser && currentUser.role === 'superadmin') ? groupSelect.value : 'all';
+
+      const filtered = analyzed.filter(({ order: o, pay }) => {
+        const matchSearch = !search ||
+          (o.buyerName && o.buyerName.toLowerCase().includes(search)) ||
+          (o.buyerClass && o.buyerClass.toLowerCase().includes(search)) ||
+          (o.id && o.id.toLowerCase().includes(search));
+        const matchStatus = statusFilter === 'all' || pay.status === statusFilter;
+        const matchGroup = groupFilter === 'all' || String(o.groupId) === groupFilter;
+        return matchSearch && matchStatus && matchGroup;
+      });
+
+      const totalFiltered = filtered.length;
+      if (showingEl) showingEl.textContent = totalFiltered;
+
+      const totalPages = Math.ceil(totalFiltered / MONITORING_PER_PAGE) || 1;
+      if (currentPaymentPage > totalPages) currentPaymentPage = totalPages;
+      if (currentPaymentPage < 1) currentPaymentPage = 1;
+
+      if (totalFiltered === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="empty full mute" style="padding:40px 16px;text-align:center">Tidak ada transaksi pembayaran yang sesuai filter.</td></tr>`;
+        if (pagEl) pagEl.innerHTML = '';
+        return;
+      }
+
+      const startIndex = (currentPaymentPage - 1) * MONITORING_PER_PAGE;
+      const endIndex = Math.min(startIndex + MONITORING_PER_PAGE, totalFiltered);
+      const pageItems = filtered.slice(startIndex, endIndex);
+
+      tbody.innerHTML = pageItems.map(({ order: o, pay }) => {
+        const isPaid = pay.status === 'Lunas';
+        const isDp = pay.status === 'DP';
+        const statusBadge = isPaid
+          ? `<button type="button" class="pill ok" title="Ketuk untuk memvalidasi perubahan status" onclick="requestTogglePaymentStatus('${o.id}')">Lunas (Cash)</button>`
+          : (isDp
+              ? `<button type="button" class="pill warn" title="Status Pembayaran DP" onclick="requestTogglePaymentStatus('${o.id}')">DP (Titip)</button>`
+              : `<button type="button" class="pill warn" title="Ketuk untuk memvalidasi perubahan status" onclick="requestTogglePaymentStatus('${o.id}')">Belum Lunas</button>`);
+
+        return `
+          <tr>
+            <td data-label="Waktu" class="mute num text-xs" style="white-space:nowrap">${esc(o.createdAt || '-')}</td>
+            <td data-label="Pembeli" class="full first order-buyer-cell">
+              <div class="buyer-card-inner">
+                <div class="buyer-meta min-w-0 flex-1">
+                  <div class="buyer-name-line flex items-baseline gap-1.5 min-w-0">
+                    <b class="buyer-name text-slate-900 font-bold text-sm truncate" title="${esc(o.buyerName)}">${esc(o.buyerName)}</b>
+                    <span class="buyer-class-pill text-amber-700 font-bold text-xs shrink-0">(${esc(o.buyerClass)})</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td data-label="Kelompok" style="white-space:nowrap;font-weight:700">
+              <span class="gdot" style="background:${accent(o.groupId)}"></span>Kelompok ${o.groupId}
+            </td>
+            <td data-label="Total Nilai" class="num font-bold text-slate-900" style="text-align:right;white-space:nowrap">${formatRupiah(pay.totalAmount)}</td>
+            <td data-label="Uang Masuk" class="num font-bold text-emerald-700" style="text-align:right;white-space:nowrap">${formatRupiah(pay.paidAmount)}</td>
+            <td data-label="Sisa Tagihan" class="num font-bold ${pay.remainingAmount > 0 ? 'text-amber-700' : 'text-slate-400'}" style="text-align:right;white-space:nowrap">${formatRupiah(pay.remainingAmount)}</td>
+            <td data-label="Status Pembayaran">${statusBadge}</td>
+            <td data-label="Aksi" class="no-print" style="text-align:right">
+              <button type="button" class="btn btn-sm" onclick="openOrderDetailModal('${o.id}')" title="Lihat detail lengkap pesanan">Detail</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Pagination Controls
+      if (pagEl) {
+        pagEl.innerHTML = `
+          <div class="text-slate-500 font-medium">
+            Halaman <b>${currentPaymentPage}</b> dari <b>${totalPages}</b> (Total ${totalFiltered} transaksi)
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button type="button" class="btn btn-sm" ${currentPaymentPage <= 1 ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''} onclick="currentPaymentPage--;renderOrderPaymentMonitoring()">Sebelumnya</button>
+            <button type="button" class="btn btn-sm" ${currentPaymentPage >= totalPages ? 'disabled style="opacity:0.5;cursor:not-allowed"' : ''} onclick="currentPaymentPage++;renderOrderPaymentMonitoring()">Selanjutnya</button>
+          </div>
+        `;
+      }
+    }
+
+    function renderGroupPerformanceMonitoring() {
+      const container = document.getElementById('mon-groups-performance-content');
+      if (!container) return;
+
+      const isSuper = currentUser && currentUser.role === 'superadmin';
+      const accessibleOrders = getAccessibleOrders();
+      const accessibleGroups = getAccessibleGroups();
+
+      // Compute statistics per group
+      const groupStats = accessibleGroups.map(g => {
+        const groupOrders = accessibleOrders.filter(o => Number(o.groupId) === Number(g.id));
+        const total = groupOrders.length;
+        const valid = groupOrders.filter(o => validateOrderCompleteness(o).isComplete).length;
+        const invalid = total - valid;
+        const pct = total > 0 ? ((valid / total) * 100).toFixed(1) + '%' : '100%';
+
+        const paid = groupOrders.filter(o => o.status === 'Lunas').length;
+        const unpaid = groupOrders.filter(o => o.status !== 'Lunas').length;
+
+        const totalOmzet = groupOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+        const paidOmzet = groupOrders.filter(o => o.status === 'Lunas').reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+        const remainingOmzet = totalOmzet - paidOmzet;
+
+        return {
+          group: g,
+          total,
+          valid,
+          invalid,
+          pct,
+          paid,
+          unpaid,
+          totalOmzet,
+          paidOmzet,
+          remainingOmzet
+        };
+      });
+
+      if (!isSuper) {
+        // Group Admin: Focused single-group performance view
+        const stat = groupStats[0] || {
+          group: { id: currentUser.groupId, name: `Kelompok ${currentUser.groupId}` },
+          total: 0, valid: 0, invalid: 0, pct: '100%', paid: 0, unpaid: 0, totalOmzet: 0, paidOmzet: 0, remainingOmzet: 0
+        };
+
+        container.innerHTML = `
+          <div class="space-y-4">
+            <div class="p-5 rounded-3xl bg-amber-50/50 border border-amber-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-200 text-amber-900 border border-amber-300">
+                  Performa Unit Kelompok Anda
+                </span>
+                <h4 class="text-xl font-black text-slate-900 mt-2">${esc(stat.group.name)}</h4>
+                <p class="text-xs text-slate-600 mt-0.5">Ringkasan kondisi transaksi, kelengkapan input formulir, dan status penerimaan kas.</p>
+              </div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <button type="button" class="btn btn-sm" onclick="switchMonitoringTab('completeness')">Lihat Kelengkapan Data</button>
+                <button type="button" class="btn btn-sm btn-cta" onclick="switchMonitoringTab('payments')">Lihat Status Kasir</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs">
+                <span class="text-slate-500 font-bold uppercase text-[10px] block">Total Pesanan</span>
+                <b class="text-2xl font-black text-slate-900 block mt-1">${stat.total}</b>
+                <span class="text-xs text-slate-400">Transaksi terdaftar</span>
+              </div>
+              <div class="p-4 bg-white rounded-2xl border border-emerald-200 shadow-xs bg-emerald-50/20">
+                <span class="text-emerald-700 font-bold uppercase text-[10px] block">Kelengkapan Data</span>
+                <b class="text-2xl font-black text-emerald-700 block mt-1">${stat.pct}</b>
+                <span class="text-xs text-emerald-600/80">${stat.valid} Lengkap · ${stat.invalid} Perlu Cek</span>
+              </div>
+              <div class="p-4 bg-white rounded-2xl border border-emerald-200 shadow-xs bg-emerald-50/20">
+                <span class="text-emerald-700 font-bold uppercase text-[10px] block">Kas Diterima (Lunas)</span>
+                <b class="text-lg font-black text-emerald-700 block mt-1 truncate">${formatRupiah(stat.paidOmzet)}</b>
+                <span class="text-xs text-emerald-600/80">${stat.paid} Pesanan Lunas</span>
+              </div>
+              <div class="p-4 bg-white rounded-2xl border border-amber-200 shadow-xs bg-amber-50/30">
+                <span class="text-amber-700 font-bold uppercase text-[10px] block">Sisa Tagihan</span>
+                <b class="text-lg font-black text-amber-700 block mt-1 truncate">${formatRupiah(stat.remainingOmzet)}</b>
+                <span class="text-xs text-amber-600/80">${stat.unpaid} Menunggu Kas</span>
+              </div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // Superadmin: Comprehensive Overview of All Groups
+      const totalGlobalOrders = groupStats.reduce((s, g) => s + g.total, 0);
+      const totalGlobalValid = groupStats.reduce((s, g) => s + g.valid, 0);
+      const totalGlobalInvalid = groupStats.reduce((s, g) => s + g.invalid, 0);
+      const globalPct = totalGlobalOrders > 0 ? ((totalGlobalValid / totalGlobalOrders) * 100).toFixed(1) + '%' : '100%';
+      const totalGlobalOmzet = groupStats.reduce((s, g) => s + g.totalOmzet, 0);
+      const totalGlobalPaid = groupStats.reduce((s, g) => s + g.paidOmzet, 0);
+      const totalGlobalRemaining = groupStats.reduce((s, g) => s + g.remainingOmzet, 0);
+
+      container.innerHTML = `
+        <div class="space-y-4">
+          <!-- Superadmin Global Performance Header -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs">
+            <div>
+              <span class="text-slate-500 font-bold uppercase text-[10px] block">Total Pesanan Seluruh Grup</span>
+              <b class="text-xl font-black text-slate-900 block mt-0.5">${totalGlobalOrders}</b>
+              <span class="text-[11px] text-slate-400">Dari ${groupStats.length} unit kelompok</span>
+            </div>
+            <div>
+              <span class="text-emerald-700 font-bold uppercase text-[10px] block">Integritas Data Global</span>
+              <b class="text-xl font-black text-emerald-700 block mt-0.5">${globalPct}</b>
+              <span class="text-[11px] text-emerald-600/80">${totalGlobalValid} Lengkap · ${totalGlobalInvalid} Perlu Cek</span>
+            </div>
+            <div>
+              <span class="text-emerald-700 font-bold uppercase text-[10px] block">Total Kas Diterima</span>
+              <b class="text-base font-black text-emerald-700 block mt-1 truncate">${formatRupiah(totalGlobalPaid)}</b>
+              <span class="text-[11px] text-emerald-600/80">Omzet Kotor: ${formatRupiah(totalGlobalOmzet)}</span>
+            </div>
+            <div>
+              <span class="text-amber-700 font-bold uppercase text-[10px] block">Total Sisa Tagihan</span>
+              <b class="text-base font-black text-amber-700 block mt-1 truncate">${formatRupiah(totalGlobalRemaining)}</b>
+              <span class="text-[11px] text-amber-600/80">Pending di kasir kelompok</span>
+            </div>
+          </div>
+
+          <!-- Groups Table -->
+          <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+            <table class="otable">
+              <thead>
+                <tr>
+                  <th>Unit Kelompok</th>
+                  <th style="text-align:center">Total Pesanan</th>
+                  <th>Kelengkapan Data</th>
+                  <th>Status Pembayaran</th>
+                  <th style="text-align:right">Uang Masuk (Lunas)</th>
+                  <th style="text-align:right">Sisa Tagihan</th>
+                  <th class="no-print" style="text-align:right">Aksi Filter</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${groupStats.map(s => `
+                  <tr>
+                    <td class="font-bold text-slate-900" style="white-space:nowrap">
+                      <div class="flex items-center gap-2">
+                        <span class="gdot" style="background:${accent(s.group.id)}"></span>
+                        <div>
+                          <span class="block">${esc(s.group.name)}</span>
+                          <span class="text-[11px] font-normal text-slate-400">ID: ${s.group.id}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="num font-bold text-slate-800" style="text-align:center">${s.total}</td>
+                    <td>
+                      <div class="flex items-center gap-2">
+                        <div class="w-16 bg-slate-100 rounded-full h-2 overflow-hidden shrink-0 border border-slate-200">
+                          <div class="bg-emerald-500 h-2 rounded-full" style="width:${s.pct}"></div>
+                        </div>
+                        <span class="text-xs font-bold ${s.invalid > 0 ? 'text-amber-700' : 'text-emerald-700'}">${s.pct}</span>
+                        ${s.invalid > 0 ? `<span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-100 text-amber-800">(${s.invalid} cek)</span>` : ''}
+                      </div>
+                    </td>
+                    <td>
+                      <div class="text-xs">
+                        <span class="text-emerald-700 font-bold">${s.paid} Lunas</span>
+                        <span class="text-slate-300 mx-1">·</span>
+                        <span class="text-amber-700 font-bold">${s.unpaid} Belum</span>
+                      </div>
+                    </td>
+                    <td class="num font-bold text-emerald-700" style="text-align:right;white-space:nowrap">${formatRupiah(s.paidOmzet)}</td>
+                    <td class="num font-bold ${s.remainingOmzet > 0 ? 'text-amber-700' : 'text-slate-400'}" style="text-align:right;white-space:nowrap">${formatRupiah(s.remainingOmzet)}</td>
+                    <td class="no-print" style="text-align:right">
+                      <button type="button" class="btn btn-sm" onclick="filterMonitoringToGroup(${s.group.id})" title="Filter tampilan monitoring ke kelompok ini">Pilih Grup</button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function filterMonitoringToGroup(groupId) {
+      const compGroupSelect = document.getElementById('filter-comp-group');
+      const payGroupSelect = document.getElementById('filter-pay-group');
+      if (compGroupSelect) compGroupSelect.value = String(groupId);
+      if (payGroupSelect) payGroupSelect.value = String(groupId);
+      switchMonitoringTab('completeness');
+      scrollToOrderMonitoringSection('completeness');
+    }
+
+    function renderAllOrderMonitoring() {
+      if (currentMonitoringTab === 'completeness') {
+        renderOrderCompletenessMonitoring();
+      } else if (currentMonitoringTab === 'payments') {
+        renderOrderPaymentMonitoring();
+      } else if (currentMonitoringTab === 'groups') {
+        renderGroupPerformanceMonitoring();
+      }
+    }
+
+    // ==========================================
     // 5. AUTHENTICATION & ACCOUNT MANAGEMENT
     // ==========================================
     document.getElementById('toggle-pw-btn').addEventListener('click', () => {
@@ -6408,6 +7201,10 @@
       document.getElementById('superadmin-page-switcher').classList.toggle('hidden', !isSuper);
       document.getElementById('group-admin-nav').classList.toggle('hidden', isSuper);
       document.getElementById('btn-manage-accounts').classList.toggle('hidden', !isSuper);
+      const btnMonNav = document.getElementById('btn-monitoring-nav-superadmin');
+      if (btnMonNav) btnMonNav.classList.toggle('hidden', !isSuper);
+      const btnOrderMonNav = document.getElementById('btn-order-monitoring-nav-superadmin');
+      if (btnOrderMonNav) btnOrderMonNav.classList.toggle('hidden', !isSuper);
 
       // Mobile Nav Drawer User Sync
       const mName = document.getElementById('mobile-nav-user-name');
@@ -6457,15 +7254,28 @@
       const accessible = getAccessibleGroups();
       const filterGroup = document.getElementById('filter-group');
       const catalogSelect = document.getElementById('catalog-group-select');
+      const filterCompGroup = document.getElementById('filter-comp-group');
+      const filterPayGroup = document.getElementById('filter-pay-group');
+      const filterCompGroupWrap = document.getElementById('filter-comp-group-wrap');
+      const filterPayGroupWrap = document.getElementById('filter-pay-group-wrap');
 
       if (currentUser.role === 'superadmin') {
-        filterGroup.innerHTML = `<option value="all">Semua Kelompok</option>` +
+        const groupOptions = `<option value="all">Semua Kelompok</option>` +
           accessible.map(g => `<option value="${g.id}">Kelompok ${g.id} (${esc(g.name)})${g.is_active === false ? ' [Arsip]' : ''}</option>`).join('');
+        if (filterGroup) filterGroup.innerHTML = groupOptions;
+        if (filterCompGroup) filterCompGroup.innerHTML = groupOptions;
+        if (filterPayGroup) filterPayGroup.innerHTML = groupOptions;
+        if (filterCompGroupWrap) filterCompGroupWrap.classList.remove('hidden');
+        if (filterPayGroupWrap) filterPayGroupWrap.classList.remove('hidden');
       } else {
-        filterGroup.innerHTML = accessible.map(g => `<option value="${g.id}">Kelompok ${g.id}</option>`).join('');
+        if (filterGroup) filterGroup.innerHTML = accessible.map(g => `<option value="${g.id}">Kelompok ${g.id}</option>`).join('');
+        if (filterCompGroupWrap) filterCompGroupWrap.classList.add('hidden');
+        if (filterPayGroupWrap) filterPayGroupWrap.classList.add('hidden');
       }
 
-      catalogSelect.innerHTML = accessible.map(g => `<option value="${g.id}">${esc(g.name)}${g.is_active === false ? ' [Arsip]' : ''}</option>`).join('');
+      if (catalogSelect) {
+        catalogSelect.innerHTML = accessible.map(g => `<option value="${g.id}">${esc(g.name)}${g.is_active === false ? ' [Arsip]' : ''}</option>`).join('');
+      }
     }
 
     function refreshAllSections() {
@@ -6475,6 +7285,7 @@
       renderOrdersTable();
       renderCatalogManager();
       renderDeviceMonitoring();
+      renderAllOrderMonitoring();
     }
 
     function updateMetrics() {
