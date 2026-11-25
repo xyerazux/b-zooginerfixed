@@ -2644,6 +2644,10 @@
               width="64" height="64" decoding="async" draggable="false"></span><span><b
               class="disp">B-zooginer</b><small class="hide-sm">Sistem PO · Cash Only</small></span></a>
         <div class="desktop-nav-items items-center gap-2">
+          <div id="live-sync-pill" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-xs cursor-pointer transition hover:bg-emerald-100" title="Status Realtime Live Sync &amp; Device Presence (Ketuk untuk monitor perangkat)" onclick="scrollToMonitoringSection()">
+            <span id="live-sync-indicator-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="live-sync-status-text" class="hide-sm">Live Sync</span>
+          </div>
           <div id="account-switcher" class="switcher hidden">
             <button type="button" id="switcher-btn" class="btn btn-sm btn-ink" aria-haspopup="menu"
               aria-expanded="false" onclick="toggleSwitcher()">
@@ -2681,8 +2685,12 @@
             </svg>Layar penuh</button>
           <nav id="group-admin-nav" class="seg hidden">
             <a href="#section-admin-groups">Kelompok</a><a href="#section-orders">Pesanan</a><a
-              href="#section-catalog">Menu &amp; Paket</a>
+              href="#section-catalog">Menu &amp; Paket</a><a href="#section-device-monitoring" class="flex items-center gap-1.5" onclick="scrollToMonitoringSection()">Perangkat Aktif <span id="group-nav-online-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span></a>
           </nav>
+          <button id="btn-monitoring-nav-superadmin" type="button" class="btn btn-sm hidden flex items-center gap-1.5" onclick="scrollToMonitoringSection()" title="Buka panel monitoring perangkat">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Perangkat (<span id="superadmin-online-badge">0</span>)</span>
+          </button>
           <button id="btn-manage-accounts" type="button" class="btn btn-sm hidden" onclick="openAccountModal()">Kelola
             Akun</button>
           <span class="who"><b id="nav-user-name">-</b> · <span id="nav-user-role">-</span></span>
@@ -2889,6 +2897,74 @@
               </div>
             </div>
             <div id="catalog-grid" class="grid" style="padding:20px"></div>
+          </section>
+
+          <!-- SECTION: MONITORING PERANGKAT AKTIF (PHASE 3) -->
+          <section id="section-device-monitoring" class="panel no-print" style="margin-top:24px">
+            <div class="panel-h">
+              <div>
+                <div class="flex items-center gap-2.5 flex-wrap">
+                  <h3 class="disp h2">Monitoring Perangkat Aktif</h3>
+                  <span id="monitoring-sync-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 shadow-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Live Sync Aktif</span>
+                  </span>
+                </div>
+                <p class="mute" style="margin:4px 0 0;font-size:13px">
+                  Pantau perangkat yang sedang terhubung dan beraktivitas secara real-time.
+                </p>
+              </div>
+
+              <!-- Filters for Superadmin -->
+              <div id="monitoring-filters-wrap" class="filters">
+                <select id="filter-monitoring-group" class="inp" onchange="renderDeviceMonitoring()">
+                  <option value="all">Semua Kelompok</option>
+                  <option value="superadmin">Superadmin</option>
+                  <option value="1">Kelompok 1</option>
+                  <option value="2">Kelompok 2</option>
+                  <option value="3">Kelompok 3</option>
+                  <option value="4">Kelompok 4</option>
+                  <option value="5">Kelompok 5</option>
+                  <option value="6">Kelompok 6</option>
+                </select>
+                <select id="filter-monitoring-status" class="inp" onchange="renderDeviceMonitoring()">
+                  <option value="all">Semua Aktivitas</option>
+                  <option value="Sedang Menginput">Sedang Menginput</option>
+                  <option value="Tidak Aktif">Tidak Aktif</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-50/80 border-b border-slate-200 text-xs">
+              <div class="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
+                <span class="text-slate-500 font-bold uppercase text-[10px] block">Total Perangkat</span>
+                <b id="mon-stat-total" class="text-2xl font-black text-slate-900 block mt-0.5">0</b>
+                <span class="text-[11px] text-slate-400 block">Online saat ini</span>
+              </div>
+              <div class="p-3 bg-white rounded-2xl border border-amber-200 shadow-xs bg-amber-50/30">
+                <span class="text-amber-700 font-bold uppercase text-[10px] block">Sedang Menginput</span>
+                <b id="mon-stat-inputting" class="text-2xl font-black text-amber-700 block mt-0.5">0</b>
+                <span class="text-[11px] text-amber-600/80 block">Interaksi formulir</span>
+              </div>
+              <div class="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
+                <span class="text-slate-500 font-bold uppercase text-[10px] block">Tidak Aktif</span>
+                <b id="mon-stat-idle" class="text-2xl font-black text-slate-600 block mt-0.5">0</b>
+                <span class="text-[11px] text-slate-400 block">Standby / Idle</span>
+              </div>
+              <div id="mon-stat-groups-card" class="p-3 bg-white rounded-2xl border border-emerald-200 shadow-xs bg-emerald-50/30">
+                <span class="text-emerald-700 font-bold uppercase text-[10px] block">Kelompok Aktif</span>
+                <b id="mon-stat-groups-active" class="text-2xl font-black text-emerald-700 block mt-0.5">0</b>
+                <span class="text-[11px] text-emerald-600/80 block">Unit terhubung</span>
+              </div>
+            </div>
+
+            <!-- Devices Cards Grid -->
+            <div class="p-4 sm:p-5">
+              <div id="monitoring-devices-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <!-- Injected by renderDeviceMonitoring() -->
+              </div>
+            </div>
           </section>
         </div>
       </div>
@@ -3133,6 +3209,21 @@
       <form id="edit-order-form" class="p-6 space-y-5 max-h-[82vh] overflow-y-auto">
         <input type="hidden" id="edit-order-id" />
         <input type="hidden" id="edit-order-group-id" />
+
+        <!-- Conflict Warning Banner (Live Sync Alert) -->
+        <div id="edit-order-conflict-banner" class="hidden p-3.5 rounded-2xl bg-rose-50 border-2 border-rose-400 text-rose-900 text-xs">
+          <div class="flex items-start gap-2.5">
+            <span class="text-base shrink-0">⚠️</span>
+            <div class="flex-1 min-w-0">
+              <strong class="font-bold block text-sm text-rose-900">Peringatan Konflik: Pesanan Telah Diperbarui di Perangkat Lain!</strong>
+              <p id="edit-order-conflict-msg" class="mt-0.5 text-rose-800 leading-relaxed"></p>
+              <div class="mt-2.5 flex items-center gap-2 flex-wrap">
+                <button type="button" id="btn-conflict-reload" class="px-3 py-1.5 rounded-lg bg-rose-700 text-white font-bold hover:bg-rose-800 cursor-pointer shadow-xs text-xs" onclick="resolveEditConflictReload()">Muat Data Terbaru</button>
+                <button type="button" id="btn-conflict-dismiss" class="px-3 py-1.5 rounded-lg bg-white border border-rose-300 text-rose-700 font-bold hover:bg-rose-100 cursor-pointer text-xs" onclick="resolveEditConflictDismiss()">Tetap Simpan Perubahan Lokal</button>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- Info Kelompok Badge -->
         <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
@@ -3420,6 +3511,15 @@
             Dashboard Master
           </button>
           <button type="button"
+            class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between hover:bg-slate-100 text-slate-700 cursor-pointer"
+            onclick="switchSuperadminPage('dashboard'); setTimeout(scrollToMonitoringSection, 150); closeMobileNav();">
+            <div class="flex items-center gap-2.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Monitoring Perangkat</span>
+            </div>
+            <span id="mobile-superadmin-online-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">0</span>
+          </button>
+          <button type="button"
             class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2.5 hover:bg-slate-100 text-slate-700 cursor-pointer"
             onclick="openAccountModal(); closeMobileNav();">
             <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2"
@@ -3462,6 +3562,17 @@
                 d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
             </svg>
             Menu &amp; Paket Bundling
+          </a>
+          <a href="#section-device-monitoring"
+            class="w-full text-left px-3.5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-between hover:bg-slate-100 text-slate-700 cursor-pointer"
+            onclick="closeMobileNav()">
+            <div class="flex items-center gap-2.5">
+              <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <span>Perangkat Aktif</span>
+            </div>
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           </a>
         </div>
 
@@ -4720,13 +4831,16 @@
       try {
         const patchRes = await sbRequest('bzooginer_groups', 'PATCH', payload, `?id=eq.${encodeURIComponent(group.id)}`);
         if (Array.isArray(patchRes) && patchRes.length > 0) {
+          broadcastRealtimeGroup('UPDATE', group);
           return patchRes[0];
         }
       } catch (patchErr) {
         // Jika PATCH gagal karena row belum ada (misal penambahan kelompok baru oleh superadmin), fallback ke POST
         console.warn('PATCH group record failed, fallback to POST upsert:', patchErr);
       }
-      return await sbRequest('bzooginer_groups', 'POST', [{ id: group.id, ...payload }]);
+      const postRes = await sbRequest('bzooginer_groups', 'POST', [{ id: group.id, ...payload }]);
+      broadcastRealtimeGroup('UPDATE', group);
+      return postRes;
     }
 
     async function pushGroupsToSupabase() {
@@ -4756,6 +4870,7 @@
         recorded_by: order.recordedBy
       }];
       await sbRequest('bzooginer_orders', 'POST', payload);
+      broadcastRealtimeOrder('INSERT', order);
     }
 
     async function deleteOrderFromSupabase(orderId) {
@@ -4764,6 +4879,7 @@
       if (Array.isArray(res) && res.length === 0) {
         throw new Error('Penghapusan ditolak oleh database (hanya Superadmin atau pemilik pesanan yang berwenang).');
       }
+      broadcastRealtimeOrder('DELETE', { id: orderId });
     }
 
     async function updateOrderInSupabase(orderId, updateFields) {
@@ -4780,6 +4896,7 @@
       if (Array.isArray(res) && res.length === 0) {
         throw new Error('Pembaruan pesanan ditolak oleh database (hanya Superadmin atau Admin Kelompok pemilik pesanan yang berwenang).');
       }
+      broadcastRealtimeOrder('UPDATE', { id: orderId, ...updateFields });
       return res;
     }
 
@@ -4816,6 +4933,668 @@
         setTimeout(() => el.remove(), 220);
       }, 2600);
     }
+
+    // ==========================================
+    // 4B. SUPABASE REALTIME LIVE SYNC & DEVICE PRESENCE (PHASE 3)
+    // ==========================================
+    let _realtimeChannel = null;
+    let _groupPresenceChannels = {};
+    let _activeDeviceId = null;
+    let _userIsTyping = false;
+    let _typingTimer = null;
+    let _allActivePresences = {};
+    let _lastIncomingOrderEditConflict = null;
+    let _realtimeReconnectTimer = null;
+
+    function getOrCreateDeviceId() {
+      if (_activeDeviceId) return _activeDeviceId;
+      let id = localStorage.getItem('bzooginer_device_id');
+      if (!id) {
+        id = 'dev_' + (crypto.randomUUID ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2, 8)));
+        localStorage.setItem('bzooginer_device_id', id);
+      }
+      _activeDeviceId = id;
+      return id;
+    }
+
+    function getDevicePlatformInfo() {
+      const ua = navigator.userAgent || '';
+      let os = 'Perangkat';
+      if (/Windows/i.test(ua)) os = 'Windows';
+      else if (/Android/i.test(ua)) os = 'Android';
+      else if (/iPhone|iPad|iPod/i.test(ua)) os = 'iOS';
+      else if (/Macintosh|Mac OS/i.test(ua)) os = 'macOS';
+      else if (/Linux/i.test(ua)) os = 'Linux';
+
+      let browser = 'Browser';
+      if (/Chrome|CriOS/i.test(ua) && !/Edg/i.test(ua)) browser = 'Chrome';
+      else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) browser = 'Safari';
+      else if (/Edg/i.test(ua)) browser = 'Edge';
+      else if (/Firefox|FxiOS/i.test(ua)) browser = 'Firefox';
+
+      const isMobile = /Mobi|Android|iPhone/i.test(ua) || (window.innerWidth < 768);
+      return `${os} · ${browser} (${isMobile ? 'Mobile' : 'Desktop'})`;
+    }
+
+    function getGroupName(groupId) {
+      if (!groupId) return 'Master Promotor';
+      const g = (groups || []).find(x => Number(x.id) === Number(groupId));
+      return g ? g.name : `Kelompok ${groupId}`;
+    }
+
+    function formatTimeAgo(isoString) {
+      if (!isoString) return '-';
+      const diffSec = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
+      if (diffSec < 45) return 'baru saja';
+      if (diffSec < 3600) return `${Math.floor(diffSec / 60)} mnt lalu`;
+      const hours = Math.floor(diffSec / 3600);
+      return `${hours} jam lalu`;
+    }
+
+    function updateLiveSyncUI(state) {
+      const dot = document.getElementById('live-sync-indicator-dot');
+      const txt = document.getElementById('live-sync-status-text');
+      const pill = document.getElementById('live-sync-pill');
+      const monitoringBadge = document.getElementById('monitoring-sync-badge');
+      if (!dot || !txt || !pill) return;
+
+      if (state === 'connected') {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+        txt.textContent = 'Live Sync';
+        pill.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-xs cursor-pointer transition hover:bg-emerald-100';
+        pill.title = 'Terhubung ke Live Sync Realtime Supabase';
+        if (monitoringBadge) {
+          monitoringBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 shadow-xs';
+          monitoringBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>Live Sync Aktif</span>';
+        }
+      } else if (state === 'connecting') {
+        dot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-ping';
+        txt.textContent = 'Menghubungkan...';
+        pill.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300 shadow-xs cursor-pointer transition hover:bg-amber-100';
+        pill.title = 'Sedang menyambungkan ke Supabase Realtime...';
+        if (monitoringBadge) {
+          monitoringBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1.5 shadow-xs';
+          monitoringBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span><span>Menyambungkan...</span>';
+        }
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+        txt.textContent = 'Offline';
+        pill.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-300 shadow-xs cursor-pointer transition hover:bg-rose-100';
+        pill.title = 'Koneksi Realtime terputus. Klik untuk menyinkronkan data.';
+        if (monitoringBadge) {
+          monitoringBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300 flex items-center gap-1.5 shadow-xs';
+          monitoringBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span><span>Offline (Lokal)</span>';
+        }
+      }
+    }
+
+    function scrollToMonitoringSection() {
+      if (currentUser && currentUser.role === 'superadmin') {
+        switchSuperadminPage('dashboard');
+      }
+      const sec = document.getElementById('section-device-monitoring');
+      if (sec) {
+        sec.scrollIntoView({ behavior: 'smooth' });
+        sec.classList.add('ring-2', 'ring-brand-500');
+        setTimeout(() => sec.classList.remove('ring-2', 'ring-brand-500'), 1500);
+      }
+    }
+
+    async function initRealtimeSync() {
+      const sb = getSupabase();
+      if (!sb || !currentUser) return;
+
+      // Clean up previous subscriptions if any
+      await cleanupRealtime();
+
+      const devId = getOrCreateDeviceId();
+      updateLiveSyncUI('connecting');
+
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (session && session.access_token && sb.realtime) {
+          sb.realtime.setAuth(session.access_token);
+        }
+      } catch (e) {
+        console.warn('Realtime setAuth notice:', e);
+      }
+
+      // 1. Live Sync Channel for Database Changes
+      _realtimeChannel = sb.channel('bzooginer-live-sync-v1', {
+        config: { presence: { key: devId } }
+      });
+
+      _realtimeChannel
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'bzooginer_orders'
+        }, (payload) => {
+          handleRealtimeOrderEvent(payload);
+        })
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'bzooginer_groups'
+        }, (payload) => {
+          handleRealtimeGroupEvent(payload);
+        })
+        .on('broadcast', { event: 'order_event' }, ({ payload }) => {
+          if (payload) handleRealtimeOrderEvent(payload);
+        })
+        .on('broadcast', { event: 'group_event' }, ({ payload }) => {
+          if (payload) handleRealtimeGroupEvent(payload);
+        });
+
+      // 2. Presence Channel
+      const isSuper = currentUser.role === 'superadmin';
+      const myPresenceChannelName = isSuper
+        ? 'bzooginer-presence-superadmin'
+        : `bzooginer-presence-group-${currentUser.groupId}`;
+
+      const presenceChannel = sb.channel(myPresenceChannelName, {
+        config: { presence: { key: devId } }
+      });
+
+      presenceChannel
+        .on('presence', { event: 'sync' }, () => {
+          updatePresencesFromChannel(myPresenceChannelName, presenceChannel.presenceState());
+        })
+        .on('presence', { event: 'join' }, () => {
+          updatePresencesFromChannel(myPresenceChannelName, presenceChannel.presenceState());
+        })
+        .on('presence', { event: 'leave' }, () => {
+          updatePresencesFromChannel(myPresenceChannelName, presenceChannel.presenceState());
+        });
+
+      _groupPresenceChannels[myPresenceChannelName] = presenceChannel;
+
+      // If Superadmin: also listen to all group presence channels to aggregate monitoring
+      if (isSuper) {
+        for (let gid = 1; gid <= 6; gid++) {
+          const gChanName = `bzooginer-presence-group-${gid}`;
+          const gChan = sb.channel(gChanName, {
+            config: { presence: { key: devId + '_listener' } }
+          });
+          gChan
+            .on('presence', { event: 'sync' }, () => {
+              updatePresencesFromChannel(gChanName, gChan.presenceState());
+            })
+            .on('presence', { event: 'join' }, () => {
+              updatePresencesFromChannel(gChanName, gChan.presenceState());
+            })
+            .on('presence', { event: 'leave' }, () => {
+              updatePresencesFromChannel(gChanName, gChan.presenceState());
+            });
+          gChan.subscribe();
+          _groupPresenceChannels[gChanName] = gChan;
+        }
+      }
+
+      // Subscribe live sync channel
+      _realtimeChannel.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          updateLiveSyncUI('connected');
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          updateLiveSyncUI('disconnected');
+          // Auto-reconnect debounce
+          clearTimeout(_realtimeReconnectTimer);
+          _realtimeReconnectTimer = setTimeout(() => {
+            if (currentUser) {
+              console.log('[Realtime] Attempting automatic reconnection...');
+              initRealtimeSync();
+              syncFromSupabase(); // Resync latest database state on reconnect
+            }
+          }, 5000);
+        } else if (status === 'TIMED_OUT') {
+          updateLiveSyncUI('connecting');
+        }
+      });
+
+      // Subscribe presence channel and track presence
+      presenceChannel.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await trackMyPresence();
+        }
+      });
+
+      setupActivityListeners();
+    }
+
+    async function trackMyPresence(activityOverride = null) {
+      if (!currentUser) return;
+      const devId = getOrCreateDeviceId();
+      const devPlatform = getDevicePlatformInfo();
+      const isSuper = currentUser.role === 'superadmin';
+      const myPresenceChannelName = isSuper
+        ? 'bzooginer-presence-superadmin'
+        : `bzooginer-presence-group-${currentUser.groupId}`;
+
+      const chan = _groupPresenceChannels[myPresenceChannelName];
+      if (!chan) return;
+
+      const currentActivity = activityOverride || (_userIsTyping ? 'Sedang Menginput' : 'Tidak Aktif');
+      const payload = {
+        deviceId: devId,
+        username: currentUser.username,
+        role: currentUser.role,
+        groupId: currentUser.groupId || null,
+        groupName: getGroupName(currentUser.groupId),
+        devicePlatform: devPlatform,
+        status: 'Online',
+        activity: currentActivity,
+        lastSeen: new Date().toISOString(),
+        onlineSince: window._onlineSinceTimestamp || (window._onlineSinceTimestamp = new Date().toISOString())
+      };
+
+      try {
+        await chan.track(payload);
+      } catch (err) {
+        console.warn('Track presence notice:', err);
+      }
+    }
+
+    function setupActivityListeners() {
+      function onUserActive(e) {
+        const target = e.target;
+        if (!target) return;
+        const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable;
+        if (!isInput) return;
+
+        if (!_userIsTyping) {
+          _userIsTyping = true;
+          trackMyPresence('Sedang Menginput');
+        }
+
+        clearTimeout(_typingTimer);
+        _typingTimer = setTimeout(() => {
+          _userIsTyping = false;
+          trackMyPresence('Tidak Aktif');
+        }, 60000); // 60s idle timeout
+      }
+
+      document.removeEventListener('input', onUserActive, true);
+      document.removeEventListener('change', onUserActive, true);
+      document.addEventListener('input', onUserActive, true);
+      document.addEventListener('change', onUserActive, true);
+    }
+
+    function updatePresencesFromChannel(channelName, presenceState) {
+      const activeDevices = [];
+      for (const [key, presences] of Object.entries(presenceState)) {
+        if (Array.isArray(presences)) {
+          presences.forEach(p => {
+            if (p && p.deviceId && !p.deviceId.endsWith('_listener')) {
+              activeDevices.push(p);
+            }
+          });
+        }
+      }
+      _allActivePresences[channelName] = activeDevices;
+      renderDeviceMonitoring();
+    }
+
+    function renderDeviceMonitoring() {
+      const container = document.getElementById('monitoring-devices-list');
+      if (!container) return;
+
+      // Flatten and deduplicate by deviceId
+      const devicesMap = new Map();
+      for (const [chan, list] of Object.entries(_allActivePresences)) {
+        if (Array.isArray(list)) {
+          list.forEach(d => {
+            if (d && d.deviceId) {
+              if (!devicesMap.has(d.deviceId) || new Date(d.lastSeen) > new Date(devicesMap.get(d.deviceId).lastSeen)) {
+                devicesMap.set(d.deviceId, d);
+              }
+            }
+          });
+        }
+      }
+
+      let allDevices = Array.from(devicesMap.values());
+
+      // Role Restriction: Group Admin can ONLY see devices of their own group
+      if (currentUser && currentUser.role !== 'superadmin' && currentUser.groupId) {
+        allDevices = allDevices.filter(d => Number(d.groupId) === Number(currentUser.groupId) || d.username === currentUser.username);
+        const filterGroupEl = document.getElementById('filter-monitoring-group');
+        if (filterGroupEl) {
+          filterGroupEl.parentElement.classList.add('hidden');
+        }
+      } else {
+        const filterGroupEl = document.getElementById('filter-monitoring-group');
+        if (filterGroupEl) {
+          filterGroupEl.parentElement.classList.remove('hidden');
+        }
+      }
+
+      // Filter by Group (Superadmin only)
+      const groupFilterEl = document.getElementById('filter-monitoring-group');
+      if (groupFilterEl && currentUser && currentUser.role === 'superadmin') {
+        const val = groupFilterEl.value;
+        if (val === 'superadmin') {
+          allDevices = allDevices.filter(d => d.role === 'superadmin');
+        } else if (val !== 'all') {
+          allDevices = allDevices.filter(d => String(d.groupId) === String(val));
+        }
+      }
+
+      // Filter by Activity Status
+      const statusFilterEl = document.getElementById('filter-monitoring-status');
+      if (statusFilterEl) {
+        const val = statusFilterEl.value;
+        if (val !== 'all') {
+          allDevices = allDevices.filter(d => d.activity === val);
+        }
+      }
+
+      // Update Summary Counts
+      const totalCount = allDevices.length;
+      const inputtingCount = allDevices.filter(d => d.activity === 'Sedang Menginput').length;
+      const idleCount = allDevices.filter(d => d.activity === 'Tidak Aktif').length;
+      const uniqueGroups = new Set(allDevices.filter(d => d.groupId).map(d => d.groupId)).size;
+
+      const totalEl = document.getElementById('mon-stat-total');
+      const inputtingEl = document.getElementById('mon-stat-inputting');
+      const idleEl = document.getElementById('mon-stat-idle');
+      const groupsActiveEl = document.getElementById('mon-stat-groups-active');
+      const superadminBadge = document.getElementById('superadmin-online-badge');
+      const mobileSuperBadge = document.getElementById('mobile-superadmin-online-badge');
+      const groupAdminDot = document.getElementById('group-nav-online-dot');
+
+      if (totalEl) totalEl.textContent = totalCount;
+      if (inputtingEl) inputtingEl.textContent = inputtingCount;
+      if (idleEl) idleEl.textContent = idleCount;
+      if (groupsActiveEl) groupsActiveEl.textContent = uniqueGroups;
+      if (superadminBadge) superadminBadge.textContent = totalCount;
+      if (mobileSuperBadge) mobileSuperBadge.textContent = totalCount;
+
+      const myDevId = getOrCreateDeviceId();
+
+      if (allDevices.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-8 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-slate-500 text-xs">
+            <p class="font-bold text-sm text-slate-700">Tidak ada perangkat aktif yang sesuai filter.</p>
+            <p class="mt-1">Perangkat akan otomatis terdaftar ketika login dan terhubung ke live sync.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = allDevices.map(d => {
+        const isMe = d.deviceId === myDevId;
+        const isTyping = d.activity === 'Sedang Menginput';
+        const shortId = d.deviceId.length > 8 ? d.deviceId.slice(0, 8) : d.deviceId;
+        const roleBadge = d.role === 'superadmin' 
+          ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200 shrink-0">Superadmin</span>'
+          : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 shrink-0">Kelompok ${d.groupId || '-'}</span>`;
+
+        const activityBadge = isTyping
+          ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1.5 animate-pulse">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span> Sedang Menginput ✍️
+             </span>`
+          : `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-slate-400"></span> Tidak Aktif 💤
+             </span>`;
+
+        const onlineSinceStr = d.onlineSince ? formatTimeAgo(d.onlineSince) : 'Baru saja';
+
+        return `
+          <div class="p-4 rounded-2xl border ${isMe ? 'border-brand-300 bg-brand-50/20 shadow-xs ring-1 ring-brand-400/30' : 'border-slate-200 bg-white shadow-xs'} transition-all flex flex-col justify-between gap-3">
+            <div>
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs shrink-0" title="Online"></span>
+                  <b class="text-sm font-bold text-slate-900 truncate">@${esc(d.username || 'unknown')}</b>
+                  ${isMe ? '<span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-brand-600 text-white shrink-0">Perangkat Ini</span>' : ''}
+                </div>
+                ${roleBadge}
+              </div>
+
+              <p class="text-xs text-slate-600 font-semibold mt-1 truncate">
+                ${esc(d.groupName || (d.groupId ? 'Kelompok ' + d.groupId : 'Master Promotor'))}
+              </p>
+
+              <div class="mt-2 text-[11px] text-slate-400 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+                <span class="truncate">${esc(d.devicePlatform || 'Desktop Browser')} · <span class="font-mono">#${esc(shortId)}</span></span>
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+              ${activityBadge}
+              <span class="text-[11px] text-slate-400">Online ${onlineSinceStr}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function handleRealtimeOrderEvent(payload) {
+      if (!payload) return;
+      const event = payload.eventType || payload.action;
+      const newRow = payload.new || payload.order;
+      const oldRow = payload.old || payload.order;
+
+      console.log(`[Realtime Live Sync] Order ${event}:`, newRow?.id || oldRow?.id || '');
+
+      if (event === 'INSERT' && newRow) {
+        if (currentUser.role !== 'superadmin' && currentUser.groupId && Number(newRow.group_id || newRow.groupId) !== Number(currentUser.groupId)) {
+          return;
+        }
+
+        const existingIdx = orders.findIndex(o => o.id === (newRow.id || newRow.orderId));
+        const mapped = {
+          id: newRow.id || newRow.orderId,
+          createdAt: newRow.created_at_label || newRow.createdAt || formatLabelDate(newRow.created_at),
+          groupId: Number(newRow.group_id || newRow.groupId),
+          groupName: newRow.group_name || newRow.groupName || getGroupName(newRow.group_id || newRow.groupId),
+          buyerName: newRow.buyer_name || newRow.buyerName,
+          buyerClass: newRow.buyer_class || newRow.buyerClass,
+          items: newRow.items || [],
+          total: Number(newRow.total) || 0,
+          status: newRow.status || 'Belum Lunas',
+          note: newRow.note || '',
+          recordedBy: newRow.recorded_by || newRow.recordedBy || '',
+          updatedAt: newRow.updated_at || newRow.updatedAt || new Date().toISOString()
+        };
+
+        if (existingIdx >= 0) {
+          orders[existingIdx] = mapped;
+        } else {
+          orders.unshift(mapped);
+          showToast(`Pesanan baru masuk: ${mapped.buyerName} (${mapped.buyerClass})`, 'info');
+        }
+
+        saveAllData();
+        renderOrdersTable();
+        renderStats();
+        updateMetrics();
+
+      } else if (event === 'UPDATE' && newRow) {
+        const orderId = newRow.id || newRow.orderId;
+        const existingIdx = orders.findIndex(o => o.id === orderId);
+        const mapped = {
+          id: orderId,
+          createdAt: newRow.created_at_label || newRow.createdAt || (existingIdx >= 0 ? orders[existingIdx].createdAt : formatLabelDate(newRow.created_at)),
+          groupId: Number(newRow.group_id || newRow.groupId),
+          groupName: newRow.group_name || newRow.groupName || getGroupName(newRow.group_id || newRow.groupId),
+          buyerName: newRow.buyer_name || newRow.buyerName,
+          buyerClass: newRow.buyer_class || newRow.buyerClass,
+          items: newRow.items || [],
+          total: Number(newRow.total) || 0,
+          status: newRow.status || 'Belum Lunas',
+          note: newRow.note || '',
+          recordedBy: newRow.recorded_by || newRow.recordedBy || '',
+          updatedAt: newRow.updated_at || newRow.updatedAt || new Date().toISOString()
+        };
+
+        const isEditingThisOrder = currentEditingOrder && currentEditingOrder.id === orderId &&
+          !document.getElementById('edit-order-modal').classList.contains('hidden');
+
+        if (isEditingThisOrder) {
+          _lastIncomingOrderEditConflict = mapped;
+          showEditOrderConflictBanner(mapped);
+        } else {
+          if (existingIdx >= 0) {
+            orders[existingIdx] = mapped;
+          } else if (currentUser.role === 'superadmin' || (currentUser.groupId && Number(mapped.groupId) === Number(currentUser.groupId))) {
+            orders.unshift(mapped);
+          }
+          saveAllData();
+          renderOrdersTable();
+          renderStats();
+          updateMetrics();
+
+          if (typeof currentDetailOrderId !== 'undefined' && currentDetailOrderId === orderId) {
+            const detailModal = document.getElementById('order-detail-modal');
+            if (detailModal && !detailModal.classList.contains('hidden')) {
+              openOrderDetailModal(orderId);
+            }
+          }
+        }
+
+      } else if (event === 'DELETE' && oldRow) {
+        const delId = oldRow.id || oldRow.orderId;
+        const existingIdx = orders.findIndex(o => o.id === delId);
+        if (existingIdx >= 0) {
+          orders.splice(existingIdx, 1);
+          saveAllData();
+          renderOrdersTable();
+          renderStats();
+          updateMetrics();
+        }
+
+        if (currentEditingOrder && currentEditingOrder.id === delId) {
+          closeModal('edit-order-modal');
+          showToast(`Pesanan #${delId} telah dihapus oleh perangkat lain.`, 'warn');
+        }
+        if (typeof currentDetailOrderId !== 'undefined' && currentDetailOrderId === delId) {
+          closeModal('order-detail-modal');
+          showToast(`Pesanan #${delId} telah dihapus oleh perangkat lain.`, 'warn');
+        }
+      }
+    }
+
+    function handleRealtimeGroupEvent(payload) {
+      if (!payload) return;
+      const newGrp = payload.new || payload.group;
+      if (!newGrp || !newGrp.id) return;
+      const idx = groups.findIndex(g => g.id === newGrp.id);
+      const mapped = {
+        id: newGrp.id,
+        name: newGrp.name,
+        tagline: newGrp.tagline,
+        poster: newGrp.poster,
+        products: newGrp.products || [],
+        is_active: newGrp.is_active !== false
+      };
+
+      if (idx >= 0) {
+        groups[idx] = mapped;
+      } else {
+        groups.push(mapped);
+      }
+
+      saveAllData();
+      renderEtalaseCards();
+      renderAdminGroupCards();
+      renderCatalogManager();
+    }
+
+    function showEditOrderConflictBanner(incomingOrder) {
+      const banner = document.getElementById('edit-order-conflict-banner');
+      const msg = document.getElementById('edit-order-conflict-msg');
+      if (!banner || !msg) return;
+
+      msg.textContent = `Pesanan #${incomingOrder.id} (${incomingOrder.buyerName}) baru saja diperbarui oleh perangkat lain (${incomingOrder.recordedBy || 'admin lain'}) dengan status "${incomingOrder.status}" dan total ${formatRupiah(incomingOrder.total)}. Apakah Anda ingin memuat data terbaru atau tetap menyimpan perubahan lokal Anda?`;
+      banner.classList.remove('hidden');
+    }
+
+    function broadcastRealtimeOrder(action, order) {
+      try {
+        if (_realtimeChannel) {
+          _realtimeChannel.send({
+            type: 'broadcast',
+            event: 'order_event',
+            payload: { action, order }
+          });
+        }
+      } catch (e) {
+        // Non-blocking fallback
+      }
+    }
+
+    function broadcastRealtimeGroup(action, group) {
+      try {
+        if (_realtimeChannel) {
+          _realtimeChannel.send({
+            type: 'broadcast',
+            event: 'group_event',
+            payload: { action, group }
+          });
+        }
+      } catch (e) {
+        // Non-blocking fallback
+      }
+    }
+
+    function resolveEditConflictReload() {
+      if (_lastIncomingOrderEditConflict) {
+        const o = _lastIncomingOrderEditConflict;
+        _lastIncomingOrderEditConflict = null;
+        const banner = document.getElementById('edit-order-conflict-banner');
+        if (banner) banner.classList.add('hidden');
+        const idx = orders.findIndex(x => x.id === o.id);
+        if (idx >= 0) {
+          orders[idx] = o;
+        } else {
+          orders.unshift(o);
+        }
+        saveAllData();
+        refreshAllSections();
+        openEditOrderModal(o.id);
+        showToast('Data pesanan terbaru berhasil dimuat.', 'info');
+      }
+    }
+
+    function resolveEditConflictDismiss() {
+      _lastIncomingOrderEditConflict = null;
+      const banner = document.getElementById('edit-order-conflict-banner');
+      if (banner) banner.classList.add('hidden');
+      showToast('Perubahan lokal Anda dipertahankan. Tekan Simpan jika Anda ingin memperbarui.', 'warn');
+    }
+
+    async function cleanupRealtime() {
+      const sb = getSupabase();
+      if (_typingTimer) clearTimeout(_typingTimer);
+      clearTimeout(_realtimeReconnectTimer);
+
+      for (const [name, chan] of Object.entries(_groupPresenceChannels)) {
+        try {
+          await chan.untrack();
+          if (sb) await sb.removeChannel(chan);
+        } catch (e) {}
+      }
+      _groupPresenceChannels = {};
+
+      if (_realtimeChannel && sb) {
+        try {
+          await _realtimeChannel.untrack();
+          await sb.removeChannel(_realtimeChannel);
+        } catch (e) {}
+        _realtimeChannel = null;
+      }
+
+      _allActivePresences = {};
+      updateLiveSyncUI('disconnected');
+    }
+
+    window.addEventListener('beforeunload', () => {
+      cleanupRealtime();
+    });
 
     // ==========================================
     // 5. AUTHENTICATION & ACCOUNT MANAGEMENT
@@ -4915,6 +5694,7 @@
     });
 
     async function logout() {
+      await cleanupRealtime();
       currentUser = null;
       originUser = null;
       allProfiles = [];
@@ -5399,6 +6179,12 @@
     }
 
     function closeModal(id) {
+      if (id === 'edit-order-modal') {
+        currentEditingOrder = null;
+        _lastIncomingOrderEditConflict = null;
+        const conflictBanner = document.getElementById('edit-order-conflict-banner');
+        if (conflictBanner) conflictBanner.classList.add('hidden');
+      }
       const modal = document.getElementById(id);
       const box = document.getElementById(id + '-box');
       modal.classList.remove('modal-backdrop-in');
@@ -5555,7 +6341,7 @@
       document.getElementById('switcher-btn').setAttribute('aria-expanded', 'false');
     }
 
-    function switchAccount(accId) {
+    async function switchAccount(accId) {
       if (!canSwitchAccounts()) return;
       const target = allProfiles.find(a => a.id === accId) ||
         (accId === 'superadmin' ? { id: 'superadmin', role: 'superadmin', groupId: null, label: 'Superadmin (Master Promotor)', username: 'superadmin' } : null);
@@ -5587,13 +6373,15 @@
       ['po-modal', 'poster-modal', 'product-modal', 'account-modal', 'summary-modal', 'group-modal', 'archive-modal', 'add-account-modal', 'confirm-account-action-modal', 'delete-order-modal', 'order-detail-modal', 'edit-order-modal', 'confirm-nominal-change-modal', 'order-audit-modal'].forEach(id => {
         const m = document.getElementById(id); if (m && !m.classList.contains('hidden')) closeModal(id);
       });
+      await cleanupRealtime();
       initAppView();
       window.scrollTo({ top: 0 });
       showToast(`Beralih ke ${currentUser.label}`);
     }
 
-    function returnToOrigin() {
+    async function returnToOrigin() {
       if (originUser) {
+        await cleanupRealtime();
         currentUser = structuredClone(originUser);
         originUser = null;
         sessionStorage.removeItem(STORAGE_KEYS.ORIGIN);
@@ -5662,6 +6450,7 @@
       renderSwitcher();
       populateSelectFilters();
       refreshAllSections();
+      initRealtimeSync();
     }
 
     function populateSelectFilters() {
@@ -5685,6 +6474,7 @@
       renderAdminGroupCards();
       renderOrdersTable();
       renderCatalogManager();
+      renderDeviceMonitoring();
     }
 
     function updateMetrics() {
@@ -6642,6 +7432,9 @@
       }
 
       currentEditingOrder = structuredClone(order);
+      _lastIncomingOrderEditConflict = null;
+      const conflictBanner = document.getElementById('edit-order-conflict-banner');
+      if (conflictBanner) conflictBanner.classList.add('hidden');
       document.getElementById('edit-order-id').value = order.id;
       document.getElementById('edit-order-id-badge').textContent = `#${order.id}`;
       document.getElementById('edit-order-group-id').value = order.groupId;
