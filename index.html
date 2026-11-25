@@ -3086,9 +3086,219 @@
           <strong id="detail-order-total-price" class="font-display text-xl font-bold text-brand-700">Rp 0</strong>
         </div>
 
-        <div class="flex items-center justify-end gap-2 pt-2">
-          <button type="button" onclick="closeModal('order-detail-modal')"
-            class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">
+        <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 flex-wrap">
+          <button type="button" id="detail-order-audit-btn" onclick="openOrderAuditModalFromDetail()"
+            class="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition">
+            <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Riwayat
+          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" id="detail-order-edit-btn" onclick="openEditOrderModalFromDetail()"
+              class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition shadow-sm">
+              <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Edit Pesanan
+            </button>
+            <button type="button" onclick="closeModal('order-detail-modal')"
+              class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition">
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT DATA PESANAN PEMBELI -->
+  <div id="edit-order-modal"
+    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+    onclick="if(event.target===this) closeModal('edit-order-modal')">
+    <div id="edit-order-modal-box"
+      class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-full bg-brand-500/30 text-brand-300 flex items-center justify-center text-sm font-bold">✏️</span>
+          <div>
+            <h4 class="font-display text-base font-bold">Edit Data Pesanan</h4>
+            <span id="edit-order-id-badge" class="text-[11px] text-slate-400 font-mono">PO-ID</span>
+          </div>
+        </div>
+        <button type="button" onclick="closeModal('edit-order-modal')"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm cursor-pointer transition">&times;</button>
+      </div>
+
+      <form id="edit-order-form" class="p-6 space-y-5 max-h-[82vh] overflow-y-auto">
+        <input type="hidden" id="edit-order-id" />
+        <input type="hidden" id="edit-order-group-id" />
+
+        <!-- Info Kelompok Badge -->
+        <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400 font-bold uppercase text-[10px]">Kelompok Usaha:</span>
+            <span id="edit-order-group-badge" class="font-bold text-slate-800">-</span>
+          </div>
+          <span class="text-[11px] text-slate-500 italic">ID &amp; tanggal pembuatan tidak berubah</span>
+        </div>
+
+        <!-- Nama & Kelas -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Nama Pembeli *</label>
+            <input id="edit-order-buyer-name" type="text" required placeholder="Nama pembeli"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium focus:outline-none focus:border-brand-500 transition" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Kelas / Ruangan *</label>
+            <input id="edit-order-buyer-class" type="text" required placeholder="Contoh: XII RPL 1"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium focus:outline-none focus:border-brand-500 transition" />
+          </div>
+        </div>
+
+        <!-- Pemilihan Produk / Cart -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600">Daftar Produk Pesanan (Atur Jumlah)</label>
+            <div class="flex gap-1 bg-slate-100 p-1 rounded-lg text-[11px] font-bold">
+              <button type="button" onclick="setEditOrderFilter('all')" id="edit-tab-all"
+                class="px-2.5 py-1 rounded-md bg-white text-brand-700 shadow-xs cursor-pointer">Semua</button>
+              <button type="button" onclick="setEditOrderFilter('satuan')" id="edit-tab-satuan"
+                class="px-2.5 py-1 rounded-md text-slate-600 cursor-pointer">Satuan</button>
+              <button type="button" onclick="setEditOrderFilter('bundling')" id="edit-tab-bundling"
+                class="px-2.5 py-1 rounded-md text-slate-600 cursor-pointer">Bundling</button>
+            </div>
+          </div>
+
+          <div id="edit-order-products-list" class="space-y-2.5 max-h-60 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- Catatan & Status -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Status Pembayaran</label>
+            <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+              <span id="edit-order-status-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold">-</span>
+              <span class="text-[11px] text-slate-500">(Tetap sesuai status saat ini)</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Catatan Pesanan (Opsional)</label>
+            <input id="edit-order-note" type="text" placeholder="Contoh: Tanpa es / saus pedas"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:border-brand-500 transition" />
+          </div>
+        </div>
+
+        <!-- Ringkasan Nominal & Total -->
+        <div class="bg-brand-50 border border-brand-100 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-xs font-bold text-brand-800 block">Total Tagihan Pesanan</span>
+            <span id="edit-order-selected-summary" class="text-xs text-slate-600 block">Memuat...</span>
+            <div id="edit-order-nominal-diff" class="text-[11px] font-semibold text-amber-700 mt-1 hidden"></div>
+          </div>
+          <strong id="edit-order-total-price" class="font-display text-2xl font-bold text-brand-700 shrink-0">Rp 0</strong>
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button type="button" onclick="closeModal('edit-order-modal')"
+            class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition">Batal</button>
+          <button type="submit" id="edit-order-submit-btn"
+            class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-lg shadow-brand-600/20 cursor-pointer flex items-center justify-center transition">
+            Simpan Perubahan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: KONFIRMASI PERUBAHAN NOMINAL PESANAN -->
+  <div id="confirm-nominal-change-modal"
+    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
+    onclick="if(event.target===this) closeModal('confirm-nominal-change-modal')">
+    <div id="confirm-nominal-change-modal-box"
+      class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="px-6 py-4 bg-amber-500 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">⚠️</span>
+          <h4 class="font-display text-base font-bold">Konfirmasi Perubahan Nominal</h4>
+        </div>
+        <button type="button" onclick="closeModal('confirm-nominal-change-modal')"
+          class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white font-bold text-sm cursor-pointer transition">&times;</button>
+      </div>
+      <div class="p-6 space-y-4">
+        <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 space-y-2 text-xs">
+          <p class="text-slate-600">Perubahan item/jumlah pesanan memengaruhi total tagihan:</p>
+          <div class="flex items-center justify-between py-1 border-b border-amber-200/60">
+            <span class="font-semibold text-slate-700">Total Lama:</span>
+            <span id="confirm-nominal-old" class="font-bold text-slate-900">Rp 0</span>
+          </div>
+          <div class="flex items-center justify-between py-1 border-b border-amber-200/60">
+            <span class="font-semibold text-slate-700">Total Baru:</span>
+            <span id="confirm-nominal-new" class="font-bold text-brand-700 text-sm">Rp 0</span>
+          </div>
+          <div class="flex items-center justify-between py-1">
+            <span class="font-semibold text-slate-700">Selisih:</span>
+            <span id="confirm-nominal-delta" class="font-bold text-amber-800">Rp 0</span>
+          </div>
+        </div>
+
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Pastikan perubahan nominal ini sudah dikoordinasikan dengan pembeli, terutama jika uang tunai sudah disetorkan.
+        </p>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button type="button" onclick="closeModal('confirm-nominal-change-modal')"
+            class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition">
+            Periksa Kembali
+          </button>
+          <button type="button" id="confirm-nominal-proceed-btn"
+            class="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-md cursor-pointer transition">
+            Ya, Simpan Perubahan
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: RIWAYAT PERUBAHAN PESANAN (AUDIT TRAIL) -->
+  <div id="order-audit-modal"
+    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+    onclick="if(event.target===this) closeModal('order-audit-modal')">
+    <div id="order-audit-modal-box"
+      class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-full bg-indigo-500/30 text-indigo-300 flex items-center justify-center text-sm font-bold">📜</span>
+          <div>
+            <h4 class="font-display text-base font-bold">Riwayat Perubahan Pesanan</h4>
+            <span id="audit-order-id-badge" class="text-[11px] text-slate-400 font-mono">PO-ID</span>
+          </div>
+        </div>
+        <button type="button" onclick="closeModal('order-audit-modal')"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm cursor-pointer transition">&times;</button>
+      </div>
+
+      <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+        <div id="audit-logs-loading" class="text-center py-8 text-slate-500 text-xs hidden">
+          <svg class="animate-spin w-5 h-5 mx-auto mb-2 text-indigo-600" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          Memuat riwayat perubahan...
+        </div>
+
+        <div id="audit-logs-empty" class="text-center py-8 text-slate-500 text-xs hidden">
+          <span class="text-2xl block mb-2">📋</span>
+          <p class="font-semibold text-slate-700">Belum Ada Perubahan</p>
+          <p class="text-slate-500 mt-1">Data pesanan ini masih asli dan belum pernah diedit.</p>
+        </div>
+
+        <div id="audit-logs-list" class="space-y-3"></div>
+
+        <div class="flex items-center justify-end pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeModal('order-audit-modal')"
+            class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer transition">
             Tutup
           </button>
         </div>
@@ -3978,7 +4188,8 @@
             total: Number(r.total),
             status: r.status,
             note: r.note || '',
-            recordedBy: r.recorded_by
+            recordedBy: r.recorded_by,
+            updatedAt: r.updated_at
           }));
         }
 
@@ -4046,6 +4257,34 @@
       const res = await sbRequest('bzooginer_orders', 'DELETE', null, `?id=eq.${encodeURIComponent(orderId)}`);
       if (Array.isArray(res) && res.length === 0) {
         throw new Error('Penghapusan ditolak oleh database (hanya Superadmin atau pemilik pesanan yang berwenang).');
+      }
+    }
+
+    async function updateOrderInSupabase(orderId, updateFields) {
+      if (!getSupabaseConfig()) return;
+      const payload = {
+        buyer_name: updateFields.buyerName,
+        buyer_class: updateFields.buyerClass,
+        items: updateFields.items,
+        total: updateFields.total,
+        note: updateFields.note != null ? updateFields.note : '',
+        updated_at: new Date().toISOString()
+      };
+      const res = await sbRequest('bzooginer_orders', 'PATCH', payload, `?id=eq.${encodeURIComponent(orderId)}`);
+      if (Array.isArray(res) && res.length === 0) {
+        throw new Error('Pembaruan pesanan ditolak oleh database (hanya Superadmin atau Admin Kelompok pemilik pesanan yang berwenang).');
+      }
+      return res;
+    }
+
+    async function fetchOrderAuditLogs(orderId) {
+      if (!getSupabaseConfig()) return [];
+      try {
+        const res = await sbRequest('bzooginer_order_audit_logs', 'GET', null, `?order_id=eq.${encodeURIComponent(orderId)}&order=changed_at.desc`);
+        return Array.isArray(res) ? res : [];
+      } catch (err) {
+        console.warn('Fetch audit logs failed:', err);
+        return [];
       }
     }
 
@@ -4839,7 +5078,7 @@
         };
       }
 
-      ['po-modal', 'poster-modal', 'product-modal', 'account-modal', 'summary-modal', 'group-modal', 'archive-modal', 'add-account-modal', 'confirm-account-action-modal', 'delete-order-modal', 'order-detail-modal'].forEach(id => {
+      ['po-modal', 'poster-modal', 'product-modal', 'account-modal', 'summary-modal', 'group-modal', 'archive-modal', 'add-account-modal', 'confirm-account-action-modal', 'delete-order-modal', 'order-detail-modal', 'edit-order-modal', 'confirm-nominal-change-modal', 'order-audit-modal'].forEach(id => {
         const m = document.getElementById(id); if (m && !m.classList.contains('hidden')) closeModal(id);
       });
       initAppView();
@@ -5665,7 +5904,12 @@
             <td data-label="Rincian item" class="full">${items}</td>
             <td data-label="Total cash" class="num" style="font-weight:800;white-space:nowrap">${formatRupiah(o.total)}</td>
             <td data-label="Status"><button type="button" class="pill ${paid ? 'ok' : 'warn'}" title="Ketuk untuk memvalidasi perubahan status" onclick="requestTogglePaymentStatus('${o.id}')">${paid ? 'Lunas (Cash)' : 'Belum Lunas'}</button></td>
-            <td class="no-print full" style="text-align:right"><button type="button" class="btn btn-sm" style="color:var(--chili-d)" onclick="openDeleteOrderModal('${o.id}')">Hapus</button></td>
+            <td class="no-print full" style="text-align:right">
+              <div class="flex items-center justify-end gap-1.5 flex-nowrap">
+                ${canEditOrder(o) ? `<button type="button" class="btn btn-sm" style="color:var(--brand-d);font-weight:700" onclick="openEditOrderModal('${o.id}')" title="Edit pesanan">Edit</button>` : ''}
+                <button type="button" class="btn btn-sm" style="color:var(--chili-d)" onclick="openDeleteOrderModal('${o.id}')" title="Hapus pesanan">Hapus</button>
+              </div>
+            </td>
           </tr>`;
       }).join('');
 
@@ -5701,9 +5945,12 @@
       }
     }
 
+    let currentDetailOrderId = null;
+
     function openOrderDetailModal(orderId) {
       const order = orders.find(o => o.id === orderId);
       if (!order) return;
+      currentDetailOrderId = orderId;
 
       document.getElementById('detail-order-id-badge').textContent = `#${order.id}`;
       document.getElementById('detail-order-time').textContent = order.createdAt;
@@ -5737,6 +5984,11 @@
       }).join('');
 
       document.getElementById('detail-order-total-price').textContent = formatRupiah(order.total);
+
+      const canEdit = canEditOrder(order);
+      const editBtn = document.getElementById('detail-order-edit-btn');
+      if (editBtn) editBtn.classList.toggle('hidden', !canEdit);
+
       openModal('order-detail-modal');
     }
 
@@ -5856,6 +6108,423 @@
 
     async function deleteOrder(orderId) {
       openDeleteOrderModal(orderId);
+    }
+
+    // ==========================================
+    // 9B. EDIT ORDER, AUDIT LOG & CONFIRMATION MODALS
+    // ==========================================
+    let currentEditOrderCart = {};
+    let currentEditOrderFilter = 'all';
+    let currentEditingOrder = null;
+    let pendingEditedOrderPayload = null;
+    let isSubmittingEditOrder = false;
+
+    function canEditOrder(order) {
+      if (!order || !currentUser) return false;
+      if (currentUser.role === 'superadmin') return true;
+      if (currentUser.role === 'group_admin' && Number(order.groupId) === Number(currentUser.groupId)) return true;
+      return false;
+    }
+
+    function openEditOrderModal(orderId) {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+      if (!canEditOrder(order)) {
+        showToast('Anda tidak memiliki hak akses untuk mengedit pesanan ini.', 'error');
+        return;
+      }
+
+      currentEditingOrder = structuredClone(order);
+      document.getElementById('edit-order-id').value = order.id;
+      document.getElementById('edit-order-id-badge').textContent = `#${order.id}`;
+      document.getElementById('edit-order-group-id').value = order.groupId;
+      document.getElementById('edit-order-group-badge').textContent = `Kelompok ${order.groupId} (${order.groupName || ''})`;
+      document.getElementById('edit-order-buyer-name').value = order.buyerName || '';
+      document.getElementById('edit-order-buyer-class').value = order.buyerClass || '';
+      document.getElementById('edit-order-note').value = order.note || '';
+
+      const isPaid = order.status === 'Lunas';
+      const statusBadge = document.getElementById('edit-order-status-badge');
+      if (statusBadge) {
+        statusBadge.textContent = isPaid ? 'Lunas (Cash)' : 'Belum Lunas';
+        statusBadge.className = isPaid
+          ? 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200'
+          : 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200';
+      }
+
+      currentEditOrderCart = {};
+      (order.items || []).forEach(it => {
+        if (it && it.id) {
+          currentEditOrderCart[it.id] = Number(it.qty) || 0;
+        }
+      });
+
+      currentEditOrderFilter = 'all';
+      updateEditOrderFilterTabs();
+      renderEditOrderProductsList();
+      updateEditOrderSummary();
+      openModal('edit-order-modal');
+    }
+
+    function openEditOrderModalFromDetail() {
+      if (!currentDetailOrderId) return;
+      const id = currentDetailOrderId;
+      closeModal('order-detail-modal');
+      openEditOrderModal(id);
+    }
+
+    function openOrderAuditModalFromDetail() {
+      if (!currentDetailOrderId) return;
+      openOrderAuditModal(currentDetailOrderId);
+    }
+
+    function setEditOrderFilter(type) {
+      currentEditOrderFilter = type;
+      updateEditOrderFilterTabs();
+      renderEditOrderProductsList();
+    }
+
+    function updateEditOrderFilterTabs() {
+      ['all', 'satuan', 'bundling'].forEach(t => {
+        const tab = document.getElementById(`edit-tab-${t}`);
+        if (!tab) return;
+        const active = currentEditOrderFilter === t;
+        tab.className = active
+          ? 'px-2.5 py-1 rounded-md bg-white text-brand-700 shadow-xs cursor-pointer font-bold'
+          : 'px-2.5 py-1 rounded-md text-slate-600 cursor-pointer font-bold';
+      });
+    }
+
+    function renderEditOrderProductsList() {
+      const listEl = document.getElementById('edit-order-products-list');
+      if (!listEl || !currentEditingOrder) return;
+      const group = groups.find(g => Number(g.id) === Number(currentEditingOrder.groupId));
+      if (!group) {
+        listEl.innerHTML = '<p class="text-xs text-rose-600">Data produk kelompok tidak ditemukan.</p>';
+        return;
+      }
+
+      const combinedProds = [...(group.products || [])];
+      (currentEditingOrder.items || []).forEach(it => {
+        if (!combinedProds.some(p => p.id === it.id)) {
+          combinedProds.push({
+            id: it.id,
+            name: it.name,
+            desc: '(Item sebelumnya pada pesanan)',
+            type: it.type || 'satuan',
+            price: Number(it.price) || 0
+          });
+        }
+      });
+
+      const filtered = combinedProds.filter(p => currentEditOrderFilter === 'all' || p.type === currentEditOrderFilter);
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<p class="text-xs text-slate-500 py-3 text-center">Tidak ada item dalam kategori ini.</p>';
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(p => {
+        const qty = currentEditOrderCart[p.id] || 0;
+        return `
+          <div class="p-3 rounded-2xl border ${qty > 0 ? 'border-brand-500 bg-brand-50/40' : 'border-slate-200 bg-slate-50/60'} flex items-center justify-between gap-3 transition">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-md ${p.type === 'bundling' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-700'}">
+                  ${p.type}
+                </span>
+                <strong class="text-xs font-bold text-slate-900 truncate">${esc(p.name)}</strong>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-0.5 truncate">${esc(p.desc || '')}</p>
+              <span class="text-xs font-bold text-brand-700">${formatRupiah(p.price)}</span>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button type="button" class="w-7 h-7 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 font-bold flex items-center justify-center cursor-pointer transition disabled:opacity-30 disabled:cursor-not-allowed"
+                onclick="changeEditOrderCartQty('${p.id}', -1)" ${qty <= 0 ? 'disabled' : ''}>-</button>
+              <span class="w-6 text-center text-xs font-bold text-slate-800">${qty}</span>
+              <button type="button" class="w-7 h-7 rounded-lg border border-brand-500 bg-brand-50 hover:bg-brand-100 text-brand-800 font-bold flex items-center justify-center cursor-pointer transition"
+                onclick="changeEditOrderCartQty('${p.id}', 1)">+</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function changeEditOrderCartQty(productId, delta) {
+      const next = (currentEditOrderCart[productId] || 0) + delta;
+      if (next <= 0) {
+        delete currentEditOrderCart[productId];
+      } else {
+        currentEditOrderCart[productId] = next;
+      }
+      renderEditOrderProductsList();
+      updateEditOrderSummary();
+    }
+
+    function updateEditOrderSummary() {
+      if (!currentEditingOrder) return;
+      const group = groups.find(g => Number(g.id) === Number(currentEditingOrder.groupId));
+      if (!group) return;
+
+      let newTotal = 0;
+      const labels = [];
+      const combinedProds = [...(group.products || [])];
+      (currentEditingOrder.items || []).forEach(it => {
+        if (!combinedProds.some(p => p.id === it.id)) combinedProds.push(it);
+      });
+
+      Object.entries(currentEditOrderCart).forEach(([prodId, qty]) => {
+        const prod = combinedProds.find(p => p.id === prodId);
+        if (prod && qty > 0) {
+          const itemPrice = Number(prod.price) || 0;
+          newTotal += itemPrice * qty;
+          labels.push(`${prod.name} (${qty}x)`);
+        }
+      });
+
+      document.getElementById('edit-order-total-price').textContent = formatRupiah(newTotal);
+      document.getElementById('edit-order-selected-summary').textContent = labels.length ? labels.join(', ') : 'Belum ada item dipilih (minimal 1 item)';
+
+      const diffEl = document.getElementById('edit-order-nominal-diff');
+      if (diffEl) {
+        const origTotal = Number(currentEditingOrder.total) || 0;
+        if (newTotal !== origTotal) {
+          const delta = newTotal - origTotal;
+          diffEl.classList.remove('hidden');
+          diffEl.innerHTML = `⚠️ Nominal berubah: <s>${formatRupiah(origTotal)}</s> &rarr; <b>${formatRupiah(newTotal)}</b> (${delta > 0 ? '+' : ''}${formatRupiah(delta)})`;
+        } else {
+          diffEl.classList.add('hidden');
+          diffEl.innerHTML = '';
+        }
+      }
+    }
+
+    document.getElementById('edit-order-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (isSubmittingEditOrder) return;
+      if (!currentEditingOrder) return;
+
+      const buyerName = document.getElementById('edit-order-buyer-name').value.trim();
+      const buyerClass = document.getElementById('edit-order-buyer-class').value.trim();
+      const note = document.getElementById('edit-order-note').value.trim();
+
+      if (!buyerName || !buyerClass) {
+        showToast('Nama pembeli dan kelas wajib diisi.', 'error');
+        return;
+      }
+
+      const group = groups.find(g => Number(g.id) === Number(currentEditingOrder.groupId));
+      if (!group) {
+        showToast('Kelompok tidak ditemukan.', 'error');
+        return;
+      }
+
+      const combinedProds = [...(group.products || [])];
+      (currentEditingOrder.items || []).forEach(it => {
+        if (!combinedProds.some(p => p.id === it.id)) combinedProds.push(it);
+      });
+
+      const newItems = [];
+      let newTotal = 0;
+      Object.entries(currentEditOrderCart).forEach(([prodId, qty]) => {
+        const prod = combinedProds.find(p => p.id === prodId);
+        if (prod && qty > 0) {
+          const itemPrice = Number(prod.price) || 0;
+          newItems.push({
+            id: prod.id,
+            name: prod.name,
+            type: prod.type || 'satuan',
+            price: itemPrice,
+            qty: qty,
+            subtotal: itemPrice * qty
+          });
+          newTotal += itemPrice * qty;
+        }
+      });
+
+      if (newItems.length === 0) {
+        showToast('Pilih minimal 1 item pesanan sebelum menyimpan.', 'error');
+        return;
+      }
+
+      const origTotal = Number(currentEditingOrder.total) || 0;
+      const payload = {
+        id: currentEditingOrder.id,
+        buyerName,
+        buyerClass,
+        items: newItems,
+        total: newTotal,
+        note,
+        groupId: currentEditingOrder.groupId,
+        groupName: currentEditingOrder.groupName,
+        status: currentEditingOrder.status,
+        recordedBy: currentEditingOrder.recordedBy,
+        createdAt: currentEditingOrder.createdAt
+      };
+
+      // Jika nominal total tagihan berubah, minta konfirmasi khusus sebelum menyimpan
+      if (newTotal !== origTotal) {
+        pendingEditedOrderPayload = payload;
+        document.getElementById('confirm-nominal-old').textContent = formatRupiah(origTotal);
+        document.getElementById('confirm-nominal-new').textContent = formatRupiah(newTotal);
+        const delta = newTotal - origTotal;
+        document.getElementById('confirm-nominal-delta').textContent = `${delta > 0 ? '+' : ''}${formatRupiah(delta)}`;
+        openModal('confirm-nominal-change-modal');
+      } else {
+        executeSaveEditedOrder(payload);
+      }
+    });
+
+    document.getElementById('confirm-nominal-proceed-btn').addEventListener('click', () => {
+      if (!pendingEditedOrderPayload) return;
+      const payload = pendingEditedOrderPayload;
+      closeModal('confirm-nominal-change-modal');
+      executeSaveEditedOrder(payload);
+    });
+
+    async function executeSaveEditedOrder(payload) {
+      if (isSubmittingEditOrder) return;
+      isSubmittingEditOrder = true;
+
+      const submitBtn = document.getElementById('edit-order-submit-btn');
+      const origBtnHtml = submitBtn ? submitBtn.innerHTML : 'Simpan Perubahan';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+          <svg class="animate-spin w-4 h-4 inline mr-1.5 text-white" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg> Menyimpan Perubahan...`;
+      }
+
+      try {
+        await updateOrderInSupabase(payload.id, payload);
+
+        // Update array orders lokal
+        const targetIdx = orders.findIndex(o => o.id === payload.id);
+        if (targetIdx !== -1) {
+          orders[targetIdx].buyerName = payload.buyerName;
+          orders[targetIdx].buyerClass = payload.buyerClass;
+          orders[targetIdx].items = payload.items;
+          orders[targetIdx].total = payload.total;
+          orders[targetIdx].note = payload.note;
+          orders[targetIdx].updatedAt = new Date().toISOString();
+        }
+
+        saveAllData();
+        refreshAllSections();
+        closeModal('edit-order-modal');
+        showToast(`Data pesanan #${payload.id} berhasil diperbarui.`);
+
+        // Jika modal detail sedang terbuka untuk pesanan ini, sinkronkan tampilannya
+        const detailModal = document.getElementById('order-detail-modal');
+        if (detailModal && !detailModal.classList.contains('hidden') && currentDetailOrderId === payload.id) {
+          openOrderDetailModal(payload.id);
+        }
+      } catch (err) {
+        console.error('Error updating order:', err);
+        showToast(`Gagal menyimpan perubahan pesanan: ${err.message}`, 'error');
+      } finally {
+        isSubmittingEditOrder = false;
+        pendingEditedOrderPayload = null;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = origBtnHtml;
+        }
+      }
+    }
+
+    async function openOrderAuditModal(orderId) {
+      const badge = document.getElementById('audit-order-id-badge');
+      if (badge) badge.textContent = `#${orderId}`;
+
+      const loadingEl = document.getElementById('audit-logs-loading');
+      const emptyEl = document.getElementById('audit-logs-empty');
+      const listEl = document.getElementById('audit-logs-list');
+
+      if (listEl) listEl.innerHTML = '';
+      if (loadingEl) loadingEl.classList.remove('hidden');
+      if (emptyEl) emptyEl.classList.add('hidden');
+
+      openModal('order-audit-modal');
+
+      try {
+        const logs = await fetchOrderAuditLogs(orderId);
+        if (loadingEl) loadingEl.classList.add('hidden');
+
+        if (!logs || logs.length === 0) {
+          if (emptyEl) emptyEl.classList.remove('hidden');
+          return;
+        }
+
+        if (listEl) {
+          listEl.innerHTML = logs.map(log => {
+            const timeStr = new Date(log.changed_at).toLocaleString('id-ID', {
+              day: '2-digit', month: 'short', year: 'numeric',
+              hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+
+            let changesHtml = '';
+            if (Array.isArray(log.changes) && log.changes.length > 0) {
+              changesHtml = `
+                <div class="mt-2 text-xs space-y-1.5 border-t border-slate-100 pt-2">
+                  ${log.changes.map(ch => {
+                    let fieldName = ch.label || ch.field;
+                    let oldVal = ch.old_value !== undefined ? ch.old_value : ch.old;
+                    let newVal = ch.new_value !== undefined ? ch.new_value : ch.new;
+
+                    if (ch.field === 'buyer_name' || ch.label === 'Nama Pembeli') fieldName = 'Nama Pembeli';
+                    else if (ch.field === 'buyer_class' || ch.label === 'Kelas') fieldName = 'Kelas';
+                    else if (ch.field === 'note' || ch.label === 'Catatan Pesanan') fieldName = 'Catatan';
+                    else if (ch.field === 'total' || ch.label === 'Total Pembayaran') {
+                      fieldName = 'Total Tagihan';
+                      oldVal = formatRupiah(oldVal);
+                      newVal = formatRupiah(newVal);
+                    } else if (ch.field === 'status' || ch.label === 'Status Pembayaran') {
+                      fieldName = 'Status Pembayaran';
+                    } else if (ch.field === 'items' || ch.label === 'Daftar Produk / Menu') {
+                      fieldName = 'Rincian Menu';
+                      if (Array.isArray(oldVal)) oldVal = oldVal.map(i => `${i.qty}× ${i.name}`).join(', ');
+                      if (Array.isArray(newVal)) newVal = newVal.map(i => `${i.qty}× ${i.name}`).join(', ');
+                    }
+
+                    return `
+                      <div class="flex items-start justify-between gap-2 p-1.5 rounded-lg bg-white border border-slate-100">
+                        <span class="font-bold text-slate-700 shrink-0">${esc(fieldName)}:</span>
+                        <div class="text-right truncate max-w-[65%]">
+                          <span class="line-through text-slate-400 mr-1">${esc(String(oldVal ?? '-'))}</span>
+                          <span class="font-bold text-slate-900">&rarr; ${esc(String(newVal ?? '-'))}</span>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              `;
+            } else if (log.summary) {
+              changesHtml = `<p class="mt-1 text-xs text-slate-600">${esc(log.summary)}</p>`;
+            }
+
+            return `
+              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <div class="flex items-center justify-between text-xs">
+                  <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 font-bold text-[10px]">DIEDIT</span>
+                    <strong class="text-slate-800">@${esc(log.changed_by_username || 'user')}</strong>
+                  </div>
+                  <span class="text-slate-500 font-mono text-[11px]">${timeStr}</span>
+                </div>
+                ${changesHtml}
+              </div>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        console.error('Audit log fetch error:', err);
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (listEl) {
+          listEl.innerHTML = `<div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-700">Gagal memuat riwayat: ${esc(err.message)}</div>`;
+        }
+      }
     }
 
     // ==========================================
