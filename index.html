@@ -3150,10 +3150,66 @@
             <input id="edit-order-buyer-name" type="text" required placeholder="Nama pembeli"
               class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium focus:outline-none focus:border-brand-500 transition" />
           </div>
-          <div>
+          <div class="relative" id="edit-order-class-combobox-wrap">
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Kelas / Ruangan *</label>
-            <input id="edit-order-buyer-class" type="text" required placeholder="Contoh: XII RPL 1"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium focus:outline-none focus:border-brand-500 transition" />
+            <input type="hidden" id="edit-order-buyer-class" required />
+            
+            <button type="button" id="edit-order-class-trigger"
+              class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium text-left focus:outline-none focus:border-brand-500 hover:bg-slate-100/70 transition cursor-pointer">
+              <div class="flex items-center gap-1.5 truncate">
+                <span id="edit-order-class-display" class="truncate text-slate-800 font-bold">Pilih Kelas / Ruangan...</span>
+                <span id="edit-order-class-badge" class="hidden px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-800">Legacy</span>
+              </div>
+              <svg class="w-4 h-4 text-slate-400 shrink-0 ml-2 transition-transform duration-200" id="edit-order-class-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div id="edit-order-class-dropdown"
+              class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-white rounded-2xl shadow-xl border border-slate-200 p-2.5 space-y-2">
+              
+              <!-- Legacy Banner (muncul bila pesanan lama memiliki kelas non-master) -->
+              <div id="edit-order-legacy-banner" class="hidden p-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 flex items-center justify-between">
+                <div class="truncate mr-2">
+                  <span class="font-bold">Data Asli:</span>
+                  <code id="edit-order-legacy-text" class="ml-1 font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-amber-300">-</code>
+                </div>
+                <button type="button" id="edit-order-keep-legacy-btn" class="px-2 py-1 rounded bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] shrink-0 cursor-pointer transition">Pertahankan</button>
+              </div>
+
+              <div class="relative">
+                <input type="text" id="edit-order-class-search" placeholder="🔍 Cari kelas standar (mis. DKV, RPL, TKJ)..."
+                  class="w-full px-3 py-2 pl-8 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:outline-none focus:border-brand-500"
+                  autocomplete="off" />
+                <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </div>
+
+              <!-- Filter Pills -->
+              <div class="flex gap-1 overflow-x-auto pb-1 text-[11px] font-bold text-slate-600 scrollbar-none" id="edit-order-class-filter-pills">
+                <button type="button" data-filter="ALL" class="edit-order-filter-btn px-2.5 py-1 rounded-lg bg-brand-50 text-brand-700 font-bold">Semua</button>
+                <button type="button" data-filter="X" class="edit-order-filter-btn px-2 py-1 rounded-lg hover:bg-slate-100">X</button>
+                <button type="button" data-filter="XI" class="edit-order-filter-btn px-2 py-1 rounded-lg hover:bg-slate-100">XI</button>
+                <button type="button" data-filter="XII" class="edit-order-filter-btn px-2 py-1 rounded-lg hover:bg-slate-100">XII</button>
+                <button type="button" data-filter="Khusus" class="edit-order-filter-btn px-2 py-1 rounded-lg hover:bg-slate-100">Khusus</button>
+              </div>
+
+              <!-- List -->
+              <div id="edit-order-class-list" class="max-h-48 overflow-y-auto space-y-1 pr-1 text-xs"></div>
+
+              <!-- Custom Manual Option -->
+              <div id="edit-order-class-custom-wrap" class="hidden pt-2 border-t border-slate-100">
+                <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Tulis Kelas / Ruangan Manual:</label>
+                <div class="flex gap-1.5">
+                  <input type="text" id="edit-order-class-custom-input" placeholder="Contoh: Ekskul PMR / Ruang Guru"
+                    class="w-full px-2.5 py-1.5 text-xs rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:border-brand-500" />
+                  <button type="button" id="edit-order-class-custom-apply"
+                    class="px-3 py-1.5 bg-brand-600 text-white rounded-lg text-xs font-bold shrink-0 cursor-pointer">Gunakan</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -3487,11 +3543,53 @@
             <input id="po-buyer-name" type="text" required placeholder="Contoh: Ahmad Muchsin"
               class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium focus:outline-none focus:border-brand-500" />
           </div>
-          <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Kelas / Ruangan
-              *</label>
-            <input id="po-buyer-class" type="text" required placeholder="Contoh: XII RPL 1"
-              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium focus:outline-none focus:border-brand-500" />
+          <div class="relative" id="po-class-combobox-wrap">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">Kelas / Ruangan *</label>
+            <input type="hidden" id="po-buyer-class" required />
+            
+            <button type="button" id="po-class-trigger"
+              class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium text-left focus:outline-none focus:border-brand-500 hover:bg-slate-100/70 transition cursor-pointer">
+              <span id="po-class-display" class="truncate text-slate-400">Pilih Kelas / Ruangan...</span>
+              <svg class="w-4 h-4 text-slate-400 shrink-0 ml-2 transition-transform duration-200" id="po-class-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div id="po-class-dropdown"
+              class="hidden absolute left-0 right-0 top-full mt-1.5 z-50 bg-white rounded-2xl shadow-xl border border-slate-200 p-2.5 space-y-2">
+              <div class="relative">
+                <input type="text" id="po-class-search" placeholder="🔍 Cari kelas (mis. DKV, RPL, TKJ)..."
+                  class="w-full px-3 py-2 pl-8 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium focus:outline-none focus:border-brand-500"
+                  autocomplete="off" />
+                <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </div>
+
+              <!-- Filter Pills -->
+              <div class="flex gap-1 overflow-x-auto pb-1 text-[11px] font-bold text-slate-600 scrollbar-none" id="po-class-filter-pills">
+                <button type="button" data-filter="ALL" class="po-filter-btn px-2.5 py-1 rounded-lg bg-brand-50 text-brand-700 font-bold">Semua</button>
+                <button type="button" data-filter="X" class="po-filter-btn px-2 py-1 rounded-lg hover:bg-slate-100">X</button>
+                <button type="button" data-filter="XI" class="po-filter-btn px-2 py-1 rounded-lg hover:bg-slate-100">XI</button>
+                <button type="button" data-filter="XII" class="po-filter-btn px-2 py-1 rounded-lg hover:bg-slate-100">XII</button>
+                <button type="button" data-filter="Khusus" class="po-filter-btn px-2 py-1 rounded-lg hover:bg-slate-100">Khusus</button>
+              </div>
+
+              <!-- List -->
+              <div id="po-class-list" class="max-h-48 overflow-y-auto space-y-1 pr-1 text-xs"></div>
+
+              <!-- Custom Manual Option -->
+              <div id="po-class-custom-wrap" class="hidden pt-2 border-t border-slate-100">
+                <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Tulis Kelas / Ruangan Manual:</label>
+                <div class="flex gap-1.5">
+                  <input type="text" id="po-class-custom-input" placeholder="Contoh: Ekskul PMR / Ruang Guru"
+                    class="w-full px-2.5 py-1.5 text-xs rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:border-brand-500" />
+                  <button type="button" id="po-class-custom-apply"
+                    class="px-3 py-1.5 bg-brand-600 text-white rounded-lg text-xs font-bold shrink-0 cursor-pointer">Gunakan</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -4072,6 +4170,413 @@
     let currentPoFilter = 'all';
     let pendingStatusOrderId = null;
 
+    // ==========================================
+    // 3.1 MASTER DATA KELAS & SEARCHABLE COMBOBOX
+    // ==========================================
+    const DEFAULT_CLASSES = [
+      { id: 1, name: 'X DKV 1', grade: 'X', major: 'DKV', category: 'Akademik', sort_order: 10 },
+      { id: 2, name: 'X DKV 2', grade: 'X', major: 'DKV', category: 'Akademik', sort_order: 20 },
+      { id: 3, name: 'X RPL 1', grade: 'X', major: 'RPL', category: 'Akademik', sort_order: 30 },
+      { id: 4, name: 'X RPL 2', grade: 'X', major: 'RPL', category: 'Akademik', sort_order: 40 },
+      { id: 5, name: 'X TKJ 1', grade: 'X', major: 'TKJ', category: 'Akademik', sort_order: 50 },
+      { id: 6, name: 'X TKJ 2', grade: 'X', major: 'TKJ', category: 'Akademik', sort_order: 60 },
+      { id: 7, name: 'X TKJ 3', grade: 'X', major: 'TKJ', category: 'Akademik', sort_order: 70 },
+      { id: 8, name: 'XI DKV 1', grade: 'XI', major: 'DKV', category: 'Akademik', sort_order: 80 },
+      { id: 9, name: 'XI DKV 2', grade: 'XI', major: 'DKV', category: 'Akademik', sort_order: 90 },
+      { id: 10, name: 'XI RPL 1', grade: 'XI', major: 'RPL', category: 'Akademik', sort_order: 100 },
+      { id: 11, name: 'XI TKJ 1', grade: 'XI', major: 'TKJ', category: 'Akademik', sort_order: 110 },
+      { id: 12, name: 'XII DKV 1', grade: 'XII', major: 'DKV', category: 'Akademik', sort_order: 120 },
+      { id: 13, name: 'XII DKV 2', grade: 'XII', major: 'DKV', category: 'Akademik', sort_order: 130 },
+      { id: 14, name: 'XII RPL 1', grade: 'XII', major: 'RPL', category: 'Akademik', sort_order: 140 },
+      { id: 15, name: 'XII RPL 2', grade: 'XII', major: 'RPL', category: 'Akademik', sort_order: 150 },
+      { id: 16, name: 'XII TKJ 1', grade: 'XII', major: 'TKJ', category: 'Akademik', sort_order: 160 },
+      { id: 17, name: 'XII TKJ 2', grade: 'XII', major: 'TKJ', category: 'Akademik', sort_order: 170 },
+      { id: 18, name: 'Guru / Staf', grade: 'Khusus', major: 'Staf', category: 'Khusus', sort_order: 180 },
+      { id: 19, name: 'Lainnya / Umum', grade: 'Umum', major: 'Umum', category: 'Lainnya', sort_order: 190 }
+    ];
+
+    let masterClasses = [...DEFAULT_CLASSES];
+
+    // Variasi penulisan lama yang otomatis dipetakan ke kelas standar
+    const CLASS_VARIATION_MAP = {
+      '10 dkv 1': 'X DKV 1',
+      '10 dkv 2': 'X DKV 2',
+      '10dkv 2': 'X DKV 2',
+      '11 dkv 1': 'XI DKV 1',
+      '11 dkv 2': 'XI DKV 2',
+      '11 DKV 2': 'XI DKV 2',
+      '12 dkv 1': 'XII DKV 1',
+      '12 dkv 2': 'XII DKV 2',
+      '10 rpl 1': 'X RPL 1',
+      '10 rpl 2': 'X RPL 2',
+      'xi rpl': 'XI RPL 1',
+      'xi rpl 1': 'XI RPL 1',
+      '11 rpl': 'XI RPL 1',
+      '11 rpl 1': 'XI RPL 1',
+      '12 rpl 1': 'XII RPL 1',
+      '12 rpl 2': 'XII RPL 2',
+      'xii rpl 2': 'XII RPL 2',
+      'xii rpl1': 'XII RPL 1',
+      '10 tkj 1': 'X TKJ 1',
+      '10 tkj 2': 'X TKJ 2',
+      '10 tkj 3': 'X TKJ 3',
+      '11 tkj 1': 'XI TKJ 1',
+      '12 tkj 1': 'XII TKJ 1',
+      '12 tkj 2': 'XII TKJ 2',
+      'guru': 'Guru / Staf',
+      'gurutendik': 'Guru / Staf'
+    };
+
+    function getCanonicalClass(input) {
+      if (!input) return '';
+      const trimmed = String(input).trim();
+      const lower = trimmed.toLowerCase().replace(/\s+/g, ' ');
+      if (CLASS_VARIATION_MAP[lower]) return CLASS_VARIATION_MAP[lower];
+      const found = masterClasses.find(c => c.name.toLowerCase() === lower);
+      if (found) return found.name;
+      return trimmed;
+    }
+
+    async function loadMasterClasses() {
+      const cfg = getSupabaseConfig();
+      if (!cfg) return;
+      try {
+        const res = await fetch(`${cfg.url}/rest/v1/bzooginer_classes?is_active=eq.true&order=sort_order.asc`, {
+          headers: {
+            'apikey': cfg.key,
+            'Authorization': `Bearer ${cfg.key}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            masterClasses = data;
+            ['po', 'edit-order'].forEach(renderClassList);
+          }
+        }
+      } catch (err) {
+        console.warn('[MasterClasses] Menggunakan fallback master classes lokal:', err);
+      }
+    }
+
+    const comboboxState = {
+      po: { filter: 'ALL', search: '', active: false },
+      'edit-order': { filter: 'ALL', search: '', active: false, legacyValue: '' }
+    };
+
+    function renderClassList(prefix) {
+      const listEl = document.getElementById(`${prefix}-class-list`);
+      if (!listEl) return;
+      const state = comboboxState[prefix];
+      const q = (state.search || '').trim().toLowerCase();
+      const f = state.filter || 'ALL';
+
+      const items = masterClasses.filter(c => {
+        if (f !== 'ALL') {
+          if (f === 'Khusus') {
+            if (c.grade !== 'Khusus' && c.grade !== 'Umum' && c.category !== 'Khusus' && c.category !== 'Lainnya') return false;
+          } else if (c.grade !== f) {
+            return false;
+          }
+        }
+        if (q) {
+          const isMatch10 = (q === '10' || q.startsWith('10')) && c.grade === 'X';
+          const isMatch11 = (q === '11' || q.startsWith('11')) && c.grade === 'XI';
+          const isMatch12 = (q === '12' || q.startsWith('12')) && c.grade === 'XII';
+          const matchName = c.name.toLowerCase().includes(q);
+          const matchMajor = (c.major || '').toLowerCase().includes(q);
+          const matchGrade = (c.grade || '').toLowerCase().includes(q);
+          if (!matchName && !matchMajor && !matchGrade && !isMatch10 && !isMatch11 && !isMatch12) return false;
+        }
+        return true;
+      });
+
+      if (items.length === 0) {
+        listEl.innerHTML = `
+          <div class="p-3 text-center text-slate-500">
+            <p class="text-[11px]">Kelas "${esc(q)}" tidak ditemukan.</p>
+            <button type="button" onclick="selectCustomClass('${prefix}', '${esc(q)}')"
+              class="mt-1.5 px-3 py-1 bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold rounded-lg text-[11px] cursor-pointer inline-flex items-center gap-1 transition">
+              <span>+ Gunakan "${esc(q)}"</span>
+            </button>
+          </div>`;
+        return;
+      }
+
+      const hiddenInput = document.getElementById(`${prefix}-buyer-class`);
+      const currentVal = hiddenInput ? hiddenInput.value : '';
+
+      listEl.innerHTML = items.map(c => {
+        const isSelected = currentVal === c.name;
+        const isSpecial = c.category === 'Khusus' || c.category === 'Lainnya';
+        const badgeColor = isSpecial
+          ? 'bg-purple-100 text-purple-700'
+          : (c.grade === 'X' ? 'bg-blue-100 text-blue-700' : (c.grade === 'XI' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'));
+
+        return `
+          <div onclick="selectClass('${prefix}', '${esc(c.name)}')"
+            class="flex items-center justify-between p-2 rounded-xl cursor-pointer transition ${isSelected ? 'bg-brand-50 border border-brand-300 font-bold text-brand-800' : 'hover:bg-slate-100 text-slate-700'}">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-brand-600' : 'bg-slate-300'}"></span>
+              <span class="text-xs ${isSelected ? 'font-bold text-brand-800' : 'font-medium'}">${esc(c.name)}</span>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeColor}">
+              ${esc(c.major || c.category)}
+            </span>
+          </div>`;
+      }).join('');
+    }
+
+    function selectClass(prefix, className) {
+      const hiddenInput = document.getElementById(`${prefix}-buyer-class`);
+      const display = document.getElementById(`${prefix}-class-display`);
+      const customWrap = document.getElementById(`${prefix}-class-custom-wrap`);
+      const badge = document.getElementById(`${prefix}-class-badge`);
+
+      if (hiddenInput) hiddenInput.value = className;
+      if (display) {
+        display.textContent = className;
+        display.className = 'truncate text-slate-800 font-bold';
+      }
+      if (badge) badge.classList.add('hidden');
+
+      if (className === 'Lainnya / Umum') {
+        if (customWrap) {
+          customWrap.classList.remove('hidden');
+          const inp = document.getElementById(`${prefix}-class-custom-input`);
+          if (inp) {
+            inp.value = '';
+            inp.focus();
+          }
+        }
+      } else {
+        if (customWrap) customWrap.classList.add('hidden');
+        closeClassCombobox(prefix);
+      }
+    }
+
+    function selectCustomClass(prefix, customName) {
+      const val = (customName || '').trim();
+      if (!val) return;
+      const hiddenInput = document.getElementById(`${prefix}-buyer-class`);
+      const display = document.getElementById(`${prefix}-class-display`);
+      const badge = document.getElementById(`${prefix}-class-badge`);
+
+      if (hiddenInput) hiddenInput.value = val;
+      if (display) {
+        display.textContent = val;
+        display.className = 'truncate text-slate-800 font-bold';
+      }
+      if (badge) {
+        badge.textContent = 'Custom';
+        badge.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-700';
+        badge.classList.remove('hidden');
+      }
+      const customWrap = document.getElementById(`${prefix}-class-custom-wrap`);
+      if (customWrap) customWrap.classList.add('hidden');
+      closeClassCombobox(prefix);
+    }
+
+    function setClassComboboxValue(prefix, className) {
+      const hiddenInput = document.getElementById(`${prefix}-buyer-class`);
+      const display = document.getElementById(`${prefix}-class-display`);
+      const badge = document.getElementById(`${prefix}-class-badge`);
+      const legacyBanner = document.getElementById(`${prefix}-legacy-banner`);
+      const legacyText = document.getElementById(`${prefix}-legacy-text`);
+
+      const trimmed = (className || '').trim();
+      if (hiddenInput) hiddenInput.value = trimmed;
+
+      if (!trimmed) {
+        if (display) {
+          display.textContent = 'Pilih Kelas / Ruangan...';
+          display.className = 'truncate text-slate-400 font-medium';
+        }
+        if (badge) badge.classList.add('hidden');
+        if (legacyBanner) legacyBanner.classList.add('hidden');
+        return;
+      }
+
+      // Cek apakah ada di masterClasses
+      const isMaster = masterClasses.some(c => c.name.toLowerCase() === trimmed.toLowerCase());
+      if (isMaster) {
+        const canonical = masterClasses.find(c => c.name.toLowerCase() === trimmed.toLowerCase()).name;
+        if (hiddenInput) hiddenInput.value = canonical;
+        if (display) {
+          display.textContent = canonical;
+          display.className = 'truncate text-slate-800 font-bold';
+        }
+        if (badge) badge.classList.add('hidden');
+        if (legacyBanner) legacyBanner.classList.add('hidden');
+      } else {
+        // Cek apakah ada di CLASS_VARIATION_MAP
+        const mapped = CLASS_VARIATION_MAP[trimmed.toLowerCase().replace(/\s+/g, ' ')];
+        if (mapped) {
+          comboboxState[prefix].legacyValue = trimmed;
+          if (hiddenInput) hiddenInput.value = mapped;
+          if (display) {
+            display.textContent = `${mapped} (asal: ${trimmed})`;
+            display.className = 'truncate text-slate-800 font-bold';
+          }
+          if (badge) {
+            badge.textContent = 'Standar';
+            badge.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-800 border border-emerald-300';
+            badge.classList.remove('hidden');
+          }
+          if (legacyBanner && legacyText) {
+            legacyText.textContent = trimmed;
+            legacyBanner.classList.remove('hidden');
+          }
+        } else {
+          // Benar-benar legacy / custom / non-standar (mis. 'XXXX', 'adeknya Akhtar woi')
+          comboboxState[prefix].legacyValue = trimmed;
+          if (display) {
+            display.textContent = trimmed;
+            display.className = 'truncate text-amber-900 font-bold';
+          }
+          if (badge) {
+            badge.textContent = 'Data Asli';
+            badge.className = 'px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-800 border border-amber-300';
+            badge.classList.remove('hidden');
+          }
+          if (legacyBanner && legacyText) {
+            legacyText.textContent = trimmed;
+            legacyBanner.classList.remove('hidden');
+          }
+        }
+      }
+    }
+
+    function resetClassCombobox(prefix) {
+      setClassComboboxValue(prefix, '');
+      closeClassCombobox(prefix);
+      const searchInput = document.getElementById(`${prefix}-class-search`);
+      if (searchInput) searchInput.value = '';
+      comboboxState[prefix].search = '';
+      comboboxState[prefix].filter = 'ALL';
+      updateComboboxPills(prefix);
+    }
+
+    function updateComboboxPills(prefix) {
+      const cur = comboboxState[prefix].filter || 'ALL';
+      const container = document.getElementById(`${prefix}-class-filter-pills`);
+      if (!container) return;
+      container.querySelectorAll('button').forEach(btn => {
+        const f = btn.getAttribute('data-filter');
+        if (f === cur) {
+          btn.className = `${prefix}-filter-btn px-2.5 py-1 rounded-lg bg-brand-50 text-brand-700 font-bold shadow-2xs`;
+        } else {
+          btn.className = `${prefix}-filter-btn px-2 py-1 rounded-lg hover:bg-slate-100 text-slate-600 font-bold`;
+        }
+      });
+    }
+
+    function toggleClassCombobox(prefix) {
+      const dd = document.getElementById(`${prefix}-class-dropdown`);
+      const chevron = document.getElementById(`${prefix}-class-chevron`);
+      if (!dd) return;
+      const isHidden = dd.classList.contains('hidden');
+      if (isHidden) {
+        ['po', 'edit-order'].forEach(p => { if (p !== prefix) closeClassCombobox(p); });
+        dd.classList.remove('hidden');
+        if (chevron) chevron.classList.add('rotate-180');
+        comboboxState[prefix].active = true;
+        renderClassList(prefix);
+        const searchInput = document.getElementById(`${prefix}-class-search`);
+        if (searchInput) {
+          setTimeout(() => searchInput.focus(), 50);
+        }
+      } else {
+        closeClassCombobox(prefix);
+      }
+    }
+
+    function closeClassCombobox(prefix) {
+      const dd = document.getElementById(`${prefix}-class-dropdown`);
+      const chevron = document.getElementById(`${prefix}-class-chevron`);
+      if (dd) dd.classList.add('hidden');
+      if (chevron) chevron.classList.remove('rotate-180');
+      if (comboboxState[prefix]) comboboxState[prefix].active = false;
+    }
+
+    function setupClassCombobox(prefix) {
+      const trigger = document.getElementById(`${prefix}-class-trigger`);
+      if (trigger) {
+        trigger.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleClassCombobox(prefix);
+        });
+      }
+
+      const searchInput = document.getElementById(`${prefix}-class-search`);
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          comboboxState[prefix].search = e.target.value;
+          renderClassList(prefix);
+        });
+        searchInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            closeClassCombobox(prefix);
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const listEl = document.getElementById(`${prefix}-class-list`);
+            const firstItem = listEl ? listEl.querySelector('[onclick^="selectClass"]') : null;
+            if (firstItem) {
+              firstItem.click();
+            } else if (e.target.value.trim()) {
+              selectCustomClass(prefix, e.target.value.trim());
+            }
+          }
+        });
+      }
+
+      const pillsContainer = document.getElementById(`${prefix}-class-filter-pills`);
+      if (pillsContainer) {
+        pillsContainer.addEventListener('click', (e) => {
+          const btn = e.target.closest('button[data-filter]');
+          if (!btn) return;
+          comboboxState[prefix].filter = btn.getAttribute('data-filter');
+          updateComboboxPills(prefix);
+          renderClassList(prefix);
+        });
+      }
+
+      const customApply = document.getElementById(`${prefix}-class-custom-apply`);
+      if (customApply) {
+        customApply.addEventListener('click', (e) => {
+          e.preventDefault();
+          const inp = document.getElementById(`${prefix}-class-custom-input`);
+          if (inp && inp.value.trim()) {
+            selectCustomClass(prefix, inp.value.trim());
+          }
+        });
+      }
+
+      if (prefix === 'edit-order') {
+        const keepBtn = document.getElementById('edit-order-keep-legacy-btn');
+        if (keepBtn) {
+          keepBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const leg = comboboxState['edit-order'].legacyValue;
+            if (leg) {
+              selectCustomClass('edit-order', leg);
+            }
+          });
+        }
+      }
+    }
+
+    // Global listener untuk menutup dropdown saat klik di luar
+    document.addEventListener('click', (e) => {
+      ['po', 'edit-order'].forEach(prefix => {
+        const wrap = document.getElementById(`${prefix}-class-combobox-wrap`);
+        if (wrap && !wrap.contains(e.target)) {
+          closeClassCombobox(prefix);
+        }
+      });
+    });
+
     // Helper memuat profil pengguna dari tabel bzooginer_profiles
     async function loadUserProfile(userId, accessToken) {
       const cfg = getSupabaseConfig();
@@ -4153,7 +4658,8 @@
       try {
         const [remoteGrp, remoteOrd] = await Promise.all([
           sbRequest('bzooginer_groups', 'GET', null, '?select=*&order=id.asc'),
-          sbRequest('bzooginer_orders', 'GET', null, '?select=*&order=created_at.desc')
+          sbRequest('bzooginer_orders', 'GET', null, '?select=*&order=created_at.desc'),
+          loadMasterClasses()
         ]);
 
         if (Array.isArray(remoteGrp)) {
@@ -5650,6 +6156,7 @@
       document.getElementById('po-group-id').value = groupId;
       document.getElementById('po-modal-title').textContent = `Input PO - ${group.name}`;
       document.getElementById('po-form').reset();
+      resetClassCombobox('po');
       currentPoCart = {};
       currentPoFilter = 'all';
       updatePoFilterTabs();
@@ -6141,6 +6648,7 @@
       document.getElementById('edit-order-group-badge').textContent = `Kelompok ${order.groupId} (${order.groupName || ''})`;
       document.getElementById('edit-order-buyer-name').value = order.buyerName || '';
       document.getElementById('edit-order-buyer-class').value = order.buyerClass || '';
+      setClassComboboxValue('edit-order', order.buyerClass || '');
       document.getElementById('edit-order-note').value = order.note || '';
 
       const isPaid = order.status === 'Lunas';
@@ -7126,6 +7634,9 @@
 
     // Boot: Inisialisasi Auth & Session Supabase
     updateDbIndicator();
+    setupClassCombobox('po');
+    setupClassCombobox('edit-order');
+    loadMasterClasses();
     (async function initSupabaseAuthBoot() {
       try {
         const sb = getSupabase();

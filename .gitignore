@@ -1,3 +1,5 @@
 node_modules/
 supabase/.temp/
+supabase/backups/
+database_backups/
 .DS_Store
