@@ -42,7 +42,16 @@
       --radius-md: 12px;
       --radius-lg: 18px;
       --ease: cubic-bezier(.22, 1, .36, 1);
-      --sh: 0 12px 32px -14px rgba(20, 83, 45, .28)
+      --sh: 0 12px 32px -14px rgba(20, 83, 45, .28);
+      /* Lapisan antarmuka terpusat */
+      --z-page: 1;
+      --z-header: 30;
+      --z-popover: 40;
+      --z-float: 45;
+      --z-drawer: 80;
+      --z-modal: 100;
+      --z-confirm: 120;
+      --z-toast: 140;
     }
 
     * {
@@ -76,6 +85,7 @@
       line-height: 1.5
     }
 
+    html.modal-open,
     body.modal-open {
       overflow: hidden
     }
@@ -1700,13 +1710,37 @@
       animation: modalBackdropOut .2s ease-in both
     }
 
+    /* Sistem lapisan modal & notifikasi terpusat */
+    .app-drawer {
+      position: fixed;
+      inset: 0;
+      z-index: var(--z-drawer);
+    }
+
+    .app-modal {
+      position: fixed;
+      inset: 0;
+      z-index: var(--z-modal);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    .app-modal.app-modal-confirm {
+      z-index: var(--z-confirm);
+    }
+
+    .app-toast-stack {
+      position: fixed;
+      z-index: var(--z-toast);
+    }
+
     /* mode layar penuh (hanya etalase) */
     .kiosk-exit {
       display: none;
       position: fixed;
       top: max(10px, env(safe-area-inset-top));
       right: max(10px, env(safe-area-inset-right));
-      z-index: 60;
+      z-index: var(--z-float);
       width: 34px;
       height: 34px;
       padding: 0;
@@ -2044,7 +2078,7 @@
       top: 0;
       height: 5px;
       width: 0;
-      z-index: 80;
+      z-index: var(--z-float);
       pointer-events: none;
       border-radius: 0 6px 6px 0;
       background: repeating-linear-gradient(90deg, #2f9e44 0 14px, #8fd16a 14px 28px);
@@ -2343,7 +2377,7 @@
     /* --- gelembung bicara hewan --- */
     .zbub {
       position: fixed;
-      z-index: 70;
+      z-index: 46;
       max-width: 220px;
       background: #fff;
       border: 2px solid var(--pri);
@@ -2382,7 +2416,7 @@
 
     .fx {
       position: fixed;
-      z-index: 75;
+      z-index: 47;
       pointer-events: none;
       line-height: 1;
       will-change: transform, opacity
@@ -3120,7 +3154,7 @@
   <button id="to-top" class="no-print" type="button" aria-label="Kembali ke atas"><img class="zi"
       src="assets/icons/paw-white.svg" alt="" width="64" height="64" decoding="async" draggable="false"></button>
 
-  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none no-print"></div>
+  <div id="toast-container" class="app-toast-stack fixed bottom-5 right-5 flex flex-col gap-2 pointer-events-none no-print"></div>
 
   <!-- LOGIN -->
   <main id="login-view" class="login">
@@ -4419,7 +4453,7 @@
 
   <!-- MODAL: FULL POSTER LIGHTBOX PREVIEW -->
   <div id="lightbox-modal" onclick="if(event.target===this) closeModal('lightbox-modal')"
-    class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6">
+    class="app-modal app-modal-confirm hidden fixed inset-0  bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6">
     <div id="lightbox-modal-box"
       class="relative max-w-4xl w-full bg-slate-900 border border-white/15 rounded-3xl overflow-hidden shadow-2xl">
       <div
@@ -4440,7 +4474,7 @@
 
   <!-- MODAL: KONFIRMASI STATUS PEMBAYARAN -->
   <div id="confirm-status-modal"
-    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    class="app-modal app-modal-confirm hidden fixed inset-0  bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
     <div id="confirm-status-modal-box"
       class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
       <div class="px-4 sm:px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
@@ -4473,7 +4507,7 @@
 
   <!-- MODAL: KONFIRMASI HAPUS PESANAN -->
   <div id="delete-order-modal"
-    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    class="app-modal app-modal-confirm hidden fixed inset-0  bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div id="delete-order-modal-box"
       class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
       <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
@@ -4509,7 +4543,7 @@
 
   <!-- MODAL: DETAIL PESANAN PEMBELI -->
   <div id="order-detail-modal"
-    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+    class="app-modal hidden fixed inset-0  bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
     onclick="if(event.target===this) closeModal('order-detail-modal')">
     <div id="order-detail-modal-box"
       class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92dvh] flex flex-col">
@@ -4642,7 +4676,7 @@
 
   <!-- MODAL: EDIT DATA PESANAN PEMBELI -->
   <div id="edit-order-modal"
-    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
+    class="app-modal hidden fixed inset-0  bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
     onclick="if(event.target===this) closeModal('edit-order-modal')">
     <div id="edit-order-modal-box"
       class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92dvh] flex flex-col">
@@ -4862,7 +4896,7 @@
 
   <!-- MODAL: KONFIRMASI PERUBAHAN NOMINAL PESANAN -->
   <div id="confirm-nominal-change-modal"
-    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
+    class="app-modal app-modal-confirm hidden fixed inset-0  bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
     onclick="if(event.target===this) closeModal('confirm-nominal-change-modal')">
     <div id="confirm-nominal-change-modal-box"
       class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
@@ -4931,7 +4965,7 @@
 
   <!-- MODAL: RIWAYAT PERUBAHAN PESANAN (AUDIT TRAIL) -->
   <div id="order-audit-modal"
-    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+    class="app-modal app-modal-confirm hidden fixed inset-0  bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
     onclick="if(event.target===this) closeModal('order-audit-modal')">
     <div id="order-audit-modal-box"
       class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
@@ -4975,7 +5009,7 @@
   </div>
 
   <!-- DRAWER: MOBILE NAVIGATION MENU -->
-  <div id="mobile-nav-drawer" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm"
+  <div id="mobile-nav-drawer" class="app-drawer hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
     onclick="if(event.target===this) closeMobileNav()" aria-hidden="true">
     <div id="mobile-nav-panel"
       class="absolute top-0 right-0 h-full w-4/5 max-w-sm bg-white shadow-2xl flex flex-col p-5 border-l border-amber-200 overflow-y-auto">
@@ -5223,7 +5257,7 @@
 
   <!-- MODAL: INPUT PO PEMBELI -->
   <div id="po-modal"
-    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    class="app-modal hidden fixed inset-0  bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
     <div id="po-modal-box"
       class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92dvh] flex flex-col">
       <div class="px-4 sm:px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
@@ -5386,7 +5420,7 @@
 
   <!-- MODAL: EDIT POSTER KELOMPOK (PRESERVING ORIGINAL ASPECT RATIO) -->
   <div id="poster-modal"
-    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    class="app-modal hidden fixed inset-0  bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div id="poster-modal-box"
       class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
       <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
@@ -5432,7 +5466,7 @@
 
   <!-- MODAL: TAMBAH MENU / BUNDLING -->
   <div id="product-modal"
-    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    class="app-modal hidden fixed inset-0  bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div id="product-modal-box"
       class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
       <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
@@ -5479,7 +5513,7 @@
 
   <!-- MODAL: KELOLA AKUN (SUPERADMIN ONLY) -->
   <div id="account-modal"
-    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    class="app-modal hidden fixed inset-0  bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div id="account-modal-box"
       class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
       <div class="px-4 sm:px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
@@ -5544,7 +5578,7 @@
 
   <!-- MODAL: TAMBAH AKUN BARU (SUPERADMIN ONLY) -->
   <div id="add-account-modal"
-    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    class="app-modal app-modal-confirm hidden fixed inset-0  bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div id="add-account-modal-box"
       class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
       <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
@@ -5600,7 +5634,7 @@
 
   <!-- MODAL: KONFIRMASI TINDAKAN AKUN (NONAKTIFKAN / AKTIFKAN / HAPUS) -->
   <div id="confirm-account-action-modal"
-    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    class="app-modal app-modal-confirm hidden fixed inset-0  bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div id="confirm-account-action-modal-box"
       class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
       <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
@@ -5629,7 +5663,7 @@
 
   <!-- MODAL: REKAP PRODUKSI -->
   <div id="summary-modal"
-    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    class="app-modal hidden fixed inset-0  bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div id="summary-modal-box"
       class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
       <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
@@ -5647,7 +5681,7 @@
 
   <!-- MODAL: KELOLA / TAMBAH / EDIT KELOMPOK (SUPERADMIN ONLY) -->
   <div id="group-modal"
-    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    class="app-modal hidden fixed inset-0  bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div id="group-modal-box"
       class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto">
       <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
@@ -5710,7 +5744,7 @@
 
   <!-- MODAL: KONFIRMASI AKTIFKAN / ARSIPKAN KELOMPOK (SUPERADMIN ONLY) -->
   <div id="archive-modal"
-    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    class="app-modal hidden fixed inset-0  bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div id="archive-modal-box"
       class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
       <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
@@ -5739,7 +5773,7 @@
 
   <!-- MODAL: CATAT PEMBAYARAN PESANAN PO -->
   <div id="record-payment-modal" onclick="if(event.target===this) closeModal('record-payment-modal')"
-    class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    class="app-modal hidden fixed inset-0  bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div id="record-payment-modal-box" class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200 my-auto max-h-[92dvh] flex flex-col">
       <div class="px-4 sm:px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
@@ -5836,7 +5870,7 @@
 
   <!-- MODAL: ATUR HPP PRODUK -->
   <div id="hpp-modal" onclick="if(event.target===this) closeModal('hpp-modal')"
-    class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    class="app-modal hidden fixed inset-0  bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div id="hpp-modal-box" class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200 my-auto max-h-[92dvh] flex flex-col">
       <div class="px-4 sm:px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
@@ -5906,7 +5940,7 @@
 
   <!-- MODAL: CATAT PENGELUARAN -->
   <div id="add-expense-modal" onclick="if(event.target===this) closeModal('add-expense-modal')"
-    class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    class="app-modal hidden fixed inset-0  bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div id="add-expense-modal-box" class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200 my-auto max-h-[92dvh] flex flex-col">
       <div class="px-4 sm:px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
@@ -5969,7 +6003,7 @@
 
   <!-- MODAL: TAMBAH MODAL KELOMPOK -->
   <div id="add-capital-modal" onclick="if(event.target===this) closeModal('add-capital-modal')"
-    class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    class="app-modal hidden fixed inset-0  bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div id="add-capital-modal-box" class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200 my-auto max-h-[92dvh] flex flex-col">
       <div class="px-4 sm:px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
@@ -6030,7 +6064,7 @@
 
   <!-- MODAL: CATAT PEMASUKAN LANGSUNG (LUAR PO) -->
   <div id="add-manual-revenue-modal" onclick="if(event.target===this) closeModal('add-manual-revenue-modal')"
-    class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    class="app-modal hidden fixed inset-0  bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div id="add-manual-revenue-modal-box" class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200 my-auto max-h-[92dvh] flex flex-col">
       <div class="px-4 sm:px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2">
@@ -6088,7 +6122,7 @@
 
   <!-- MODAL: RIWAYAT HPP PRODUK -->
   <div id="hpp-history-modal" onclick="if(event.target===this) closeModal('hpp-history-modal')"
-    class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    class="app-modal app-modal-confirm hidden fixed inset-0  bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div id="hpp-history-modal-box" class="bg-white rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl border border-slate-200 my-auto max-h-[92dvh] flex flex-col">
       <div class="px-4 sm:px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
         <div>
@@ -6125,7 +6159,7 @@
 
   <!-- MODAL: BATALKAN TRANSAKSI KEUANGAN -->
   <div id="reverse-transaction-modal" onclick="if(event.target===this) closeModal('reverse-transaction-modal')"
-    class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    class="app-modal app-modal-confirm hidden fixed inset-0  bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
     <div id="reverse-transaction-modal-box" class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200">
       <div class="px-4 sm:px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
         <span class="text-xs font-bold uppercase tracking-wider text-rose-400">Batalkan Catatan Transaksi</span>
@@ -6161,8 +6195,9 @@
   
   <!-- MODAL: PENCOCOKAN PEMBAYARAN LAMA -->
   <div id="legacy-reconcile-modal" onclick="if(event.target===this) closeModal('legacy-reconcile-modal')"
-    class="modal fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden">
-    <div id="legacy-reconcile-modal-box" class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[92dvh] flex flex-col overflow-hidden border border-slate-200">
+    class="app-modal fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 hidden"
+    role="dialog" aria-modal="true" aria-labelledby="legacy-reconcile-title">
+    <div id="legacy-reconcile-modal-box" class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90dvh] flex flex-col overflow-hidden border border-slate-200">
       <!-- Modal Header -->
       <div class="p-4 sm:p-6 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-b border-amber-200 flex items-center justify-between gap-3 shrink-0">
         <div class="flex items-center gap-3 min-w-0">
@@ -6170,13 +6205,13 @@
             📋
           </div>
           <div class="min-w-0">
-            <h3 class="font-black text-slate-900 text-base sm:text-lg">Pencocokan Pembayaran Lama</h3>
+            <h3 id="legacy-reconcile-title" class="font-black text-slate-900 text-base sm:text-lg">Pencocokan Pembayaran Lama</h3>
             <p class="text-xs text-slate-500 mt-0.5">
               Periksa pesanan lama berstatus Lunas sebelum dimasukkan ke uang kas yang tercatat.
             </p>
           </div>
         </div>
-        <button type="button" onclick="closeModal('legacy-reconcile-modal')" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer shrink-0">
+        <button type="button" onclick="closeModal('legacy-reconcile-modal')" aria-label="Tutup pencocokan pembayaran lama" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
@@ -6194,19 +6229,19 @@
             <option value="5">Kelompok 5</option>
             <option value="6">Kelompok 6</option>
           </select>
-          <span id="recon-stats-pill" class="px-2.5 py-1 rounded-lg bg-white text-slate-700 border border-slate-200 shadow-xs font-semibold">
+          <span id="recon-stats-pill" class="px-2.5 py-1 rounded-lg bg-white text-slate-700 border border-slate-200 shadow-sm font-semibold">
             Memuat data...
           </span>
         </div>
         <div class="flex items-center gap-2">
-          <button type="button" id="btn-batch-reconcile" class="btn btn-sm btn-amber flex items-center gap-1.5 font-bold shadow-xs cursor-pointer" onclick="confirmBatchReconciliation()">
+          <button type="button" id="btn-batch-reconcile" class="btn btn-sm btn-amber flex items-center gap-1.5 font-bold shadow-sm cursor-pointer" onclick="confirmBatchReconciliation()">
             <span>⚡ Cocokkan Semua di Filter Ini</span>
           </button>
         </div>
       </div>
 
       <!-- Table Body -->
-      <div class="p-3.5 sm:p-6 overflow-y-auto flex-1 space-y-4">
+      <div class="p-3.5 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
         <div class="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-200 text-xs text-blue-900 flex items-start gap-2.5">
           <span class="text-base shrink-0">ℹ️</span>
           <div>
@@ -6236,7 +6271,7 @@
       </div>
 
       <!-- Modal Footer -->
-      <div class="p-3.5 sm:p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs shrink-0">
+      <div class="p-3.5 sm:p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
         <span class="text-slate-500 text-[11px]">Pencocokan Pembayaran Lama · Aman dari pencatatan ganda</span>
         <button type="button" onclick="closeModal('legacy-reconcile-modal')" class="btn btn-sm btn-sub">
           Tutup
@@ -6247,27 +6282,28 @@
 
   <!-- MODAL: KONFIRMASI PENCOCOKAN UANG -->
   <div id="confirm-reconcile-modal" onclick="if(event.target===this) closeModal('confirm-reconcile-modal')"
-    class="modal fixed inset-0 z-55 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden">
-    <div id="confirm-reconcile-modal-box" class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
-      <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
-          <span class="text-xl">⚡</span>
-          <h4 class="font-bold text-slate-900 text-sm" id="confirm-reconcile-title">Konfirmasi Pencocokan Uang</h4>
+    class="app-modal app-modal-confirm fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden"
+    role="dialog" aria-modal="true" aria-labelledby="confirm-reconcile-title">
+    <div id="confirm-reconcile-modal-box" class="bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90dvh] flex flex-col overflow-hidden border border-slate-200">
+      <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="text-xl shrink-0">⚡</span>
+          <h4 class="font-bold text-slate-900 text-sm truncate" id="confirm-reconcile-title">Konfirmasi Pencocokan Uang</h4>
         </div>
-        <button type="button" onclick="closeModal('confirm-reconcile-modal')" class="text-slate-400 hover:text-slate-700 cursor-pointer">
+        <button type="button" onclick="closeModal('confirm-reconcile-modal')" aria-label="Tutup dialog konfirmasi" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
-      <div class="p-4 sm:p-5 text-xs text-slate-600 space-y-3">
-        <p id="confirm-reconcile-desc">
+      <div class="p-4 sm:p-5 text-xs text-slate-600 space-y-3 overflow-y-auto overscroll-contain flex-1">
+        <p id="confirm-reconcile-desc" class="leading-relaxed">
           Apakah Anda yakin uang tunai untuk pesanan ini benar-benar sudah diterima?
         </p>
-        <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-[11px] font-medium" id="confirm-reconcile-highlight">
+        <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-[11px] font-medium leading-relaxed" id="confirm-reconcile-highlight">
           Uang akan dimasukkan ke catatan Uang Masuk Tercatat dan menambah Saldo Kas.
         </div>
       </div>
-      <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2 text-xs">
-        <button type="button" onclick="closeModal('confirm-reconcile-modal')" class="btn btn-sm btn-sub">Batal</button>
+      <div class="p-3.5 sm:p-4 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2 text-xs shrink-0">
+        <button type="button" id="confirm-reconcile-cancel-btn" onclick="closeModal('confirm-reconcile-modal')" class="btn btn-sm btn-sub">Batal</button>
         <button type="button" id="confirm-reconcile-btn" class="btn btn-sm btn-amber font-bold flex items-center gap-1.5 cursor-pointer">
           <span>Ya, Cocokkan Uang</span>
         </button>
@@ -6277,7 +6313,7 @@
 
   <!-- MODAL: PANDUAN PENGGUNAAN WEB B-ZOOGINER (8 BAB SEDERHANA) -->
   <div id="user-guide-modal" onclick="if(event.target===this) closeModal('user-guide-modal')"
-    class="modal fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden">
+    class="app-modal fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden">
     <div id="user-guide-modal-box" class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[92dvh] flex flex-col overflow-hidden border border-slate-200">
       
       <!-- Modal Header -->
@@ -11413,18 +11449,53 @@
     });
 
     // ==========================================
-    // 6. MODAL & LIGHTBOX HELPERS
+    // 6. MODAL & LIGHTBOX HELPERS (STACK MANAGER)
     // ==========================================
+    const _openModalStack = [];
+
+    function _syncScrollLockState() {
+      const anyOpen = _openModalStack.length > 0 || !!document.querySelector('[id$="-modal"]:not(.hidden)');
+      document.documentElement.classList.toggle('modal-open', anyOpen);
+      document.body.classList.toggle('modal-open', anyOpen);
+      if (window.__lenis) {
+        if (anyOpen && typeof window.__lenis.stop === 'function') window.__lenis.stop();
+        else if (!anyOpen && typeof window.__lenis.start === 'function') window.__lenis.start();
+      }
+    }
+
     function openModal(id) {
       const modal = document.getElementById(id);
+      if (!modal) return;
       const box = document.getElementById(id + '-box');
+
+      if (modal._closeTimer) {
+        clearTimeout(modal._closeTimer);
+        modal._closeTimer = null;
+      }
+
+      const idx = _openModalStack.indexOf(id);
+      if (idx !== -1) _openModalStack.splice(idx, 1);
+      let highestZ = 0;
+      _openModalStack.forEach(openId => {
+        const el = document.getElementById(openId);
+        if (el && !el.classList.contains('hidden')) {
+          const z = parseInt(getComputedStyle(el).zIndex, 10) || 100;
+          if (z > highestZ) highestZ = z;
+        }
+      });
+      const isConfirmLayer = modal.classList.contains('app-modal-confirm');
+      const baseZ = isConfirmLayer ? 120 : 100;
+      const targetZ = highestZ > 0 ? Math.max(baseZ, highestZ + 10) : baseZ;
+      modal.style.zIndex = String(targetZ);
+      _openModalStack.push(id);
+
       modal.classList.remove('hidden', 'modal-backdrop-out');
       modal.classList.add('modal-backdrop-in');
-      document.body.classList.add('modal-open');
       if (box) {
         box.classList.remove('anim-exit');
         box.classList.add('anim-enter');
       }
+      _syncScrollLockState();
     }
 
     function closeModal(id) {
@@ -11435,16 +11506,25 @@
         if (conflictBanner) conflictBanner.classList.add('hidden');
       }
       const modal = document.getElementById(id);
+      if (!modal) return;
       const box = document.getElementById(id + '-box');
+
+      const idx = _openModalStack.indexOf(id);
+      if (idx !== -1) _openModalStack.splice(idx, 1);
+
+      if (modal._closeTimer) clearTimeout(modal._closeTimer);
       modal.classList.remove('modal-backdrop-in');
       modal.classList.add('modal-backdrop-out');
       if (box) {
         box.classList.remove('anim-enter');
         box.classList.add('anim-exit');
       }
-      setTimeout(() => {
+      modal._closeTimer = setTimeout(() => {
+        modal._closeTimer = null;
         modal.classList.add('hidden');
-        if (!document.querySelector('[id$="-modal"]:not(.hidden)')) document.body.classList.remove('modal-open');
+        modal.classList.remove('modal-backdrop-out');
+        modal.style.zIndex = '';
+        _syncScrollLockState();
       }, 200);
     }
 
@@ -11673,6 +11753,9 @@
       if (e.key === 'Escape') {
         closeSwitcher();
         closeMobileNav();
+        if (_openModalStack.length > 0) {
+          closeModal(_openModalStack[_openModalStack.length - 1]);
+        }
       }
     });
 
@@ -14526,10 +14609,21 @@
       return new Date().toISOString();
     }
 
+    let _isReconcilingOrder = false;
+
     async function executeReconcileSingleOrder(orderId) {
+      if (_isReconcilingOrder) return;
       const order = orders.find(o => o.id === orderId);
       if (!order) return;
+      if (!isOrderLegacyUnreconciled(order)) {
+        closeModal('confirm-reconcile-modal');
+        renderLegacyReconciliationTable();
+        refreshAllSections();
+        showToast(`Pesanan ${order.buyerName} sudah tercatat pada pembayaran kas.`);
+        return;
+      }
       const btn = document.getElementById('confirm-reconcile-btn');
+      _isReconcilingOrder = true;
       try {
         if (btn) { btn.disabled = true; btn.textContent = 'Memproses...'; }
         const idempotencyKey = 'recon_' + order.id;
@@ -14563,18 +14657,27 @@
       } catch (err) {
         showToast(`Gagal mencocokkan pesanan: ${err.message}`, 'error');
       } finally {
+        _isReconcilingOrder = false;
         if (btn) { btn.disabled = false; btn.textContent = 'Ya, Cocokkan Uang'; }
       }
     }
 
     async function executeReconcileBatch(targetGroupId) {
+      if (_isReconcilingOrder) return;
       const btn = document.getElementById('confirm-reconcile-btn');
+      let list = getAccessibleOrders().filter(o => isOrderLegacyUnreconciled(o));
+      if (targetGroupId !== 'all') {
+        list = list.filter(o => String(o.groupId) === targetGroupId);
+      }
+      if (list.length === 0) {
+        closeModal('confirm-reconcile-modal');
+        renderLegacyReconciliationTable();
+        showToast('Tidak ada pesanan yang perlu dicocokkan pada filter ini.');
+        return;
+      }
+      _isReconcilingOrder = true;
       try {
         if (btn) { btn.disabled = true; btn.textContent = 'Memproses semua...'; }
-        let list = getAccessibleOrders().filter(o => isOrderLegacyUnreconciled(o));
-        if (targetGroupId !== 'all') {
-          list = list.filter(o => String(o.groupId) === targetGroupId);
-        }
 
         let successCount = 0;
         let totalReconciled = 0;
@@ -14612,6 +14715,7 @@
       } catch (err) {
         showToast(`Gagal mencocokkan semua pesanan: ${err.message}`, 'error');
       } finally {
+        _isReconcilingOrder = false;
         if (btn) { btn.disabled = false; btn.textContent = 'Ya, Cocokkan Uang'; }
       }
     }
